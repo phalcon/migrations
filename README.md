@@ -1,0 +1,1 @@
+# phalcon-migrations-generator
