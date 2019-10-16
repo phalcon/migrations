@@ -1,0 +1,54 @@
+<?php
+
+/*
+  +------------------------------------------------------------------------+
+  | Phalcon Framework                                                      |
+  +------------------------------------------------------------------------+
+  | Copyright (c) 2011-present Phalcon Team (http://www.phalconphp.com)    |
+  +------------------------------------------------------------------------+
+  | This source file is subject to the New BSD License that is bundled     |
+  | with this package in the file LICENSE.txt.                             |
+  |                                                                        |
+  | If you did not receive a copy of the license and are unable to         |
+  | obtain it through the world-wide-web, please send an email             |
+  | to license@phalconphp.com so we can send you a copy immediately.       |
+  +------------------------------------------------------------------------+
+  | Authors: Sergii Svyrydenko <sergey.v.sviridenko@gmail.com>             |
+  +------------------------------------------------------------------------+
+*/
+
+namespace Phalcon\Migrations\Db\Adapter\Pdo;
+
+use Phalcon\Db\Adapter\Pdo\Mysql;
+use Phalcon\Db\Dialect\Mysql as DialectMysql;
+use Phalcon\Db\ReferenceInterface;
+use Phalcon\Db\Exception;
+
+/**
+ * Phalcon\Db\Adapter\Pdo\PdoMysql
+ *
+ * @package Phalcon\Db\Adapter\Pdo
+ */
+class PdoMysql extends Mysql
+{
+    /**
+     * Generates SQL to add an index to a table if FOREIGN_KEY_CHECKS=1
+     *
+     * @param string $tableName
+     * @param string $schemaName
+     * @param ReferenceInterface $reference
+     *
+     * @throws \Phalcon\Db\Exception
+     */
+    public function addForeignKey(string $tableName, string $schemaName, ReferenceInterface $reference): bool
+    {
+        /** @var DialectMysql $dialect */
+        $dialect = $this->getDialect();
+        $foreignKeyCheck = $this->{"prepare"}($dialect->getForeignKeyChecks());
+        if (!$foreignKeyCheck->execute()) {
+            throw new Exception("DATABASE PARAMETER 'FOREIGN_KEY_CHECKS' HAS TO BE 1");
+        }
+
+        return $this->{"execute"}($dialect->addForeignKey($tableName, $schemaName, $reference));
+    }
+}
