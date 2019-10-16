@@ -17,9 +17,7 @@
   +------------------------------------------------------------------------+
 */
 
-namespace Phalcon\Console;
-
-use Phalcon\Console\OptionParserTrait;
+namespace Phalcon\Migrations\Console;
 
 /**
  * Phalcon\Console\OptionStack

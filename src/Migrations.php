@@ -34,7 +34,7 @@ use Phalcon\Db\Exception as DbException;
 use Phalcon\Mvc\Model\Exception as ModelException;
 use Phalcon\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
-use Phalcon\Console\OptionStack;
+use Phalcon\Migrations\Console\OptionStack;
 use Phalcon\Mvc\Model\Migration\TableAware\ListTablesIterator;
 use Phalcon\Mvc\Model\Migration\TableAware\ListTablesDb;
 
