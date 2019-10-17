@@ -18,7 +18,7 @@
   +------------------------------------------------------------------------+
 */
 
-namespace Phalcon\Script;
+namespace Phalcon\Migrations\Script;
 
 use Phalcon\Exception as PhalconException;
 

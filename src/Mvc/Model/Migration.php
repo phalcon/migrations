@@ -18,7 +18,7 @@
   +------------------------------------------------------------------------+
 */
 
-namespace Phalcon\Mvc\Model;
+namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoMysql;
@@ -32,6 +32,7 @@ use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
+use Phalcon\Migrations\Migrations;
 use Phalcon\Text;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;

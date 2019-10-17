@@ -17,7 +17,7 @@
   +------------------------------------------------------------------------+
 */
 
-namespace Phalcon\Mvc\Model\Migration\TableAware;
+namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
 /**
  * Phalcon\Mvc\Model\Migration\TableAware\ListTablesInterface

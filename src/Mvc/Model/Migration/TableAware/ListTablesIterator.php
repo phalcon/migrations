@@ -17,9 +17,8 @@
   +------------------------------------------------------------------------+
 */
 
-namespace Phalcon\Mvc\Model\Migration\TableAware;
+namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
-use Phalcon\Mvc\Model\Migration\TableAware\ListTablesInterface;
 use DirectoryIterator;
 use InvalidArgumentException;
 

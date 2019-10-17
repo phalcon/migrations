@@ -24,19 +24,18 @@ namespace Phalcon\Migrations;
 use Phalcon\Db\Index;
 use DirectoryIterator;
 use Phalcon\Db\Column;
-use Phalcon\Db\Adapter;
-use Phalcon\Script\Color;
+use Phalcon\Migrations\Script\Color;
 use Phalcon\Db\Adapter\AdapterInterface;
-use Phalcon\Script\ScriptException;
+use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Mvc\Model\Exception as ModelException;
-use Phalcon\Mvc\Model\Migration as ModelMigration;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Console\OptionStack;
-use Phalcon\Mvc\Model\Migration\TableAware\ListTablesIterator;
-use Phalcon\Mvc\Model\Migration\TableAware\ListTablesDb;
+use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
+use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
 
 /**
  * Migrations Class
@@ -52,7 +51,7 @@ class Migrations
 
     /**
      * Filename or db connection to store migrations log
-     * @var mixed|Adapter\Pdo
+     * @var mixed
      */
     protected static $storage;
 

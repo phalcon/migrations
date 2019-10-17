@@ -17,7 +17,7 @@
   +------------------------------------------------------------------------+
 */
 
-namespace Phalcon\Mvc\Model\Migration\TableAware;
+namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
 use InvalidArgumentException;
 use Phalcon\Mvc\Model\Migration as ModelMigration;

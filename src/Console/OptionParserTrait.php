@@ -21,7 +21,7 @@ namespace Phalcon\Migrations\Console;
 
 use Phalcon\Migrations\Version\IncrementalItem as IncrementalVersion;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
-use Phalcon\Mvc\Model\Migration as ModelMigration;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use InvalidArgumentException;
 
 /**
