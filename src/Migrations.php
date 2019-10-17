@@ -248,7 +248,7 @@ class Migrations
             $finalVersion = VersionCollection::createItem($options['version']);
         }
 
-        $optionStack->setOption('tableName', $options['tableName'], '@');
+        $optionStack->setOption('tableName', $options['tableName'] ?? null, '@');
 
 
         if (!isset($versionItems[0])) {
