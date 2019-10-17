@@ -340,7 +340,7 @@ EOD;
 use Phalcon\Db\Column;
 use Phalcon\Db\Index;
 use Phalcon\Db\Reference;
-use Phalcon\Mvc\Model\Migration;
+use Phalcon\Migrations\Mvc\Model\Migration;
 
 /**
  * Class %s
@@ -462,7 +462,7 @@ EOD;
 new Index('%s', [%s], %s)
 EOD;
 
-        return sprintf($template, $indexName, join(", ", $indexDefinition), $indexType ? "'$indexType'" : 'null');
+        return sprintf($template, $indexName, join(", ", $indexDefinition), $indexType ? "'$indexType'" : "''");
     }
 
     public function getReferenceDefinition($constraintName, $referenceDefinition)
