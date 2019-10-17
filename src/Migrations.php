@@ -21,6 +21,7 @@
 
 namespace Phalcon\Migrations;
 
+use Phalcon\Config;
 use Phalcon\Db\Index;
 use DirectoryIterator;
 use Phalcon\Db\Column;
