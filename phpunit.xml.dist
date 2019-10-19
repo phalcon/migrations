@@ -4,6 +4,7 @@
         convertErrorsToExceptions="true"
         convertNoticesToExceptions="false"
         convertWarningsToExceptions="true"
+        cacheResult="false"
         bootstrap="vendor/autoload.php"
 >
     <testsuite name="unit">
