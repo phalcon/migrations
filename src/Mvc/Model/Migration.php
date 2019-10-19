@@ -21,7 +21,7 @@
 namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
-use Phalcon\Migrations\Db\Adapter\Pdo\PdoMysql;
+use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
