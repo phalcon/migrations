@@ -16,7 +16,7 @@ jobs:
         run: curl -s https://packagecloud.io/install/repositories/phalcon/mainline/script.deb.sh | sudo bash
 
       - name: Install Phalcon
-        run: apt-get install php7.2-phalcon
+        run: sudo apt-get install php7.3-phalcon
 
       - name: Validate composer.json and composer.lock
         run: composer validate
