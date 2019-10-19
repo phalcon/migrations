@@ -21,7 +21,7 @@ jobs:
       - name: Install Phalcon
         run: sudo apt-get install php7.3-phalcon && \
              sudo bash -c "echo 'extension=psr.so' > /etc/php/7.3/mods-available/phalcon.ini" && \
-             sudo cat /etc/php/7.3/mods-available/phalcon.ini
+             cat /etc/php/7.3/mods-available/phalcon.ini
 
       - name: Validate composer.json and composer.lock
         run: composer validate
