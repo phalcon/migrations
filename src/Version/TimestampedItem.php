@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -93,7 +94,6 @@ class TimestampedItem implements ItemInterface
     {
         $this->path = $path;
     }
-
 
     /**
      * Get migrations directory of incremental item
