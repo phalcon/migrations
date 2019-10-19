@@ -31,4 +31,4 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-suggest
 
       - name: Run test suite
-        run: vendor/bin/phpunit tests/Unit/Utils/NullifyTest.php
+        run: vendor/bin/phpunit
