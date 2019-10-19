@@ -1,55 +1,29 @@
 <?php
+declare(strict_types=1);
 
-namespace Phalcon\Migrations\Test;
+namespace Phalcon\Migrations\Tests\Unit\Utils;
 
 use Phalcon\Migrations\Utils\Nullify;
-use Phalcon\Test\Module\UnitTest;
-use Helper\Utils\NullifyTrait;
+use PHPUnit\Framework\TestCase;
 
-/*
-  +------------------------------------------------------------------------+
-  | Phalcon Developer Tools                                                |
-  +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2017 Phalcon Team (https://www.phalconphp.com)      |
-  +------------------------------------------------------------------------+
-  | This source file is subject to the New BSD License that is bundled     |
-  | with this package in the file LICENSE.txt.                             |
-  |                                                                        |
-  | If you did not receive a copy of the license and are unable to         |
-  | obtain it through the world-wide-web, please send an email             |
-  | to license@phalconphp.com so we can send you a copy immediately.       |
-  +------------------------------------------------------------------------+
-  | Authors: Sergii Svyrydenko <sergey.v.sviridenko@gmail.com>             |
-  +------------------------------------------------------------------------+
-*/
-
-class NullifyTest extends UnitTest
+final class NullifyTest extends TestCase
 {
-    use NullifyTrait;
+    public function dataProvider(): array
+    {
+        return [
+            [[1, 'test', 'NULL'], [1, 'test', null]],
+            [[null, 'foo', 'bar'], [null, 'foo', 'bar']],
+            [[NULL, 'null', 'Null'], [null, null, null]],
+        ];
+    }
 
     /**
-     * Tests Nullify::__invoke
-     *
-     * @test
-     * @issue  988
-     * @author Sergii Svyrydenko <sergey.v.sviridenko@gmail.com>
-     * @since  2017-09-06
+     * @dataProvider dataProvider
+     * @covers \Phalcon\Migrations\Utils\Nullify::__invoke
      */
-    public function shouldTestInvoke()
+    public function testInvoke($actual, $expected): void
     {
-        $this->specify(
-            '',
-            function ($data, $expected) {
-                $nullify = new Nullify();
-                foreach ($data as $key => $value) {
-                    expect($nullify($value))->equals($expected[$key]);
-                }
-            },
-            [
-                'examples' => [
-                    [$this->getInvokeData(), $this->getInvokeExpected()]
-                ]
-            ]
-        );
+        $nullify = new Nullify();
+        $this->assertSame($expected, $nullify($actual));
     }
 }
