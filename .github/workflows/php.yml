@@ -22,7 +22,7 @@ jobs:
         run: sudo apt-get install php7.3-phalcon
 
       - name: Enable PHP PSR Extension
-        run: "echo 'extension=psr.so' | sudo tee -a /etc/php/7.3/mods-available/phalcon.ini && cat /etc/php/7.3/mods-available/phalcon.ini
+        run: echo 'extension=psr.so' | sudo tee -a /etc/php/7.3/mods-available/phalcon.ini && cat /etc/php/7.3/mods-available/phalcon.ini
 
       - name: Validate composer.json and composer.lock
         run: composer validate
