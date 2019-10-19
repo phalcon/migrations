@@ -9,6 +9,15 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: Show PHP Version
+        run: php -v
+
+      - name: Add Phalcon package repository
+        run: curl -s https://packagecloud.io/install/repositories/phalcon/mainline/script.deb.sh | sudo bash
+
+      - name: Install Phalcon
+        run: apt-get install php7.2-phalcon
+
       - name: Validate composer.json and composer.lock
         run: composer validate
 
