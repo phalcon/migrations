@@ -19,9 +19,10 @@ jobs:
         run: sudo apt-get install php-pear && sudo pecl install --force psr
 
       - name: Install Phalcon
-        run: sudo apt-get install php7.3-phalcon && \
-             sudo bash -c "echo 'extension=psr.so' > /etc/php/7.3/mods-available/phalcon.ini" && \
-             cat /etc/php/7.3/mods-available/phalcon.ini
+        run: sudo apt-get install php7.3-phalcon
+
+      - name: Enable PHP PSR Extension
+        run: "echo 'extension=psr.so' | sudo tee -a /etc/php/7.3/mods-available/phalcon.ini && cat /etc/php/7.3/mods-available/phalcon.ini
 
       - name: Validate composer.json and composer.lock
         run: composer validate
