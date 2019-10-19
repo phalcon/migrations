@@ -37,12 +37,12 @@ class DialectMysql extends Mysql
 
         $onDelete = $reference->getOnDelete();
         if ($onDelete) {
-            $sql .= " ON DELETE " . $onDelete;
+            $sql .= ' ON DELETE ' . $onDelete;
         }
 
         $onUpdate = $reference->getOnUpdate();
         if ($onUpdate) {
-            $sql .= " ON UPDATE " . $onUpdate;
+            $sql .= ' ON UPDATE ' . $onUpdate;
         }
 
         return $sql;
@@ -55,8 +55,6 @@ class DialectMysql extends Mysql
      */
     public function getForeignKeyChecks(): string
     {
-        $sql = 'SELECT @@foreign_key_checks';
-
-        return $sql;
+        return 'SELECT @@foreign_key_checks';
     }
 }

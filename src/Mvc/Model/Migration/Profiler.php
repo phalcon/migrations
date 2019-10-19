@@ -23,7 +23,7 @@ class Profiler extends DbProfiler
     /**
      * @param Item $profile
      */
-    public function beforeStartProfile($profile)
+    public function beforeStartProfile($profile): void
     {
         echo $profile->getInitialTime() , ': ' , str_replace([ "\n", "\t" ], " ", $profile->getSqlStatement());
     }
@@ -31,7 +31,7 @@ class Profiler extends DbProfiler
     /**
      * @param Item $profile
      */
-    public function afterEndProfile($profile)
+    public function afterEndProfile($profile): void
     {
         echo '  => ' , $profile->getFinalTime() , ' (' , ($profile->getTotalElapsedSeconds()) , ')' , PHP_EOL;
     }

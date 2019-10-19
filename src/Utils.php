@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations;
 
+use InvalidArgumentException;
 use Phalcon\Config;
 
 class Utils
@@ -27,14 +28,13 @@ class Utils
      * @param string $delimiter
      * @return string
      */
-    public static function camelize($string, $delimiter = '_')
+    public static function camelize(string $string, string $delimiter = '_')
     {
         if (empty($delimiter)) {
-            throw new \InvalidArgumentException('Please, specify the delimiter');
+            throw new InvalidArgumentException('Please, specify the delimiter');
         }
 
         $delimiterArray = str_split($delimiter);
-
         foreach ($delimiterArray as $delimiter) {
             $stringParts = explode($delimiter, $string);
             $stringParts = array_map('ucfirst', $stringParts);
@@ -59,10 +59,10 @@ class Utils
      * @param boolean $useLow
      * @return string
      */
-    public static function lowerCamelizeWithDelimiter($string, $delimiter = '', $useLow = false)
+    public static function lowerCamelizeWithDelimiter(string $string, string $delimiter = '', bool $useLow = false)
     {
         if (empty($string)) {
-            throw new \InvalidArgumentException('Please, specify the string');
+            throw new InvalidArgumentException('Please, specify the string');
         }
 
         if (!empty($delimiter)) {
@@ -89,7 +89,7 @@ class Utils
      * @param string $string
      * @return string
      */
-    public static function lowerCamelize($string)
+    public static function lowerCamelize(string $string): string
     {
         return lcfirst(self::camelize($string));
     }
@@ -100,7 +100,7 @@ class Utils
      * @param Config $config
      * @return null|string
      */
-    public static function resolveDbSchema(Config $config)
+    public static function resolveDbSchema(Config $config): ?string
     {
         if ($config->offsetExists('schema')) {
             return $config->get('schema');

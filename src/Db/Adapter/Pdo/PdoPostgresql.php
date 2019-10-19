@@ -25,7 +25,6 @@ class PdoPostgresql extends Postgresql
      * @param string $table
      * @param string $schema
      * @return ReferenceInterface[]
-     *
      */
     public function describeReferences(string $table, string $schema = null): array
     {
@@ -42,37 +41,36 @@ class PdoPostgresql extends Postgresql
                 $columns           = [];
                 $referencedColumns = [];
             } else {
-                $referencedSchema  = $references[$constraintName]["referencedSchema"];
-                $referencedTable   = $references[$constraintName]["referencedTable"];
-                $columns           = $references[$constraintName]["columns"];
-                $referencedColumns = $references[$constraintName]["referencedColumns"];
-                $referenceUpdate   = $references[$constraintName]["onUpdate"];
-                $referenceDelete   = $references[$constraintName]["onDelete"];
+                $referencedSchema  = $references[$constraintName]['referencedSchema'];
+                $referencedTable   = $references[$constraintName]['referencedTable'];
+                $columns           = $references[$constraintName]['columns'];
+                $referencedColumns = $references[$constraintName]['referencedColumns'];
+                $referenceUpdate   = $references[$constraintName]['onUpdate'];
+                $referenceDelete   = $references[$constraintName]['onDelete'];
             }
 
             $columns[] = $reference[1];
             $referencedColumns[] = $reference[5];
 
             $references[$constraintName] = [
-                "referencedSchema"  => $referencedSchema,
-                "referencedTable"   => $referencedTable,
-                "columns"           => $columns,
-                "referencedColumns" => $referencedColumns,
-                "onUpdate"          => $referenceUpdate,
-                "onDelete"          => $referenceDelete
+                'referencedSchema'  => $referencedSchema,
+                'referencedTable'   => $referencedTable,
+                'columns'           => $columns,
+                'referencedColumns' => $referencedColumns,
+                'onUpdate'          => $referenceUpdate,
+                'onDelete'          => $referenceDelete
             ];
         }
 
         $referenceObjects = [];
-
         foreach ($references as $name => $arrayReference) {
             $referenceObjects[$name] = new Reference($name, [
-                "referencedSchema"  => $arrayReference["referencedSchema"],
-                "referencedTable"   => $arrayReference["referencedTable"],
-                "columns"           => $arrayReference["columns"],
-                "referencedColumns" => $arrayReference["referencedColumns"],
-                "onUpdate"          => $arrayReference["onUpdate"],
-                "onDelete"          => $arrayReference["onDelete"]
+                'referencedSchema'  => $arrayReference['referencedSchema'],
+                'referencedTable'   => $arrayReference['referencedTable'],
+                'columns'           => $arrayReference['columns'],
+                'referencedColumns' => $arrayReference['referencedColumns'],
+                'onUpdate'          => $arrayReference['onUpdate'],
+                'onDelete'          => $arrayReference['onDelete'],
             ]);
         }
 

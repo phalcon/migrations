@@ -23,5 +23,5 @@ interface ListTablesInterface
      * @param DirectoryIterator $iterator
      * @return string
      */
-    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null);
+    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null): string;
 }

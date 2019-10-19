@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Version;
 
+use InvalidArgumentException;
+
 /**
  * The version prefixed by timestamp value
  */
@@ -22,57 +24,47 @@ class TimestampedItem implements ItemInterface
     /**
      * @var string
      */
-    private $path;
-
-    /**
-     * @var string
-     */
     protected $version;
-
+    
     /**
      * @var boolean
      */
     protected $isFullVersion;
-
+    
     /**
      * @var array
      */
     protected $parts = [];
+    
+    /**
+     * @var string
+     */
+    private $path;
 
     /**
      * @param string $version String representation of the version
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function __construct($version)
+    public function __construct(string $version)
     {
         if ((1 !== preg_match('#^[\d]{7,}(?:\_[a-z0-9]+)*$#', $version)) && $version != '000') {
-            throw new \InvalidArgumentException('Wrong version number provided');
+            throw new InvalidArgumentException('Wrong version number provided');
         }
+
         $this->version = $version;
-
-        $this->parts         = explode('_', $version);
+        $this->parts = explode('_', $version);
         $this->isFullVersion = isset($this->parts[1]);
-    }
-
-    /**
-     * Full version has both parts: number and description
-     *
-     * @return bool
-     */
-    public function isFullVersion()
-    {
-        return !!$this->isFullVersion;
     }
 
     /**
      * Get integer payload of the version
      *
-     * @return integer
+     * @return int
      */
-    public function getStamp()
+    public function getStamp(): int
     {
-        return (int) $this->parts[0];
+        return (int)$this->parts[0];
     }
 
     /**
@@ -80,19 +72,19 @@ class TimestampedItem implements ItemInterface
      *
      * @return string
      */
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->isFullVersion() ? $this->parts[1] : '';
     }
 
     /**
-     * Set migrations directory of incremental item
+     * Full version has both parts: number and description
      *
-     * @param string $path
+     * @return bool
      */
-    public function setPath($path)
+    public function isFullVersion(): bool
     {
-        $this->path = $path;
+        return !!$this->isFullVersion;
     }
 
     /**
@@ -100,8 +92,18 @@ class TimestampedItem implements ItemInterface
      *
      * @return string
      */
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * Set migrations directory of incremental item
+     *
+     * @param string $path
+     */
+    public function setPath(string $path): void
+    {
+        $this->path = $path;
     }
 }

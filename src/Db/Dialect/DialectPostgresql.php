@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Db\Dialect;
 
 use Phalcon\Db\Dialect\Postgresql;
-use Phalcon\Db\ReferenceInterface;
 
 class DialectPostgresql extends Postgresql
 {

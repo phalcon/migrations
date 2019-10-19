@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console;
 
+use InvalidArgumentException;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Version\IncrementalItem as IncrementalVersion;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
-use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
-use InvalidArgumentException;
 
 /**
  * Parsing CLI options
@@ -25,9 +25,8 @@ trait OptionParserTrait
     /**
      * Get prefix from the option
      *
-     * @param  string $prefix
-     * @param  mixed $prefixEnd
-     *
+     * @param string $prefix
+     * @param mixed $prefixEnd
      * @return mixed
      */
     public function getPrefixOption($prefix, $prefixEnd = '*')

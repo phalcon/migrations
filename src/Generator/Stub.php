@@ -97,7 +97,7 @@ class Stub
      * @param  ReflectionClass $reflectionClass
      * @return string
      */
-    protected function exportNamespace(ReflectionClass $reflectionClass)
+    protected function exportNamespace(ReflectionClass $reflectionClass): string
     {
         return 'namespace ' . $reflectionClass->getNamespaceName() . ";\n\n";
     }
@@ -106,7 +106,7 @@ class Stub
      * @param  ReflectionClass $reflectionClass
      * @return string
      */
-    protected function exportDefinition(ReflectionClass $reflectionClass)
+    protected function exportDefinition(ReflectionClass $reflectionClass): string
     {
         $definition = [$this->removeNamespace($reflectionClass)];
 
@@ -143,7 +143,7 @@ class Stub
      * @param  ReflectionClass $reflectionClass
      * @return string
      */
-    protected function removeNamespace(ReflectionClass $reflectionClass)
+    protected function removeNamespace(ReflectionClass $reflectionClass): string
     {
         $class = str_replace($reflectionClass->getNamespaceName(), '', $reflectionClass->getName());
 
@@ -154,7 +154,7 @@ class Stub
      * @param  ReflectionClass $reflectionClass
      * @return null|string
      */
-    protected function exportClassConstants(ReflectionClass $reflectionClass)
+    protected function exportClassConstants(ReflectionClass $reflectionClass): ?string
     {
         $constants = $reflectionClass->getConstants();
         $all = [];
@@ -176,7 +176,7 @@ class Stub
      * @param  ReflectionClass $reflectionClass
      * @return null|string
      */
-    protected function exportClassProperties(ReflectionClass $reflectionClass)
+    protected function exportClassProperties(ReflectionClass $reflectionClass): ?string
     {
         $properties = $reflectionClass->getProperties();
 
@@ -220,7 +220,7 @@ class Stub
      * @return null|string
      * @throws ReflectionException
      */
-    protected function exportClassMethods(ReflectionClass $reflectionClass)
+    protected function exportClassMethods(ReflectionClass $reflectionClass): ?string
     {
         $methods = $reflectionClass->getMethods();
 
@@ -297,7 +297,7 @@ class Stub
     /**
      * @param string $dir
      */
-    protected function cleanup($dir)
+    protected function cleanup($dir): void
     {
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($dir),

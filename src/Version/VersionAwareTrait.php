@@ -22,7 +22,7 @@ trait VersionAwareTrait
      *
      * @return string
      */
-    public function getVersion()
+    public function getVersion(): string
     {
         return $this->version;
     }
@@ -32,7 +32,7 @@ trait VersionAwareTrait
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getVersion();
     }

@@ -12,12 +12,13 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Generator;
 
-use Phalcon\Migrations\Utils;
+use Phalcon\Db\ColumnInterface;
 use Phalcon\Migrations\Options\OptionsAware as ModelOption;
+use Phalcon\Migrations\Utils;
 
 class Snippet
 {
-    public function getSetter($originalFieldName, $fieldName, $type, $setterName)
+    public function getSetter($originalFieldName, $fieldName, $type, $setterName): string
     {
         $templateSetter = <<<EOD
     /**
@@ -36,7 +37,7 @@ EOD;
         return PHP_EOL.sprintf($templateSetter, $originalFieldName, $type, $fieldName, $setterName, $fieldName, $fieldName, $fieldName).PHP_EOL;
     }
 
-    public function getValidateInclusion($fieldName, $varItems)
+    public function getValidateInclusion($fieldName, $varItems): string
     {
         $templateValidateInclusion = <<<EOD
         \$this->validate(
@@ -52,7 +53,7 @@ EOD;
         return PHP_EOL.sprintf($templateValidateInclusion, $fieldName, $varItems).PHP_EOL;
     }
 
-    public function getValidationsMethod(array $pieces)
+    public function getValidationsMethod(array $pieces): string
     {
         $templateValidations = <<<EOD
     /**
@@ -74,7 +75,7 @@ EOD;
      * @param ModelOption $modelOptions
      * @return string
      */
-    public function getClass($namespace, $useDefinition, $classDoc = '', $abstract = '', $modelOptions, $extends = '', $content, $license = '')
+    public function getClass($namespace, $useDefinition, $classDoc = '', $abstract = '', $modelOptions, $extends = '', $content, $license = ''): string
     {
         $templateCode = <<<EOD
 <?php
@@ -97,7 +98,7 @@ EOD;
         .PHP_EOL;
     }
 
-    public function getClassDoc($className, $namespace = '')
+    public function getClassDoc($className, $namespace = ''): string
     {
         if (!empty($namespace)) {
             $namespace = str_replace('namespace ', '', $namespace);
@@ -118,7 +119,7 @@ EOD;
         return sprintf($classDoc, $className, $namespace, date('Y-m-d, H:i:s')).PHP_EOL;
     }
 
-    public function getValidateEmail($fieldName)
+    public function getValidateEmail($fieldName): string
     {
         $templateValidateEmail = <<<EOD
         \$validator->add(
@@ -134,7 +135,7 @@ EOD;
         return sprintf($templateValidateEmail, $fieldName).PHP_EOL.PHP_EOL;
     }
 
-    public function getValidationEnd()
+    public function getValidationEnd(): string
     {
         $templateValidationFailed = <<<EOD
         return \$this->validate(\$validator);
@@ -142,7 +143,7 @@ EOD;
         return $templateValidationFailed;
     }
 
-    public function getAttributes($type, $visibility, \Phalcon\Db\ColumnInterface $field, $annotate = false, $customFieldName = null)
+    public function getAttributes($type, $visibility, ColumnInterface $field, $annotate = false, $customFieldName = null): string
     {
         $fieldName = $customFieldName ?: $field->getName();
 
@@ -177,7 +178,7 @@ EOD;
         }
     }
 
-    public function getGetterMap($fieldName, $type, $setterName, $typeMap)
+    public function getGetterMap($fieldName, $type, $setterName, $typeMap): string
     {
         $templateGetterMap = <<<EOD
     /**
@@ -197,7 +198,7 @@ EOD;
         return PHP_EOL.sprintf($templateGetterMap, $fieldName, $type, $setterName, $fieldName, $typeMap, $fieldName).PHP_EOL;
     }
 
-    public function getGetter($fieldName, $type, $getterName)
+    public function getGetter($fieldName, $type, $getterName): string
     {
         $templateGetter = <<<EOD
     /**
@@ -213,7 +214,7 @@ EOD;
         return PHP_EOL.sprintf($templateGetter, $fieldName, $type, $getterName, $fieldName).PHP_EOL;
     }
 
-    public function getInitialize(array $pieces)
+    public function getInitialize(array $pieces): string
     {
         $templateInitialize = <<<EOD
     /**
@@ -227,7 +228,7 @@ EOD;
         return PHP_EOL.sprintf($templateInitialize, rtrim(join('', $pieces))).PHP_EOL;
     }
 
-    public function getModelFind($className)
+    public function getModelFind($className): string
     {
         $templateFind = <<<EOD
     /**
@@ -244,7 +245,7 @@ EOD;
         return PHP_EOL.sprintf($templateFind, $className, $className).PHP_EOL;
     }
 
-    public function getModelFindFirst($className)
+    public function getModelFindFirst($className): string
     {
         $templateFind = <<<EOD
     /**
@@ -267,7 +268,7 @@ EOD;
      * @param  array  $options
      * @return string PHP syntax
      */
-    public function getRelationOptions(array $options = null)
+    public function getRelationOptions(array $options = null): string
     {
         if (empty($options)) {
             return 'NULL';
@@ -290,11 +291,11 @@ EOD;
     }
 
     /**
-     * @param \Phalcon\Db\ColumnInterface[] $fields
+     * @param ColumnInterface[] $fields
      * @param bool                 $camelize
      * @return string
      */
-    public function getColumnMap($fields, $camelize = false)
+    public function getColumnMap($fields, $camelize = false): string
     {
         $template = <<<EOD
     /**
@@ -320,7 +321,7 @@ EOD;
         return PHP_EOL.sprintf($template, join(",\n            ", $contents)).PHP_EOL;
     }
 
-    public function getMigrationMorph($className, $table, $tableDefinition)
+    public function getMigrationMorph($className, $table, $tableDefinition): string
     {
         $template = <<<EOD
 use Phalcon\Db\Column;
@@ -346,7 +347,7 @@ EOD;
         return sprintf($template, $className, $className, $table, $this->getMigrationDefinition('columns', $tableDefinition));
     }
 
-    public function getMigrationUp()
+    public function getMigrationUp(): string
     {
         $template = <<<EOD
 
@@ -362,7 +363,7 @@ EOD;
         return $template;
     }
 
-    public function getMigrationDown()
+    public function getMigrationDown(): string
     {
         $template = <<<EOD
 
@@ -378,7 +379,7 @@ EOD;
         return $template;
     }
 
-    public function getMigrationBatchInsert($table, $allFields)
+    public function getMigrationBatchInsert($table, $allFields): string
     {
         $template = <<<EOD
         \$this->batchInsert('%s', [
@@ -389,7 +390,7 @@ EOD;
         return sprintf($template, $table, join(",\n                ", $allFields));
     }
 
-    public function getMigrationAfterCreateTable($table, $allFields)
+    public function getMigrationAfterCreateTable($table, $allFields): string
     {
         $template = <<<EOD
 
@@ -409,7 +410,7 @@ EOD;
         return sprintf($template, $table, join(",\n                ", $allFields));
     }
 
-    public function getMigrationBatchDelete($table)
+    public function getMigrationBatchDelete($table): string
     {
         $template = <<<EOD
         \$this->batchDelete('%s');
@@ -417,7 +418,7 @@ EOD;
         return sprintf($template, $table);
     }
 
-    public function getMigrationDefinition($name, $definition)
+    public function getMigrationDefinition($name, $definition): string
     {
         $template = <<<EOD
                 '%s' => [
@@ -428,7 +429,7 @@ EOD;
         return sprintf($template, $name, join(",\n                    ", $definition));
     }
 
-    public function getColumnDefinition($field, $fieldDefinition)
+    public function getColumnDefinition($field, $fieldDefinition): string
     {
         $template = <<<EOD
 new Column(
@@ -442,7 +443,7 @@ EOD;
         return sprintf($template, $field, join(",\n                            ", $fieldDefinition));
     }
 
-    public function getIndexDefinition($indexName, $indexDefinition, $indexType = null)
+    public function getIndexDefinition($indexName, $indexDefinition, $indexType = null): string
     {
         $template = <<<EOD
 new Index('%s', [%s], %s)
@@ -451,7 +452,7 @@ EOD;
         return sprintf($template, $indexName, join(", ", $indexDefinition), $indexType ? "'$indexType'" : "''");
     }
 
-    public function getReferenceDefinition($constraintName, $referenceDefinition)
+    public function getReferenceDefinition($constraintName, $referenceDefinition): string
     {
         $template = <<<EOD
 new Reference(
@@ -465,28 +466,28 @@ EOD;
         return sprintf($template, $constraintName, join(",\n                            ", $referenceDefinition));
     }
 
-    public function getUse($class)
+    public function getUse($class): string
     {
         $templateUse = 'use %s;';
 
         return sprintf($templateUse, $class);
     }
 
-    public function getUseAs($class, $alias)
+    public function getUseAs($class, $alias): string
     {
         $templateUseAs = 'use %s as %s;';
 
         return sprintf($templateUseAs, $class, $alias);
     }
 
-    public function getThisMethod($method, $params)
+    public function getThisMethod($method, $params): string
     {
         $templateThis = "        \$this->%s(%s);" . PHP_EOL;
 
         return sprintf($templateThis, $method, '"' . $params . '"');
     }
 
-    public function getRelation($relation, $column1, $entity, $column2, $alias)
+    public function getRelation($relation, $column1, $entity, $column2, $alias): string
     {
         $templateRelation = "        \$this->%s('%s', '%s', '%s', %s);" . PHP_EOL;
 

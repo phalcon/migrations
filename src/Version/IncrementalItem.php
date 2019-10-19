@@ -30,7 +30,7 @@ class IncrementalItem implements ItemInterface
     private $version;
 
     /**
-     * @var int | string
+     * @var int|string
      */
     private $versionStamp = 0;
 
@@ -41,9 +41,9 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param string $version
-     * @param int    $numberParts
+     * @param int $numberParts
      */
-    public function __construct($version, $numberParts = 3)
+    public function __construct(string $version, int $numberParts = 3)
     {
         $version = trim($version);
         $this->parts = explode('.', $version);
@@ -52,12 +52,12 @@ class IncrementalItem implements ItemInterface
         if ($nParts < $numberParts) {
             for ($i = $numberParts; $i >= $nParts; $i--) {
                 $this->parts[] = '0';
-                $version.='.0';
+                $version .= '.0';
             }
         } elseif ($nParts > $numberParts) {
             for ($i = $nParts; $i <= $numberParts; $i++) {
-                if (isset($this->parts[$i-1])) {
-                    unset($this->parts[$i-1]);
+                if (isset($this->parts[$i - 1])) {
+                    unset($this->parts[$i - 1]);
                 }
             }
 
@@ -71,23 +71,21 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
-     *
-     * @return array ItemInterface[]
+     * @return null|IncrementalItem
      */
-    public static function sortAsc($versions)
+    public static function maximum($versions)
     {
-        $sortData = [];
-        foreach ($versions as $version) {
-            $sortData[$version->getStamp()] = $version;
+        if (count($versions) == 0) {
+            return null;
         }
-        ksort($sortData);
 
-        return array_values($sortData);
+        $versions = self::sortDesc($versions);
+
+        return $versions[0];
     }
 
     /**
      * @param ItemInterface[] $versions
-     *
      * @return array
      */
     public static function sortDesc($versions)
@@ -102,27 +100,11 @@ class IncrementalItem implements ItemInterface
     }
 
     /**
-     * @param ItemInterface[] $versions
-     *
-     * @return null | IncrementalItem
-     */
-    public static function maximum($versions)
-    {
-        if (count($versions) == 0) {
-            return null;
-        }
-
-        $versions = self::sortDesc($versions);
-
-        return $versions[0];
-    }
-
-    /**
      * Allows to check whether a version is in a range between two values.
      *
-     * @param  IncrementalItem | string $initialVersion
-     * @param  IncrementalItem | string $finalVersion
-     * @param  ItemInterface[] $versions
+     * @param IncrementalItem|string $initialVersion
+     * @param IncrementalItem|string $finalVersion
+     * @param ItemInterface[] $versions
      * @return ItemInterface[]
      */
     public static function between($initialVersion, $finalVersion, $versions)
@@ -157,13 +139,28 @@ class IncrementalItem implements ItemInterface
             }
         }
 
-        return $betweenVersions ;
+        return $betweenVersions;
     }
 
     /**
-     * @return int | string
+     * @param ItemInterface[] $versions
+     * @return array ItemInterface[]
      */
-    public function getStamp()
+    public static function sortAsc($versions)
+    {
+        $sortData = [];
+        foreach ($versions as $version) {
+            $sortData[$version->getStamp()] = $version;
+        }
+        ksort($sortData);
+
+        return array_values($sortData);
+    }
+
+    /**
+     * @return int
+     */
+    public function getStamp(): int
     {
         return $this->versionStamp;
     }
@@ -197,30 +194,32 @@ class IncrementalItem implements ItemInterface
     /**
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->version;
     }
 
-    public function getVersion()
+    public function getVersion(): string
     {
         return $this->version;
     }
+
     /**
      * Get migrations directory of incremental item
      *
      * @return string
      */
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
+
     /**
      * Set migrations directory of incremental item
      *
      * @param string $path
      */
-    public function setPath($path)
+    public function setPath($path): void
     {
         $this->path = $path;
     }

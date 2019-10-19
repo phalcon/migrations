@@ -27,7 +27,7 @@ class ListTablesDb implements ListTablesInterface
      * @return string
      * @throws DbException
      */
-    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null)
+    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null): string
     {
         if (empty($tablePrefix)) {
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);

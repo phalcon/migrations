@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Version;
 
+use LogicException;
+
 /**
  * The item collection lets you to work with an abstract ItemInterface.
  */
@@ -50,7 +52,6 @@ class ItemCollection
      * Create new version item
      *
      * @param null|string $version
-     *
      * @return IncrementalItem|TimestampedItem
      */
     public static function createItem($version = null)
@@ -65,17 +66,16 @@ class ItemCollection
             return new TimestampedItem($version);
         }
 
-        throw new \LogicException('Could not create an item of unknown type.');
+        throw new LogicException('Could not create an item of unknown type.');
     }
 
     /**
      * Check if provided version is correct
      *
      * @param string $version
-     *
      * @return bool
      */
-    public static function isCorrectVersion($version)
+    public static function isCorrectVersion($version): bool
     {
         if (self::TYPE_INCREMENTAL === self::$type) {
             return 1 === preg_match('#[0-9]+(\.[z0-9]+)+#', $version);
@@ -87,31 +87,29 @@ class ItemCollection
     }
 
     /**
-     * Sort items in the ascending order
+     * Get the maximum value from the list of version items
      *
-     * @param ItemInterface[] $versions
-     *
-     * @return ItemInterface[]
+     * @param array $versions
+     * @return null|ItemInterface|IncrementalItem
      */
-    public static function sortAsc(array $versions)
+    public static function maximum(array $versions)
     {
-        $sortData = array();
-        foreach ($versions as $version) {
-            $sortData[$version->getStamp()] = $version;
+        if (count($versions) == 0) {
+            return null;
         }
-        ksort($sortData);
+        
+        $versions = self::sortDesc($versions);
 
-        return array_values($sortData);
+        return $versions[0];
     }
 
     /**
      * Sort items in the descending order
      *
      * @param ItemInterface[] $versions
-     *
      * @return ItemInterface[]
      */
-    public static function sortDesc(array $versions)
+    public static function sortDesc(array $versions): array
     {
         $sortData = array();
         foreach ($versions as $version) {
@@ -123,32 +121,14 @@ class ItemCollection
     }
 
     /**
-     * Get the maximum value from the list of version items
-     *
-     * @param array $versions
-     *
-     * @return null | ItemInterface | IncrementalItem
-     */
-    public static function maximum(array $versions)
-    {
-        if (count($versions) == 0) {
-            return null;
-        }
-        $versions = self::sortDesc($versions);
-
-        return $versions[0];
-    }
-
-    /**
      * Get all the versions between two limitary version items
      *
-     * @param ItemInterface   $initialVersion
-     * @param ItemInterface   $finalVersion
+     * @param ItemInterface $initialVersion
+     * @param ItemInterface $finalVersion
      * @param ItemInterface[] $versions
-     *
-     * @return ItemInterface[] | array
+     * @return ItemInterface[]|array
      */
-    public static function between(ItemInterface $initialVersion, ItemInterface $finalVersion, array $versions)
+    public static function between(ItemInterface $initialVersion, ItemInterface $finalVersion, array $versions): array
     {
         $versions = self::sortAsc($versions);
 
@@ -173,5 +153,22 @@ class ItemCollection
         }
 
         return $betweenVersions;
+    }
+
+    /**
+     * Sort items in the ascending order
+     *
+     * @param ItemInterface[] $versions
+     * @return ItemInterface[]
+     */
+    public static function sortAsc(array $versions): array
+    {
+        $sortData = array();
+        foreach ($versions as $version) {
+            $sortData[$version->getStamp()] = $version;
+        }
+        ksort($sortData);
+
+        return array_values($sortData);
     }
 }

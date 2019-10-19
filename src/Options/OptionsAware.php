@@ -94,7 +94,7 @@ class OptionsAware implements FactoryOptions
      *
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
@@ -104,7 +104,6 @@ class OptionsAware implements FactoryOptions
      *
      * @param mixed $key
      * @throw InvalidArgumentException
-     *
      * @return mixed
      */
     public function getOption($key)
@@ -120,7 +119,6 @@ class OptionsAware implements FactoryOptions
      * Check whether option container has value with this key
      *
      * @param mixed $key
-     *
      * @return mixed
      */
     public function hasOption($key)
@@ -133,7 +131,6 @@ class OptionsAware implements FactoryOptions
      *
      * @param mixed $key
      * @param mixed $defaultOption
-     *
      * @return mixed
      */
     public function getValidOptionOrDefault($key, $defaultOption = '')

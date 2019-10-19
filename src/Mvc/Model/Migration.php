@@ -13,25 +13,28 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
+use Exception;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
-use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Db\Column;
-use Phalcon\Migrations\Db\Dialect\DialectMysql;
-use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
+use Phalcon\Db\Index;
+use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
+use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
+use Phalcon\Migrations\Db\Dialect\DialectMysql;
+use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migrations;
-use Phalcon\Text;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
+use Phalcon\Text;
 
 /**
  * Migrations of DML y DDL over databases
@@ -50,28 +53,28 @@ class Migration
 
     /**
      * Migration database connection
-     * 
+     *
      * @var AbstractAdapter
      */
     protected static $connection;
 
     /**
      * Database configuration
-     * 
+     *
      * @var Config
      */
     private static $databaseConfig;
 
     /**
      * Path where to save the migration
-     * 
+     *
      * @var string
      */
     private static $migrationPath = null;
 
     /**
      * Skip auto increment
-     * 
+     *
      * @var bool
      */
     private static $skipAI = false;
@@ -85,14 +88,14 @@ class Migration
 
     /**
      * Prepares component
-     * 
-     * @since 3.2.1 Using Postgresql::describeReferences and DialectPostgresql dialect class
      *
      * @param Config $database Database config
      * @param bool $verbose array with settings
      * @throws DbException
+     * @since 3.2.1 Using Postgresql::describeReferences and DialectPostgresql dialect class
+     *
      */
-    public static function setup($database, $verbose = false)
+    public static function setup($database, $verbose = false): void
     {
         if (!isset($database->adapter)) {
             throw new DbException('Unspecified database Adapter in your configuration!');
@@ -108,7 +111,7 @@ class Migration
         } elseif ($database->adapter == 'Postgresql') {
             $adapter = PdoPostgresql::class;
         } else {
-            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\'.$database->adapter;
+            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
         }
 
         if (!class_exists($adapter)) {
@@ -149,7 +152,7 @@ class Migration
      *
      * @param bool $skip
      */
-    public static function setSkipAutoIncrement($skip)
+    public static function setSkipAutoIncrement($skip): void
     {
         self::$skipAI = $skip;
     }
@@ -159,20 +162,21 @@ class Migration
      *
      * @param string $path
      */
-    public static function setMigrationPath($path)
+    public static function setMigrationPath($path): void
     {
-        self::$migrationPath = rtrim($path, '\\/').DIRECTORY_SEPARATOR;
+        self::$migrationPath = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
     }
 
     /**
      * Generates all the class migration definitions for certain database setup
      *
-     * @param  ItemInterface $version
-     * @param  string        $exportData
-     *
+     * @param ItemInterface $version
+     * @param string $exportData
+     * @param null $exportDataFromTables
      * @return array
+     * @throws DbException
      */
-    public static function generateAll(ItemInterface $version, $exportData = null, $exportDataFromTables = null)
+    public static function generateAll(ItemInterface $version, $exportData = null, $exportDataFromTables = null): array
     {
         $classDefinition = [];
         $schema = Utils::resolveDbSchema(self::$databaseConfig);
@@ -185,36 +189,21 @@ class Migration
     }
 
     /**
-     * Returns database name
-     *
-     * @return mixed
-     */
-    public static function getDbName()
-    {
-        return self::$databaseConfig->get('dbname');
-    }
-
-    public static function shouldExportDataFromTable($table, $exportDataFromTables)
-    {
-        return in_array($table, $exportDataFromTables);
-    }
-
-    /**
      * Generate specified table migration
      *
      * @param ItemInterface $version
-     * @param string        $table
-     * @param mixed         $exportData
-     *
+     * @param string $table
+     * @param mixed $exportData
+     * @param null $exportDataFromTables
      * @return string
-     * @throws DbException
+     * @throws UnknownColumnTypeException
      */
     public static function generate(
         ItemInterface $version,
         $table,
         $exportData = null,
         $exportDataFromTables = null
-    ) {
+    ): string {
         $oldColumn = null;
         $allFields = [];
         $numericFields = [];
@@ -225,7 +214,7 @@ class Migration
         $description = self::$connection->describeColumns($table, $defaultSchema);
 
         foreach ($description as $field) {
-            /** @var \Phalcon\Db\ReferenceInterface $field */
+            /** @var ReferenceInterface $field */
             $fieldDefinition = [];
             switch ($field->getType()) {
                 case Column::TYPE_INTEGER:
@@ -314,34 +303,34 @@ class Migration
                 // nothing
             } else {
                 if ($field->getSize()) {
-                    $fieldDefinition[] = "'size' => ".$field->getSize();
+                    $fieldDefinition[] = "'size' => " . $field->getSize();
                 } else {
                     $fieldDefinition[] = "'size' => 1";
                 }
             }
 
             if ($field->getScale()) {
-                $fieldDefinition[] = "'scale' => ".$field->getScale();
+                $fieldDefinition[] = "'scale' => " . $field->getScale();
             }
 
             if ($oldColumn != null) {
-                $fieldDefinition[] = "'after' => '".$oldColumn."'";
+                $fieldDefinition[] = "'after' => '" . $oldColumn . "'";
             } else {
                 $fieldDefinition[] = "'first' => true";
             }
 
             $oldColumn = $field->getName();
             $tableDefinition[] = $snippet->getColumnDefinition($field->getName(), $fieldDefinition);
-            $allFields[] = "'".$field->getName()."'";
+            $allFields[] = "'" . $field->getName() . "'";
         }
 
         $indexesDefinition = [];
         $indexes = self::$connection->describeIndexes($table, $defaultSchema);
         foreach ($indexes as $indexName => $dbIndex) {
-            /** @var \Phalcon\Db\Index $dbIndex */
+            /** @var Index $dbIndex */
             $indexDefinition = [];
             foreach ($dbIndex->getColumns() as $indexColumn) {
-                $indexDefinition[] = "'".$indexColumn."'";
+                $indexDefinition[] = "'" . $indexColumn . "'";
             }
             $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $indexDefinition, $dbIndex->getType());
         }
@@ -351,21 +340,21 @@ class Migration
         foreach ($references as $constraintName => $dbReference) {
             $columns = [];
             foreach ($dbReference->getColumns() as $column) {
-                $columns[] = "'".$column."'";
+                $columns[] = "'" . $column . "'";
             }
 
             $referencedColumns = [];
             foreach ($dbReference->getReferencedColumns() as $referencedColumn) {
-                $referencedColumns[] = "'".$referencedColumn."'";
+                $referencedColumns[] = "'" . $referencedColumn . "'";
             }
 
             $referenceDefinition = [];
-            $referenceDefinition[] = "'referencedTable' => '".$dbReference->getReferencedTable()."'";
-            $referenceDefinition[] = "'referencedSchema' => '".$dbReference->getReferencedSchema()."'";
-            $referenceDefinition[] = "'columns' => [".join(",", array_unique($columns))."]";
-            $referenceDefinition[] = "'referencedColumns' => [".join(",", array_unique($referencedColumns))."]";
-            $referenceDefinition[] = "'onUpdate' => '".$dbReference->getOnUpdate()."'";
-            $referenceDefinition[] = "'onDelete' => '".$dbReference->getOnDelete()."'";
+            $referenceDefinition[] = "'referencedTable' => '" . $dbReference->getReferencedTable() . "'";
+            $referenceDefinition[] = "'referencedSchema' => '" . $dbReference->getReferencedSchema() . "'";
+            $referenceDefinition[] = "'columns' => [" . join(",", array_unique($columns)) . "]";
+            $referenceDefinition[] = "'referencedColumns' => [" . join(",", array_unique($referencedColumns)) . "]";
+            $referenceDefinition[] = "'onUpdate' => '" . $dbReference->getOnUpdate() . "'";
+            $referenceDefinition[] = "'onDelete' => '" . $dbReference->getOnDelete() . "'";
 
             $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, $referenceDefinition);
         }
@@ -376,11 +365,12 @@ class Migration
             if (self::$skipAI && strtoupper($optionName) == "AUTO_INCREMENT") {
                 $optionValue = '';
             }
-            $optionsDefinition[] = "'".strtoupper($optionName)."' => '".$optionValue."'";
+
+            $optionsDefinition[] = "'" . strtoupper($optionName) . "' => '" . $optionValue . "'";
         }
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
-        $className = Text::camelize($table).'Migration_'.$classVersion;
+        $className = Text::camelize($table) . 'Migration_' . $classVersion;
 
         // morph()
         $classData = $snippet->getMigrationMorph($className, $table, $tableDefinition);
@@ -430,7 +420,7 @@ class Migration
             $exportData == 'oncreate' ||
             self::shouldExportDataFromTable($table, $exportDataFromTables)) {
             $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
-            $cursor = self::$connection->query('SELECT * FROM '. self::$connection->escapeIdentifier($table));
+            $cursor = self::$connection->query('SELECT * FROM ' . self::$connection->escapeIdentifier($table));
             $cursor->setFetchMode(Enum::FETCH_ASSOC);
             while ($row = $cursor->fetchArray()) {
                 $data = [];
@@ -459,11 +449,26 @@ class Migration
         return $classData;
     }
 
+    public static function shouldExportDataFromTable($table, $exportDataFromTables): bool
+    {
+        return in_array($table, $exportDataFromTables);
+    }
+
+    /**
+     * Returns database name
+     *
+     * @return mixed
+     */
+    public static function getDbName()
+    {
+        return self::$databaseConfig->get('dbname');
+    }
+
     /**
      * Migrate
      * @param \Phalcon\Version\IncrementalItem|\Phalcon\Version\TimestampedItem $fromVersion
      * @param \Phalcon\Version\IncrementalItem|\Phalcon\Version\TimestampedItem $toVersion
-     * @param string  $tableName
+     * @param string $tableName
      */
     public static function migrate($fromVersion, $toVersion, $tableName)
     {
@@ -521,37 +526,39 @@ class Migration
     }
 
     /**
-     * Scan for all versions
+     * Create migration object for specified version
      *
-     * @param string $dir Directory to scan
-     *
-     * @return ItemInterface[]
+     * @param ItemInterface $version
+     * @param string $tableName
+     * @return null|Migration
+     * @throws Exception
      */
-    public static function scanForVersions($dir)
+    private static function createClass(ItemInterface $version, $tableName)
     {
-        $versions = [];
-        $iterator = new DirectoryIterator($dir);
-
-        foreach ($iterator as $fileinfo) {
-            $filename = $fileinfo->getFilename();
-            if (!$fileinfo->isDir()
-                || $fileinfo->isDot()
-                || !VersionCollection::isCorrectVersion($filename)
-            ) {
-                continue;
-            }
-
-            $versions[] = VersionCollection::createItem($filename);
+        $fileName = self::$migrationPath . $version->getVersion() . DIRECTORY_SEPARATOR . $tableName . '.php';
+        if (!file_exists($fileName)) {
+            return null;
         }
 
-        return $versions;
+        $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
+        $className = Text::camelize($tableName) . 'Migration_' . $version->getStamp();
+
+        include_once $fileName;
+        if (!class_exists($className)) {
+            throw new Exception('Migration class cannot be found ' . $className . ' at ' . $fileName);
+        }
+
+        $migration = new $className($version);
+        $migration->version = $version;
+
+        return $migration;
     }
 
     /**
      * Find the last morph function in the previous migration files
      *
      * @param ItemInterface $toVersion
-     * @param string        $tableName
+     * @param string $tableName
      *
      * @return null|Migration
      * @throws Exception
@@ -579,34 +586,28 @@ class Migration
     }
 
     /**
-     * Create migration object for specified version
+     * Scan for all versions
      *
-     * @param ItemInterface $version
-     * @param string        $tableName
-     *
-     * @return null|\Phalcon\Mvc\Model\Migration
-     *
-     * @throws Exception
+     * @param string $dir Directory to scan
+     * @return ItemInterface[]
      */
-    private static function createClass(ItemInterface $version, $tableName)
+    public static function scanForVersions($dir): array
     {
-        $fileName = self::$migrationPath.$version->getVersion().DIRECTORY_SEPARATOR.$tableName.'.php';
-        if (!file_exists($fileName)) {
-            return null;
+        $versions = [];
+        $iterator = new DirectoryIterator($dir);
+        foreach ($iterator as $fileinfo) {
+            $filename = $fileinfo->getFilename();
+            if (!$fileinfo->isDir()
+                || $fileinfo->isDot()
+                || !VersionCollection::isCorrectVersion($filename)
+            ) {
+                continue;
+            }
+
+            $versions[] = VersionCollection::createItem($filename);
         }
 
-        $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
-        $className = Text::camelize($tableName).'Migration_'.$version->getStamp();
-
-        include_once $fileName;
-        if (!class_exists($className)) {
-            throw new Exception('Migration class cannot be found '.$className.' at '.$fileName);
-        }
-
-        $migration = new $className($version);
-        $migration->version = $version;
-
-        return $migration;
+        return $versions;
     }
 
     /**
@@ -644,8 +645,8 @@ class Migration
             if ($tableExists == true) {
                 $localFields = [];
                 /**
-                 * @var \Phalcon\Db\ReferenceInterface[] $description
-                 * @var \Phalcon\Db\ReferenceInterface[] $localFields
+                 * @var ReferenceInterface[] $description
+                 * @var ReferenceInterface[] $localFields
                  */
                 $description = self::$connection->describeColumns($tableName, $defaultSchema);
                 foreach ($description as $field) {
@@ -709,9 +710,9 @@ class Migration
                 $activeReferences = self::$connection->describeReferences($tableName, $defaultSchema);
                 foreach ($activeReferences as $activeReference) {
                     $localReferences[$activeReference->getName()] = [
-                        'referencedTable'   => $activeReference->getReferencedTable(),
-                        "referencedSchema"  => $activeReference->getReferencedSchema(),
-                        'columns'           => $activeReference->getColumns(),
+                        'referencedTable' => $activeReference->getReferencedTable(),
+                        'referencedSchema' => $activeReference->getReferencedSchema(),
+                        'columns' => $activeReference->getColumns(),
                         'referencedColumns' => $activeReference->getReferencedColumns(),
                     ];
                 }
@@ -889,7 +890,7 @@ class Migration
      */
     public function batchDelete($tableName)
     {
-        $migrationData = self::$migrationPath.$this->version.'/'.$tableName.'.dat';
+        $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
             return; // nothing to do
         }

@@ -57,7 +57,7 @@ class OptionStack
     }
 
     /**
-     * Get recieved options
+     * Get received options
      *
      * @return mixed
      */
@@ -79,7 +79,6 @@ class OptionStack
     /**
      * Get option
      * @param string $key
-     *
      * @return mixed
      */
     public function getOption($key)
@@ -96,7 +95,6 @@ class OptionStack
      *
      * @param string $key
      * @param mixed $defaultOption
-     *
      * @return mixed
      */
     public function getValidOption($key, $defaultOption = '')

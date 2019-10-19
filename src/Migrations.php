@@ -12,22 +12,27 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations;
 
-use Phalcon\Config;
-use Phalcon\Db\Index;
 use DirectoryIterator;
-use Phalcon\Db\Column;
-use Phalcon\Migrations\Script\Color;
+use Exception;
+use LogicException;
+use Phalcon\Config;
 use Phalcon\Db\Adapter\AdapterInterface;
-use Phalcon\Migrations\Script\ScriptException;
+use Phalcon\Db\Column;
+use Phalcon\Db\Exception as DbException;
+use Phalcon\Db\Index;
+use Phalcon\Migrations\Console\OptionStack;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
-use Phalcon\Db\Exception as DbException;
-use Phalcon\Mvc\Model\Exception as ModelException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
-use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
-use Phalcon\Migrations\Console\OptionStack;
-use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
+use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
+use Phalcon\Migrations\Script\Color;
+use Phalcon\Migrations\Script\ScriptException;
+use Phalcon\Migrations\Version\IncrementalItem;
+use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
+use Phalcon\Migrations\Version\TimestampedItem;
+use Phalcon\Mvc\Model\Exception as ModelException;
+use RuntimeException;
 
 class Migrations
 {
@@ -38,6 +43,7 @@ class Migrations
 
     /**
      * Filename or db connection to store migrations log
+     *
      * @var mixed
      */
     protected static $storage;
@@ -45,9 +51,9 @@ class Migrations
     /**
      * Check if the script is running on Console mode
      *
-     * @return boolean
+     * @return bool
      */
-    public static function isConsole()
+    public static function isConsole(): bool
     {
         return PHP_SAPI === 'cli';
     }
@@ -56,10 +62,10 @@ class Migrations
      * Generate migrations
      *
      * @param array $options
-     *
-     * @throws \Exception
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return bool|void
+     * @throws Exception
+     * @throws LogicException
+     * @throws RuntimeException
      */
     public static function generate(array $options)
     {
@@ -105,15 +111,15 @@ class Migrations
             if (is_writable(dirname($migrationPath)) && !$optionStack->getOption('verbose')) {
                 mkdir($migrationPath);
             } elseif (!is_writable(dirname($migrationPath))) {
-                throw new \RuntimeException("Unable to write '{$migrationPath}' directory. Permission denied");
+                throw new RuntimeException("Unable to write '{$migrationPath}' directory. Permission denied");
             }
         } elseif (!$optionStack->getOption('force')) {
-            throw new \LogicException('Version ' . $versionItem->getVersion() . ' already exists');
+            throw new LogicException('Version ' . $versionItem->getVersion() . ' already exists');
         }
 
         // Try to connect to the DB
         if (!isset($optionStack->getOption('config')->database)) {
-            throw new \RuntimeException('Cannot load database configuration');
+            throw new RuntimeException('Cannot load database configuration');
         }
 
         ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
@@ -179,11 +185,9 @@ class Migrations
      * Run migrations
      *
      * @param array $options
-     *
      * @throws Exception
      * @throws ModelException
      * @throws ScriptException
-     *
      */
     public static function run(array $options)
     {
@@ -209,7 +213,7 @@ class Migrations
             throw new ScriptException('Cannot load database configuration');
         }
 
-        /** @var \Phalcon\Version\IncrementalItem $initialVersion */
+        /** @var IncrementalItem $initialVersion */
         $initialVersion = self::getCurrentVersion($optionStack->getOptions());
         $completedVersions = self::getCompletedVersions($optionStack->getOptions());
         $migrationsDirs = [];
@@ -235,7 +239,6 @@ class Migrations
         }
 
         $optionStack->setOption('tableName', $options['tableName'] ?? null, '@');
-
 
         if (!isset($versionItems[0])) {
             if (php_sapi_name() == 'cli') {
@@ -283,16 +286,18 @@ class Migrations
         $versionsBetween = VersionCollection::between($initialVersion, $finalVersion, $versionItems);
         $prefix = $optionStack->getPrefixOption($optionStack->getOption('tableName'));
 
-        /** @var \Phalcon\Version\IncrementalItem $versionItem */
+        /** @var IncrementalItem $versionItem */
         foreach ($versionsBetween as $versionItem) {
             if ($initialVersion->getVersion() == $versionItem->getVersion()) {
                 $initialVersion->setPath($versionItem->getPath());
             }
+
             // If we are rolling back, we skip migrating when initialVersion is the same as current
             if ($initialVersion->getVersion() === $versionItem->getVersion() &&
                 ModelMigration::DIRECTION_BACK === $direction) {
                 continue;
             }
+
             if ((ModelMigration::DIRECTION_FORWARD === $direction) && isset($completedVersions[(string)$versionItem])) {
                 print Color::info('Version ' . (string)$versionItem . ' was already applied');
                 continue;
@@ -302,6 +307,7 @@ class Migrations
                 $initialVersion = $versionItem;
                 continue;
             }
+
             //Directory depends on Forward or Back Migration
             if (ModelMigration::DIRECTION_BACK === $direction) {
                 $migrationsDir = $initialVersion->getPath();
@@ -310,25 +316,27 @@ class Migrations
                 $migrationsDir = $versionItem->getPath();
                 $directoryIterator = $migrationsDir . DIRECTORY_SEPARATOR.$versionItem->getVersion();
             }
+
             ModelMigration::setMigrationPath($migrationsDir);
 
             if (!is_dir($directoryIterator)) {
                 continue;
             }
+
             $iterator = new DirectoryIterator($directoryIterator);
             if ($initialVersion->getVersion() === $finalVersion->getVersion() &&
                 ModelMigration::DIRECTION_BACK === $direction) {
                 break;
             }
 
-            $migrationStartTime = date("Y-m-d H:i:s");
-
+            $migrationStartTime = date('Y-m-d H:i:s');
 
             if ($optionStack->getOption('tableName') === '@') {
                 foreach ($iterator as $fileInfo) {
                     if (!$fileInfo->isFile() || 0 !== strcasecmp($fileInfo->getExtension(), 'php')) {
                         continue;
                     }
+
                     ModelMigration::migrate($initialVersion, $versionItem, $fileInfo->getBasename('.php'));
                 }
             } else {
@@ -358,11 +366,9 @@ class Migrations
      * List migrations along with statuses
      *
      * @param array $options
-     *
      * @throws Exception
      * @throws ModelException
      * @throws ScriptException
-     *
      */
     public static function listAll(array $options)
     {
@@ -372,7 +378,6 @@ class Migrations
         } else {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
         }
-
 
         /** @var Config $config */
         $config = $options['config'];
@@ -455,7 +460,6 @@ class Migrations
             }
 
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
-
             if (!class_exists($adapter)) {
                 throw new DbException('Invalid database Adapter!');
             }
@@ -513,9 +517,11 @@ class Migrations
             } else {
                 $path = rtrim($options['directory'], '\\/') . '/.phalcon';
             }
+
             if (!is_dir($path) && !is_writable(dirname($path))) {
-                throw new \RuntimeException("Unable to write '{$path}' directory. Permission denied");
+                throw new RuntimeException("Unable to write '{$path}' directory. Permission denied");
             }
+
             if (is_file($path)) {
                 unlink($path);
                 mkdir($path);
@@ -529,7 +535,7 @@ class Migrations
 
             if (!file_exists(self::$storage)) {
                 if (!is_writable($path)) {
-                    throw new \RuntimeException("Unable to write '" . self::$storage . "' file. Permission denied");
+                    throw new RuntimeException("Unable to write '" . self::$storage . "' file. Permission denied");
                 }
                 touch(self::$storage);
             }
@@ -540,7 +546,8 @@ class Migrations
      * Get latest completed migration version
      *
      * @param array $options Applications options
-     * @return \Phalcon\Version\IncrementalItem|\Phalcon\Version\TimestampedItem.
+     * @return IncrementalItem|TimestampedItem
+     * @throws DbException
      */
     public static function getCurrentVersion($options)
     {
@@ -579,15 +586,17 @@ class Migrations
      * @param array $options Applications options
      * @param string $version Migration version to store
      * @param string $startTime Migration start timestamp
+     * @throws DbException
      */
     public static function addCurrentVersion($options, $version, $startTime = null)
     {
         self::connectionSetup($options);
 
         if ($startTime === null) {
-            $startTime = date("Y-m-d H:i:s");
+            $startTime = date('Y-m-d H:i:s');
         }
-        $endTime = date("Y-m-d H:i:s");
+
+        $endTime = date('Y-m-d H:i:s');
 
         if (isset($options['migrationsInDb']) && (bool)$options['migrationsInDb']) {
             /** @var AdapterInterface $connection */
@@ -611,6 +620,7 @@ class Migrations
      *
      * @param array $options Applications options
      * @param string $version Migration version to remove
+     * @throws DbException
      */
     public static function removeCurrentVersion($options, $version)
     {
@@ -634,6 +644,7 @@ class Migrations
      *
      * @param array $options Applications options
      * @return array
+     * @throws DbException
      */
     public static function getCompletedVersions($options)
     {

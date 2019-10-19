@@ -38,7 +38,7 @@ class UnknownColumnTypeException extends Exception
     /**
      * @return ColumnInterface
      */
-    public function getColumn()
+    public function getColumn(): ColumnInterface
     {
         return $this->column;
     }
