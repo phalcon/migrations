@@ -26,23 +26,13 @@ class OptionStack
     protected $options = [];
 
     /**
-     * Set received options
-     *
-     * @param array $options
-     */
-    public function setOptions(array $options)
-    {
-        $this->options = array_merge($this->options, $options);
-    }
-
-    /**
      * Add option to array
      *
      * @param mixed $key
      * @param mixed $option
      * @param mixed $defaultValue
      */
-    public function setOption($key, $option, $defaultValue = '')
+    public function setOption($key, $option, $defaultValue = ''): void
     {
         if (!empty($option)) {
             $this->options[$key] = $option;
@@ -59,7 +49,7 @@ class OptionStack
      * @param string $key
      * @param mixed $defaultValue
      */
-    public function setDefaultOption($key, $defaultValue)
+    public function setDefaultOption($key, $defaultValue): void
     {
         if (!isset($this->options[$key])) {
             $this->options[$key] = $defaultValue;
@@ -74,6 +64,16 @@ class OptionStack
     public function getOptions()
     {
         return $this->options;
+    }
+
+    /**
+     * Set received options
+     *
+     * @param array $options
+     */
+    public function setOptions(array $options): void
+    {
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -94,8 +94,8 @@ class OptionStack
     /**
      * Get option if existence or get default option
      *
-     * @param  string  $key
-     * @param  mixed  $defaultOption
+     * @param string $key
+     * @param mixed $defaultOption
      *
      * @return mixed
      */
@@ -110,10 +110,8 @@ class OptionStack
 
     /**
      * Count options
-     *
-     * @return integer
      */
-    public function countOptions()
+    public function countOptions(): int
     {
         return count($this->options);
     }
@@ -121,10 +119,10 @@ class OptionStack
     /**
      * Indicates whether the script was a particular option.
      *
-     * @param  string  $key
-     * @return boolean
+     * @param string $key
+     * @return bool
      */
-    public function isReceivedOption($key)
+    public function isReceivedOption($key): bool
     {
         return isset($this->options[$key]);
     }
