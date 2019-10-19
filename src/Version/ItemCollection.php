@@ -12,12 +12,7 @@
 namespace Phalcon\Migrations\Version;
 
 /**
- * Class ItemCollection.
  * The item collection lets you to work with an abstract ItemInterface.
- *
- * @package   Phalcon\Version
- * @copyright Copyright (c) 2011-2016 Phalcon Team (team@phalconphp.com)
- * @license   New BSD License
  */
 class ItemCollection
 {

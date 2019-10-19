@@ -17,13 +17,7 @@ use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use InvalidArgumentException;
 
 /**
- * \Phalcon\Utils\OptionParserTrait
- *
  * Parsing CLI options
- *
- * @package   Phalcon\Utils
- * @copyright Copyright (c) 2011-2017 Phalcon Team (team@phalconphp.com)
- * @license   New BSD License
  */
 trait OptionParserTrait
 {
@@ -46,10 +40,8 @@ trait OptionParserTrait
 
     /**
      * Get version name to generate migration
-     *
-     * @return IncrementalVersion
      */
-    public function getVersionNameGeneratingMigration()
+    public function getVersionNameGeneratingMigration(): IncrementalVersion
     {
         if (empty($this->options)) {
             throw new InvalidArgumentException('Options were not defined yet');

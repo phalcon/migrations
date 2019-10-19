@@ -11,10 +11,14 @@
 
 namespace Phalcon\Generator;
 
+use ReflectionClass;
+use ReflectionException;
+use ReflectionExtension;
+
 class Stub
 {
     /**
-     * @var \ReflectionExtension
+     * @var ReflectionExtension
      */
     protected $extension;
 
@@ -27,8 +31,7 @@ class Stub
      * @param string $extension
      * @param string $targetDir
      *
-     * @return \Phalcon\Generator\Stub
-     * @throws \Exception
+     * @throws ReflectionException
      */
     public function __construct($extension, $targetDir)
     {
@@ -36,7 +39,7 @@ class Stub
             throw new \Exception("Extension '{$extension}' was not loaded");
         }
 
-        $this->extension = new \ReflectionExtension($extension);
+        $this->extension = new ReflectionExtension($extension);
         $this->targetDir = rtrim($targetDir, DIRECTORY_SEPARATOR);
 
         if (is_dir($this->targetDir . DIRECTORY_SEPARATOR . $this->extension->getVersion())) {
@@ -45,7 +48,7 @@ class Stub
     }
 
     /**
-     * @return void
+     * @throws ReflectionException
      */
     public function generate()
     {
@@ -53,14 +56,14 @@ class Stub
     }
 
     /**
-     * @return void
+     * @throws ReflectionException
      */
     protected function generateFileStructure()
     {
         $classes = $this->extension->getClassNames();
 
         foreach ($classes as $class) {
-            $reflectionClass = new \ReflectionClass($class);
+            $reflectionClass = new ReflectionClass($class);
 
             $output = "<?php\n\n";
             $output .= $this->exportNamespace($reflectionClass);
@@ -90,19 +93,19 @@ class Stub
     }
 
     /**
-     * @param  \ReflectionClass $reflectionClass
+     * @param  ReflectionClass $reflectionClass
      * @return string
      */
-    protected function exportNamespace(\ReflectionClass $reflectionClass)
+    protected function exportNamespace(ReflectionClass $reflectionClass)
     {
         return 'namespace ' . $reflectionClass->getNamespaceName() . ";\n\n";
     }
 
     /**
-     * @param  \ReflectionClass $reflectionClass
+     * @param  ReflectionClass $reflectionClass
      * @return string
      */
-    protected function exportDefinition(\ReflectionClass $reflectionClass)
+    protected function exportDefinition(ReflectionClass $reflectionClass)
     {
         $definition = [$this->removeNamespace($reflectionClass)];
 
@@ -136,10 +139,10 @@ class Stub
     }
 
     /**
-     * @param  \ReflectionClass $reflectionClass
+     * @param  ReflectionClass $reflectionClass
      * @return string
      */
-    protected function removeNamespace(\ReflectionClass $reflectionClass)
+    protected function removeNamespace(ReflectionClass $reflectionClass)
     {
         $class = str_replace($reflectionClass->getNamespaceName(), '', $reflectionClass->getName());
 
@@ -147,10 +150,10 @@ class Stub
     }
 
     /**
-     * @param  \ReflectionClass $reflectionClass
+     * @param  ReflectionClass $reflectionClass
      * @return null|string
      */
-    protected function exportClassConstants(\ReflectionClass $reflectionClass)
+    protected function exportClassConstants(ReflectionClass $reflectionClass)
     {
         $constants = $reflectionClass->getConstants();
         $all = [];
@@ -169,10 +172,10 @@ class Stub
     }
 
     /**
-     * @param  \ReflectionClass $reflectionClass
+     * @param  ReflectionClass $reflectionClass
      * @return null|string
      */
-    protected function exportClassProperties(\ReflectionClass $reflectionClass)
+    protected function exportClassProperties(ReflectionClass $reflectionClass)
     {
         $properties = $reflectionClass->getProperties();
 
@@ -212,10 +215,11 @@ class Stub
     }
 
     /**
-     * @param  \ReflectionClass $reflectionClass
+     * @param ReflectionClass $reflectionClass
      * @return null|string
+     * @throws ReflectionException
      */
-    protected function exportClassMethods(\ReflectionClass $reflectionClass)
+    protected function exportClassMethods(ReflectionClass $reflectionClass)
     {
         $methods = $reflectionClass->getMethods();
 

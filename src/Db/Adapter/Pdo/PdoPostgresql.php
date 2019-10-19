@@ -16,11 +16,6 @@ use Phalcon\Db\Enum;
 use Phalcon\Db\Reference;
 use Phalcon\Db\ReferenceInterface;
 
-/**
- * Phalcon\Db\Adapter\Pdo\PdoPostgresql
- *
- * @package Phalcon\Db\Adapter\Pdo
- */
 class PdoPostgresql extends Postgresql
 {
     /**

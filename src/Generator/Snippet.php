@@ -14,11 +14,6 @@ namespace Phalcon\Migrations\Generator;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Options\OptionsAware as ModelOption;
 
-/**
- * Snippet Class
- *
- * @package Phalcon\Generator
- */
 class Snippet
 {
     public function getSetter($originalFieldName, $fieldName, $type, $setterName)

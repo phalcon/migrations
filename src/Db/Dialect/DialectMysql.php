@@ -14,11 +14,6 @@ namespace Phalcon\Migrations\Db\Dialect;
 use Phalcon\Db\Dialect\Mysql;
 use Phalcon\Db\ReferenceInterface;
 
-/**
- * Phalcon\Db\Dialect\DialectMysql
- *
- * @package Phalcon\Db\Dialect
- */
 class DialectMysql extends Mysql
 {
     /**

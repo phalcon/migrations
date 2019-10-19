@@ -28,11 +28,6 @@ use Phalcon\Migrations\Console\OptionStack;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
 
-/**
- * Migrations Class
- *
- * @package Phalcon
- */
 class Migrations
 {
     /**

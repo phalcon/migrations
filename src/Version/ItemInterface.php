@@ -13,12 +13,7 @@
 namespace Phalcon\Migrations\Version;
 
 /**
- * Interface VersionItemInterface.
  * Common interface to manipulate version items.
- *
- * @package   Phalcon\Version
- * @copyright Copyright (c) 2011-2016 Phalcon Team (team@phalconphp.com)
- * @license   New BSD License
  */
 interface ItemInterface
 {

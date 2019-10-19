@@ -12,13 +12,7 @@
 namespace Phalcon\Migrations\Console;
 
 /**
- * Phalcon\Console\OptionStack
- *
  * CLI options
- *
- * @package Phalcon\Console;
- * @copyright Copyright (c) 2011-2017 Phalcon Team (team@phalconphp.com)
- * @license   New BSD License
  */
 class OptionStack
 {
@@ -31,7 +25,7 @@ class OptionStack
     protected $options = [];
 
     /**
-     * Set recieved options
+     * Set received options
      *
      * @param array $options
      */

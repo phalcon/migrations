@@ -12,6 +12,8 @@
 namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
+use Phalcon\Config;
+use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Db\Column;
@@ -31,17 +33,14 @@ use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 
 /**
- * Phalcon\Mvc\Model\Migration
- *
  * Migrations of DML y DDL over databases
+ *
  * @method afterCreateTable()
  * @method morph()
  * @method up()
  * @method afterUp()
  * @method down()
  * @method afterDown()
- *
- * @package Phalcon\Mvc\Model
  */
 class Migration
 {
@@ -50,24 +49,28 @@ class Migration
 
     /**
      * Migration database connection
-     * @var \Phalcon\Db\Adapter\AbstractAdapter
+     * 
+     * @var AbstractAdapter
      */
     protected static $connection;
 
     /**
      * Database configuration
-     * @var \Phalcon\Config
+     * 
+     * @var Config
      */
     private static $databaseConfig;
 
     /**
      * Path where to save the migration
+     * 
      * @var string
      */
     private static $migrationPath = null;
 
     /**
      * Skip auto increment
+     * 
      * @var bool
      */
     private static $skipAI = false;
@@ -81,12 +84,12 @@ class Migration
 
     /**
      * Prepares component
-     *
-     * @param \Phalcon\Config $database Database config
-     * @param bool $verbose array with settings
+     * 
      * @since 3.2.1 Using Postgresql::describeReferences and DialectPostgresql dialect class
      *
-     * @throws \Phalcon\Db\Exception
+     * @param Config $database Database config
+     * @param bool $verbose array with settings
+     * @throws DbException
      */
     public static function setup($database, $verbose = false)
     {
@@ -203,7 +206,7 @@ class Migration
      * @param mixed         $exportData
      *
      * @return string
-     * @throws \Phalcon\Db\Exception
+     * @throws DbException
      */
     public static function generate(
         ItemInterface $version,
@@ -611,7 +614,7 @@ class Migration
      * @param string $tableName
      * @param array $definition
      *
-     * @throws \Phalcon\Db\Exception
+     * @throws DbException
      */
     public function morphTable($tableName, $definition)
     {
@@ -911,7 +914,7 @@ class Migration
     /**
      * Get db connection
      *
-     * @return \Phalcon\Db\Adapter\AbstractAdapter
+     * @return AbstractAdapter
      */
     public function getConnection()
     {

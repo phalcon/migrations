@@ -12,11 +12,7 @@
 namespace Phalcon\Migrations\Script;
 
 /**
- * \Phalcon\Script\Color
- *
  * Allows to generate messages using colors on xterm, ddterm, linux, etc.
- *
- * @package Phalcon\Script
  */
 final class Color
 {

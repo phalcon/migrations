@@ -11,25 +11,22 @@
 
 namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
+use DirectoryIterator;
 use InvalidArgumentException;
 use Phalcon\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Db\Exception as DbException;
 
-/**
- * Phalcon\Mvc\Model\Migration\TableAware\ListTablesDb
- *
- * @package Phalcon\Mvc\Model\Migration\TableAware
- */
 class ListTablesDb implements ListTablesInterface
 {
     /**
      * Get table names with prefix for running migration
      *
      * @param string $tablePrefix
-     * @param \DirectoryIterator $iterator
+     * @param DirectoryIterator $iterator
      * @return string
+     * @throws DbException
      */
-    public function listTablesForPrefix($tablePrefix, \DirectoryIterator $iterator = null)
+    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null)
     {
         if (empty($tablePrefix)) {
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);

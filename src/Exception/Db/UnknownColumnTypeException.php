@@ -14,11 +14,6 @@ namespace Phalcon\Migrations\Exception\Db;
 use Phalcon\Db\Exception;
 use Phalcon\Db\ColumnInterface;
 
-/**
- * \Phalcon\Exception\Db\UnknownColumnTypeException
- *
- * @package Phalcon\Exception
- */
 class UnknownColumnTypeException extends Exception
 {
     /**

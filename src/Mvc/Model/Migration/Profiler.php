@@ -15,11 +15,7 @@ use Phalcon\Db\Profiler as DbProfiler;
 use Phalcon\Db\Profiler\Item;
 
 /**
- * Phalcon\Mvc\Model\Migration\Profiler
- *
  * Displays transactions made on the database and the times them taken to execute
- *
- * @package Phalcon\Mvc\Model\Migration
  */
 class Profiler extends DbProfiler
 {

@@ -11,19 +11,16 @@
 
 namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
-/**
- * Phalcon\Mvc\Model\Migration\TableAware\ListTablesInterface
- *
- * @package Phalcon\Mvc\Model\Migration\TableAware
- */
+use DirectoryIterator;
+
 interface ListTablesInterface
 {
     /**
      * Get list table from prefix
      *
      * @param string $tablePrefix Table prefix
-     * @param \DirectoryIterator $iterator
+     * @param DirectoryIterator $iterator
      * @return string
      */
-    public function listTablesForPrefix($tablePrefix, \DirectoryIterator $iterator = null);
+    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null);
 }

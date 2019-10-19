@@ -14,11 +14,6 @@ namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 use DirectoryIterator;
 use InvalidArgumentException;
 
-/**
- * Phalcon\Mvc\Model\Migration\TableAware\ListTablesIterator
- *
- * @package Phalcon\Mvc\Model\Migration\TableAware
- */
 class ListTablesIterator implements ListTablesInterface
 {
     /**
@@ -44,7 +39,6 @@ class ListTablesIterator implements ListTablesInterface
         }
 
         $fileNames = array_unique($fileNames);
-//        natsort($fileNames);
 
         return implode(',', $fileNames);
     }

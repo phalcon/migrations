@@ -14,11 +14,6 @@ namespace Phalcon\Migrations\Db\Dialect;
 use Phalcon\Db\Dialect\Postgresql;
 use Phalcon\Db\ReferenceInterface;
 
-/**
- * Phalcon\Db\Dialect\DialectPostgresql
- *
- * @package Phalcon\Db\Dialect
- */
 class DialectPostgresql extends Postgresql
 {
     /**

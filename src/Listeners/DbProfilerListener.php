@@ -15,11 +15,7 @@ use Phalcon\Mvc\Model\Migration\Profiler;
 use Phalcon\Events\Event;
 
 /**
- * Phalcon\Listeners\DbProfilerListener
- *
  * Db event listener
- *
- * @package Phalcon\Listeners
  */
 class DbProfilerListener
 {

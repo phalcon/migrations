@@ -15,11 +15,7 @@ use Phalcon\Migrations\FactoryOptions;
 use Phalcon\Migrations\Exception\InvalidArgumentException;
 
 /**
- * Phalcon\Options\OptionsAware
- *
  * Class that has option container and processing with it
- *
- * @package Phalcon\Options
  */
 class OptionsAware implements FactoryOptions
 {

@@ -12,18 +12,11 @@
 namespace Phalcon\Migrations\Version;
 
 /**
- * Item Class
- *
  * Allows to manipulate version texts
- *
- * @package   Phalcon\Version
- * @copyright Copyright (c) 2011-2016 Phalcon Team (team@phalconphp.com)
- * @license   New BSD License
  */
 class IncrementalItem implements ItemInterface
 {
     use VersionAwareTrait;
-
 
     /**
      * @var string

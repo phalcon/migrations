@@ -12,13 +12,7 @@
 namespace Phalcon\Migrations\Version;
 
 /**
- * Class TimestampedItem.
- *
  * The version prefixed by timestamp value
- *
- * @package   Phalcon\Version
- * @copyright Copyright (c) 2011-2016 Phalcon Team (team@phalconphp.com)
- * @license   New BSD License
  */
 class TimestampedItem implements ItemInterface
 {
