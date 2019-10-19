@@ -16,7 +16,7 @@ jobs:
         run: curl -s https://packagecloud.io/install/repositories/phalcon/mainline/script.deb.sh | sudo bash
 
       - name: Install PSR PECL Package
-        run: sudo pecl install --force psr
+        run: sudo apt-get install php-pear && sudo pecl install --force psr
 
       - name: Install Phalcon
         run: sudo apt-get install php7.3-phalcon
