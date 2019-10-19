@@ -1,5 +1,7 @@
 {
     "name": "jeckerson/phalcon-migrations",
+    "description": "Run and Generate DB Migrations with Phalcon Framework",
+    "homepage": "https://phalcon.io",
     "license": "BSD-3-Clause",
     "require": {
         "php": ">=7.2",
