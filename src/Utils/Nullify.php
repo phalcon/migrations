@@ -19,7 +19,7 @@ class Nullify
         $vals = array_map(
             function ($value) {
                 if (function_exists('mb_strtolower')) {
-                    return mb_strtolower($value);
+                    return mb_strtolower((string)$value);
                 }
             },
             $values
