@@ -32,3 +32,6 @@ jobs:
 
       - name: Run test suite
         run: vendor/bin/phpunit
+
+      - name: Run Psalm
+        run: vendor/bin/psalm --show-info=false
