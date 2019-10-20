@@ -75,7 +75,7 @@ class ItemCollection
      * @param string $version
      * @return bool
      */
-    public static function isCorrectVersion($version): bool
+    public static function isCorrectVersion(string $version): bool
     {
         if (self::TYPE_INCREMENTAL === self::$type) {
             return 1 === preg_match('#[0-9]+(\.[z0-9]+)+#', $version);
@@ -111,7 +111,7 @@ class ItemCollection
      */
     public static function sortDesc(array $versions): array
     {
-        $sortData = array();
+        $sortData = [];
         foreach ($versions as $version) {
             $sortData[$version->getStamp()] = $version;
         }
@@ -132,7 +132,7 @@ class ItemCollection
     {
         $versions = self::sortAsc($versions);
 
-        $betweenVersions = array();
+        $betweenVersions = [];
         if ($initialVersion->getStamp() == $finalVersion->getStamp()) {
             return $betweenVersions; // nothing to do
         }
@@ -141,12 +141,12 @@ class ItemCollection
             $versions = self::sortAsc($versions);
         } else {
             $versions = self::sortDesc($versions);
-            list($initialVersion, $finalVersion) = array($finalVersion, $initialVersion);
+            list($initialVersion, $finalVersion) = [$finalVersion, $initialVersion];
         }
 
         foreach ($versions as $version) {
-            if (($version->getStamp() >= $initialVersion->getStamp()) &&
-                ($version->getStamp() <= $finalVersion->getStamp())
+            if ($version->getStamp() >= $initialVersion->getStamp() &&
+                $version->getStamp() <= $finalVersion->getStamp()
             ) {
                 $betweenVersions[] = $version;
             }
@@ -163,7 +163,7 @@ class ItemCollection
      */
     public static function sortAsc(array $versions): array
     {
-        $sortData = array();
+        $sortData = [];
         foreach ($versions as $version) {
             $sortData[$version->getStamp()] = $version;
         }

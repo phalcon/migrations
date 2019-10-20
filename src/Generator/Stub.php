@@ -12,9 +12,14 @@ declare(strict_types=1);
 
 namespace Phalcon\Generator;
 
+use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionExtension;
+use ReflectionMethod;
+use ReflectionParameter;
 
 class Stub
 {
@@ -37,7 +42,7 @@ class Stub
     public function __construct($extension, $targetDir)
     {
         if (!extension_loaded($extension)) {
-            throw new \Exception("Extension '{$extension}' was not loaded");
+            throw new Exception("Extension '{$extension}' was not loaded");
         }
 
         $this->extension = new ReflectionExtension($extension);
@@ -125,7 +130,7 @@ class Stub
         }
 
         $parent = $reflectionClass->getParentClass();
-        if (method_exists('getName', $parent)) {
+        if (method_exists($parent, 'getName')) {
             array_push($definition, 'extends');
             array_push($definition, $parent->getName());
         }
@@ -223,14 +228,13 @@ class Stub
     protected function exportClassMethods(ReflectionClass $reflectionClass): ?string
     {
         $methods = $reflectionClass->getMethods();
-
         if (empty($methods)) {
             return null;
         }
 
         $output = '';
-
         foreach ($methods as $method) {
+            /** @var ReflectionMethod|ReflectionParameter $method */
             $doc = ["\t/**"];
             $func = [];
 
@@ -297,11 +301,11 @@ class Stub
     /**
      * @param string $dir
      */
-    protected function cleanup($dir): void
+    protected function cleanup(string $dir): void
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir),
-            \RecursiveIteratorIterator::CHILD_FIRST
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir),
+            RecursiveIteratorIterator::CHILD_FIRST
         );
 
         foreach ($iterator as $path) {

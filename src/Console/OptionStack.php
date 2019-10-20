@@ -21,6 +21,7 @@ class OptionStack
 
     /**
      * Parameters received by the script.
+     *
      * @var array
      */
     protected $options = [];
@@ -49,7 +50,7 @@ class OptionStack
      * @param string $key
      * @param mixed $defaultValue
      */
-    public function setDefaultOption($key, $defaultValue): void
+    public function setDefaultOption(string $key, $defaultValue): void
     {
         if (!isset($this->options[$key])) {
             $this->options[$key] = $defaultValue;

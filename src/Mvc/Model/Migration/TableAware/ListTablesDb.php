@@ -14,7 +14,7 @@ namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
 use DirectoryIterator;
 use InvalidArgumentException;
-use Phalcon\Mvc\Model\Migration as ModelMigration;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Db\Exception as DbException;
 
 class ListTablesDb implements ListTablesInterface
@@ -27,7 +27,7 @@ class ListTablesDb implements ListTablesInterface
      * @return string
      * @throws DbException
      */
-    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null): string
+    public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
     {
         if (empty($tablePrefix)) {
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);

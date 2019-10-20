@@ -28,7 +28,7 @@ class Utils
      * @param string $delimiter
      * @return string
      */
-    public static function camelize(string $string, string $delimiter = '_')
+    public static function camelize(string $string, string $delimiter = '_'): string
     {
         if (empty($delimiter)) {
             throw new InvalidArgumentException('Please, specify the delimiter');
@@ -59,7 +59,7 @@ class Utils
      * @param boolean $useLow
      * @return string
      */
-    public static function lowerCamelizeWithDelimiter(string $string, string $delimiter = '', bool $useLow = false)
+    public static function lowerCamelizeWithDelimiter(string $string, string $delimiter = '', bool $useLow = false): string
     {
         if (empty($string)) {
             throw new InvalidArgumentException('Please, specify the string');

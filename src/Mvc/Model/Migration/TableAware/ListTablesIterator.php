@@ -24,7 +24,7 @@ class ListTablesIterator implements ListTablesInterface
      * @param DirectoryIterator $iterator
      * @return string
      */
-    public function listTablesForPrefix($tablePrefix, DirectoryIterator $iterator = null): string
+    public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
     {
         if (empty($tablePrefix) || empty($iterator)) {
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);

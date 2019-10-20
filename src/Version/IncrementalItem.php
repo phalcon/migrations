@@ -73,7 +73,7 @@ class IncrementalItem implements ItemInterface
      * @param ItemInterface[] $versions
      * @return null|IncrementalItem
      */
-    public static function maximum($versions)
+    public static function maximum(array $versions)
     {
         if (count($versions) == 0) {
             return null;
@@ -88,7 +88,7 @@ class IncrementalItem implements ItemInterface
      * @param ItemInterface[] $versions
      * @return array
      */
-    public static function sortDesc($versions)
+    public static function sortDesc(array $versions): array
     {
         $sortData = [];
         foreach ($versions as $version) {
@@ -167,10 +167,9 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param int $number
-     *
      * @return IncrementalItem
      */
-    public function addMinor($number)
+    public function addMinor(int $number)
     {
         $parts = array_reverse($this->parts);
         if (isset($parts[0])) {

@@ -32,8 +32,10 @@ use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;
+use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
+use Phalcon\Migrations\Version\TimestampedItem;
 use Phalcon\Text;
 
 /**
@@ -123,12 +125,12 @@ class Migration
         self::$connection = new $adapter($configArray);
         self::$databaseConfig = $database;
 
-        //Connection custom dialect Dialect/DialectMysql
+        // Connection custom dialect Dialect/DialectMysql
         if ($database->adapter == 'Mysql') {
             self::$connection->setDialect(new DialectMysql);
         }
 
-        //Connection custom dialect Dialect/DialectPostgresql
+        // Connection custom dialect Dialect/DialectPostgresql
         if ($database->adapter == 'Postgresql') {
             self::$connection->setDialect(new DialectPostgresql);
         }
@@ -138,7 +140,6 @@ class Migration
         }
 
         $eventsManager = new EventsManager();
-
         $eventsManager->attach(
             'db',
             new DbProfilerListener()
@@ -200,7 +201,7 @@ class Migration
      */
     public static function generate(
         ItemInterface $version,
-        $table,
+        string $table,
         $exportData = null,
         $exportDataFromTables = null
     ): string {
@@ -332,6 +333,7 @@ class Migration
             foreach ($dbIndex->getColumns() as $indexColumn) {
                 $indexDefinition[] = "'" . $indexColumn . "'";
             }
+
             $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $indexDefinition, $dbIndex->getType());
         }
 
@@ -449,7 +451,7 @@ class Migration
         return $classData;
     }
 
-    public static function shouldExportDataFromTable($table, $exportDataFromTables): bool
+    public static function shouldExportDataFromTable(string $table, array $exportDataFromTables): bool
     {
         return in_array($table, $exportDataFromTables);
     }
@@ -466,9 +468,11 @@ class Migration
 
     /**
      * Migrate
-     * @param \Phalcon\Version\IncrementalItem|\Phalcon\Version\TimestampedItem $fromVersion
-     * @param \Phalcon\Version\IncrementalItem|\Phalcon\Version\TimestampedItem $toVersion
+     *
+     * @param IncrementalItem|TimestampedItem $fromVersion
+     * @param IncrementalItem|TimestampedItem $toVersion
      * @param string $tableName
+     * @throws Exception
      */
     public static function migrate($fromVersion, $toVersion, $tableName)
     {
@@ -591,7 +595,7 @@ class Migration
      * @param string $dir Directory to scan
      * @return ItemInterface[]
      */
-    public static function scanForVersions($dir): array
+    public static function scanForVersions(string $dir): array
     {
         $versions = [];
         $iterator = new DirectoryIterator($dir);
@@ -618,7 +622,7 @@ class Migration
      *
      * @throws DbException
      */
-    public function morphTable($tableName, $definition)
+    public function morphTable(string $tableName, array $definition)
     {
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
@@ -888,7 +892,7 @@ class Migration
      *
      * @param string $tableName
      */
-    public function batchDelete($tableName)
+    public function batchDelete(string $tableName)
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
@@ -897,6 +901,7 @@ class Migration
 
         self::$connection->begin();
         self::$connection->delete($tableName);
+
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
@@ -909,6 +914,7 @@ class Migration
             self::$connection->delete($tableName, 'id=?', [$values[0]]);
             unset($line);
         }
+
         fclose($batchHandler);
         self::$connection->commit();
     }

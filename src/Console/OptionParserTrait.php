@@ -29,7 +29,7 @@ trait OptionParserTrait
      * @param mixed $prefixEnd
      * @return mixed
      */
-    public function getPrefixOption($prefix, $prefixEnd = '*')
+    public function getPrefixOption(string $prefix, $prefixEnd = '*')
     {
         if (substr($prefix, -1) != $prefixEnd) {
             return '';
@@ -62,9 +62,9 @@ trait OptionParserTrait
             $migrationsDirList = $this->options['migrationsDir'];
             if (is_array($migrationsDirList)) {
                 foreach ($migrationsDirList as $migrationsDir) {
-                    $migrationsDirList = ModelMigration::scanForVersions($migrationsDir);
-                    if (is_array($migrationsDirList)) {
-                        foreach ($migrationsDirList as $item) {
+                    $migrationsSubDirList = ModelMigration::scanForVersions($migrationsDir);
+                    if (is_array($migrationsSubDirList)) {
+                        foreach ($migrationsSubDirList as $item) {
                             if ($item->getVersion() != $versionItem->getVersion()) {
                                 continue;
                             }
@@ -77,17 +77,18 @@ trait OptionParserTrait
                     }
                 }
             }
-
             // The version is guessed automatically
         } else {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
             $versionItems = [];
             $migrationsDirList = $this->options['migrationsDir'];
+
             if (is_array($migrationsDirList)) {
                 foreach ($migrationsDirList as $migrationsDir) {
                     $versionItems = $versionItems + ModelMigration::scanForVersions($migrationsDir);
                 }
             }
+
             if (!isset($versionItems[0])) {
                 $versionItem = VersionCollection::createItem('1.0.0');
             } else {

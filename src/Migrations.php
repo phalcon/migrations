@@ -78,24 +78,27 @@ class Migrations
         $optionStack->setDefaultOption('verbose', false);
 
         $migrationsDirs = $optionStack->getOption('migrationsDir');
-        //select multiple dir
+        // Select multiple dir
         if (count($migrationsDirs) > 1) {
             $question = 'Which migrations path would you like to use?' . PHP_EOL;
             foreach ($migrationsDirs as $id => $dir) {
                 $question .= " [{$id}] $dir" . PHP_EOL;
             }
+
             fwrite(STDOUT, Color::info($question));
-            $handle = fopen("php://stdin", "r");
+            $handle = fopen('php://stdin', 'r');
             $line = (int)fgets($handle);
             if (!isset($migrationsDirs[$line])) {
                 echo "ABORTING!\n";
                 return false;
             }
+
             fclose($handle);
             $migrationsDir = $migrationsDirs[$line];
         } else {
             $migrationsDir = $migrationsDirs[0];
         }
+
         // Migrations directory
         if ($migrationsDir && !file_exists($migrationsDir)) {
             mkdir($migrationsDir, 0755, true);
@@ -133,6 +136,7 @@ class Migrations
                 $optionStack->getOption('exportData'),
                 $optionStack->getOption('exportDataFromTables')
             );
+
             if (!$optionStack->getOption('verbose')) {
                 foreach ($migrations as $tableName => $migration) {
                     if ($tableName === self::MIGRATION_LOG_TABLE) {
@@ -202,7 +206,6 @@ class Migrations
         } else {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
         }
-
 
         if (!$optionStack->getOption('config') instanceof Config) {
             throw new ModelException('Internal error. Config should be an instance of ' . Config::class);
@@ -370,7 +373,7 @@ class Migrations
      * @throws ModelException
      * @throws ScriptException
      */
-    public static function listAll(array $options)
+    public static function listAll(array $options): void
     {
         // Define versioning type to be used
         if (true === $options['tsBased']) {
@@ -389,6 +392,7 @@ class Migrations
         if (!isset($config->database)) {
             throw new ScriptException('Cannot load database configuration');
         }
+
         $versionItems = [];
         $migrationsDirList = $options['migrationsDir'];
         if (is_array($migrationsDirList)) {
@@ -445,7 +449,7 @@ class Migrations
      * @param array $options Applications options
      * @throws DbException
      */
-    private static function connectionSetup($options)
+    private static function connectionSetup(array $options): void
     {
         if (self::$storage) {
             return;
@@ -537,6 +541,7 @@ class Migrations
                 if (!is_writable($path)) {
                     throw new RuntimeException("Unable to write '" . self::$storage . "' file. Permission denied");
                 }
+
                 touch(self::$storage);
             }
         }
@@ -588,7 +593,7 @@ class Migrations
      * @param string $startTime Migration start timestamp
      * @throws DbException
      */
-    public static function addCurrentVersion($options, $version, $startTime = null)
+    public static function addCurrentVersion(array $options, string $version, string $startTime = null): void
     {
         self::connectionSetup($options);
 
@@ -622,7 +627,7 @@ class Migrations
      * @param string $version Migration version to remove
      * @throws DbException
      */
-    public static function removeCurrentVersion($options, $version)
+    public static function removeCurrentVersion(array $options, string $version): void
     {
         self::connectionSetup($options);
 
@@ -646,7 +651,7 @@ class Migrations
      * @return array
      * @throws DbException
      */
-    public static function getCompletedVersions($options)
+    public static function getCompletedVersions(array $options): array
     {
         self::connectionSetup($options);
 
