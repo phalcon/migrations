@@ -18,6 +18,7 @@ use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\Column;
+use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\Index;
@@ -173,11 +174,11 @@ class Migration
      *
      * @param ItemInterface $version
      * @param string $exportData
-     * @param null $exportDataFromTables
+     * @param array $exportDataFromTables
      * @return array
      * @throws DbException
      */
-    public static function generateAll(ItemInterface $version, $exportData = null, $exportDataFromTables = null): array
+    public static function generateAll(ItemInterface $version, $exportData = null, array $exportDataFromTables = []): array
     {
         $classDefinition = [];
         $schema = Utils::resolveDbSchema(self::$databaseConfig);
@@ -195,7 +196,7 @@ class Migration
      * @param ItemInterface $version
      * @param string $table
      * @param mixed $exportData
-     * @param null $exportDataFromTables
+     * @param array $exportDataFromTables
      * @return string
      * @throws UnknownColumnTypeException
      */
@@ -203,7 +204,7 @@ class Migration
         ItemInterface $version,
         string $table,
         $exportData = null,
-        $exportDataFromTables = null
+        array $exportDataFromTables = []
     ): string {
         $oldColumn = null;
         $allFields = [];
@@ -215,7 +216,7 @@ class Migration
         $description = self::$connection->describeColumns($table, $defaultSchema);
 
         foreach ($description as $field) {
-            /** @var ReferenceInterface $field */
+            /** @var ColumnInterface $field */
             $fieldDefinition = [];
             switch ($field->getType()) {
                 case Column::TYPE_INTEGER:
@@ -544,7 +545,6 @@ class Migration
             return null;
         }
 
-        $classVersion = preg_replace('/[^0-9A-Za-z]/', '', $version);
         $className = Text::camelize($tableName) . 'Migration_' . $version->getStamp();
 
         include_once $fileName;
@@ -626,7 +626,7 @@ class Migration
     {
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
-        $tableSchema = null;
+        $tableSchema = '';
 
         if (isset($definition['columns'])) {
             if (count($definition['columns']) == 0) {
@@ -692,7 +692,7 @@ class Migration
 
                 foreach ($localFields as $fieldName => $localField) {
                     if (!isset($fields[$fieldName])) {
-                        self::$connection->dropColumn($tableName, null, $fieldName);
+                        self::$connection->dropColumn($tableName, '', $fieldName);
                     }
                 }
             } else {
@@ -789,7 +789,7 @@ class Migration
 
                 foreach ($localReferences as $referenceName => $reference) {
                     if (!isset($references[$referenceName])) {
-                        self::$connection->dropForeignKey($tableName, null, $referenceName);
+                        self::$connection->dropForeignKey($tableName, '', $referenceName);
                     }
                 }
             }
@@ -848,7 +848,7 @@ class Migration
                 }
                 foreach ($localIndexes as $indexName => $indexColumns) {
                     if (!isset($indexes[$indexName])) {
-                        self::$connection->dropIndex($tableName, null, $indexName);
+                        self::$connection->dropIndex($tableName, '', $indexName);
                     }
                 }
             }

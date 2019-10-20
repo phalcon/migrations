@@ -420,10 +420,12 @@ class Migrations
 
         $versionColumnWidth = 27;
         foreach ($versionItems as $versionItem) {
-            if (strlen($versionItem) > ($versionColumnWidth - 2)) {
-                $versionColumnWidth = strlen($versionItem) + 2;
+            $versionItemLength = strlen($versionItem->__toString());
+            if ($versionItemLength > ($versionColumnWidth - 2)) {
+                $versionColumnWidth = $versionItemLength + 2;
             }
         }
+
         $format = "│ %-" . ($versionColumnWidth - 2) . "s │ %12s │";
 
         $report = [];
