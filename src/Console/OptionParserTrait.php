@@ -20,6 +20,8 @@ use Phalcon\Migrations\Version\ItemInterface;
 
 /**
  * Parsing CLI options
+ *
+ * @property $options array
  */
 trait OptionParserTrait
 {
