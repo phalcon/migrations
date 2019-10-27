@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7a5c35f1836f3c84ad17d8b7edbd906a",
+    "content-hash": "26f6bc274106666e2b6646643c62ae09",
     "packages": [
         {
             "name": "cakephp/cache",
@@ -393,16 +393,16 @@
         },
         {
             "name": "psr/log",
-            "version": "1.1.0",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd"
+                "reference": "bf73deb2b3b896a9d9c75f3f0d88185d2faa27e2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
-                "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/bf73deb2b3b896a9d9c75f3f0d88185d2faa27e2",
+                "reference": "bf73deb2b3b896a9d9c75f3f0d88185d2faa27e2",
                 "shasum": ""
             },
             "require": {
@@ -411,7 +411,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0.x-dev"
+                    "dev-master": "1.1.x-dev"
                 }
             },
             "autoload": {
@@ -436,7 +436,7 @@
                 "psr",
                 "psr-3"
             ],
-            "time": "2018-11-20T15:27:04+00:00"
+            "time": "2019-10-25T08:06:51+00:00"
         },
         {
             "name": "psr/simple-cache",
@@ -1048,16 +1048,16 @@
     "packages-dev": [
         {
             "name": "amphp/amp",
-            "version": "v2.3.1",
+            "version": "v2.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/amp.git",
-                "reference": "5a294f13810844e3bdda28c0f352821d735ca9b3"
+                "reference": "9fa04aa6f87a8200fc0961de6bcc5465785c0c6f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/amp/zipball/5a294f13810844e3bdda28c0f352821d735ca9b3",
-                "reference": "5a294f13810844e3bdda28c0f352821d735ca9b3",
+                "url": "https://api.github.com/repos/amphp/amp/zipball/9fa04aa6f87a8200fc0961de6bcc5465785c0c6f",
+                "reference": "9fa04aa6f87a8200fc0961de6bcc5465785c0c6f",
                 "shasum": ""
             },
             "require": {
@@ -1121,7 +1121,7 @@
                 "non-blocking",
                 "promise"
             ],
-            "time": "2019-10-01T19:39:23+00:00"
+            "time": "2019-10-26T14:31:57+00:00"
         },
         {
             "name": "amphp/byte-stream",
@@ -1466,16 +1466,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.2.4",
+            "version": "v4.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "97e59c7a16464196a8b9c77c47df68e4a39a45c4"
+                "reference": "b76bbc3c51f22c570648de48e8c2d941ed5e2cf2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/97e59c7a16464196a8b9c77c47df68e4a39a45c4",
-                "reference": "97e59c7a16464196a8b9c77c47df68e4a39a45c4",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/b76bbc3c51f22c570648de48e8c2d941ed5e2cf2",
+                "reference": "b76bbc3c51f22c570648de48e8c2d941ed5e2cf2",
                 "shasum": ""
             },
             "require": {
@@ -1483,6 +1483,7 @@
                 "php": ">=7.0"
             },
             "require-dev": {
+                "ircmaxell/php-yacc": "0.0.4",
                 "phpunit/phpunit": "^6.5 || ^7.0 || ^8.0"
             },
             "bin": [
@@ -1513,7 +1514,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2019-09-01T07:51:21+00:00"
+            "time": "2019-10-25T18:33:07+00:00"
         },
         {
             "name": "ocramius/package-versions",
@@ -1616,16 +1617,16 @@
         },
         {
             "name": "phalcon/ide-stubs",
-            "version": "v4.0.0-rc.1",
+            "version": "v4.0.0-rc.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phalcon/ide-stubs.git",
-                "reference": "3c36179ef73716d521c17a87c9e68dc44cadb6db"
+                "reference": "e21e4776f2583d13dd0cb54d667cad704a8e78cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phalcon/ide-stubs/zipball/3c36179ef73716d521c17a87c9e68dc44cadb6db",
-                "reference": "3c36179ef73716d521c17a87c9e68dc44cadb6db",
+                "url": "https://api.github.com/repos/phalcon/ide-stubs/zipball/e21e4776f2583d13dd0cb54d667cad704a8e78cf",
+                "reference": "e21e4776f2583d13dd0cb54d667cad704a8e78cf",
                 "shasum": ""
             },
             "require": {
@@ -1664,7 +1665,7 @@
                 "stub",
                 "stubs"
             ],
-            "time": "2019-09-24T12:36:09+00:00"
+            "time": "2019-10-26T20:50:08+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -2973,16 +2974,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "3.6.1",
+            "version": "3.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "7857b07f91bed5afae98574243fed7ec4088d623"
+                "reference": "05ace258176795e87ef07b4262b5ceba3fd27de3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/7857b07f91bed5afae98574243fed7ec4088d623",
-                "reference": "7857b07f91bed5afae98574243fed7ec4088d623",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/05ace258176795e87ef07b4262b5ceba3fd27de3",
+                "reference": "05ace258176795e87ef07b4262b5ceba3fd27de3",
                 "shasum": ""
             },
             "require": {
@@ -3057,7 +3058,7 @@
                 "inspection",
                 "php"
             ],
-            "time": "2019-10-11T12:24:35+00:00"
+            "time": "2019-10-20T20:19:01+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -3211,7 +3212,7 @@
     "platform": {
         "php": ">=7.2",
         "ext-posix": "*",
-        "ext-phalcon": ">=4.0.0-rc.1"
+        "ext-phalcon": "4.0.0-rc.2"
     },
     "platform-dev": []
 }
