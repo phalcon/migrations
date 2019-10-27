@@ -59,8 +59,11 @@ class Utils
      * @param boolean $useLow
      * @return string
      */
-    public static function lowerCamelizeWithDelimiter(string $string, string $delimiter = '', bool $useLow = false): string
-    {
+    public static function lowerCamelizeWithDelimiter(
+        string $string,
+        string $delimiter = '',
+        bool $useLow = false
+    ): string {
         if (empty($string)) {
             throw new InvalidArgumentException('Please, specify the string');
         }

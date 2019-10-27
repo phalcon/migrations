@@ -13,14 +13,14 @@ final class NullifyTest extends TestCase
         return [
             [[1, 'test', 'NULL'], [1, 'test', null]],
             [[null, 'foo', 'bar'], [null, 'foo', 'bar']],
-            [[NULL, 'null', 'Null'], [null, null, null]],
+            [[null, 'null', 'Null'], [null, null, null]],
         ];
     }
 
     /**
      * @dataProvider dataProvider
      * @covers \Phalcon\Migrations\Utils\Nullify::__invoke
-     * 
+     *
      * @param mixed $actual
      * @param mixed $expected
      */

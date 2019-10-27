@@ -34,7 +34,16 @@ class Snippet
         return \$this;
     }
 EOD;
-        return PHP_EOL.sprintf($templateSetter, $originalFieldName, $type, $fieldName, $setterName, $fieldName, $fieldName, $fieldName).PHP_EOL;
+        return PHP_EOL . sprintf(
+            $templateSetter,
+            $originalFieldName,
+            $type,
+            $fieldName,
+            $setterName,
+            $fieldName,
+            $fieldName,
+            $fieldName
+        ) . PHP_EOL;
     }
 
     public function getValidateInclusion($fieldName, $varItems): string
@@ -68,15 +77,23 @@ EOD;
 %s
     }
 EOD;
-        return PHP_EOL.sprintf($templateValidations, join('', $pieces)).PHP_EOL;
+        return PHP_EOL . sprintf($templateValidations, join('', $pieces)) . PHP_EOL;
     }
 
     /**
      * @param ModelOption $modelOptions
      * @return string
      */
-    public function getClass($namespace, $useDefinition, $classDoc = '', $abstract = '', $modelOptions, $extends = '', $content, $license = ''): string
-    {
+    public function getClass(
+        $namespace,
+        $useDefinition,
+        $classDoc = '',
+        $abstract = '',
+        $modelOptions = '',
+        $extends = '',
+        $content = '',
+        $license = ''
+    ): string {
         $templateCode = <<<EOD
 <?php
 
@@ -94,8 +111,8 @@ EOD;
             $abstract,
             $modelOptions->getOption('className'),
             $extends,
-            $content)
-        .PHP_EOL;
+            $content
+        ) . PHP_EOL;
     }
 
     public function getClassDoc($className, $namespace = ''): string
@@ -143,8 +160,13 @@ EOD;
         return $templateValidationFailed;
     }
 
-    public function getAttributes($type, $visibility, ColumnInterface $field, $annotate = false, $customFieldName = null): string
-    {
+    public function getAttributes(
+        $type,
+        $visibility,
+        ColumnInterface $field,
+        $annotate = false,
+        $customFieldName = null
+    ): string {
         $fieldName = $customFieldName ?: $field->getName();
 
         if ($annotate) {
@@ -157,14 +179,18 @@ EOD;
     %s \$%s;
 EOD;
 
-            return PHP_EOL.sprintf($templateAttributes,
+            return PHP_EOL . sprintf(
+                $templateAttributes,
                 $type,
-                $field->isPrimary() ? PHP_EOL.'     * @Primary' : '',
-                $field->isAutoIncrement() ? PHP_EOL.'     * @Identity' : '',
+                $field->isPrimary() ? PHP_EOL . '     * @Primary' : '',
+                $field->isAutoIncrement() ? PHP_EOL . '     * @Identity' : '',
                 $field->getName(),
                 $type,
                 $field->getSize() ? ', length=' . $field->getSize() : '',
-                $field->isNotNull() ? 'false' : 'true', $visibility, $fieldName).PHP_EOL;
+                $field->isNotNull() ? 'false' : 'true',
+                $visibility,
+                $fieldName
+            ) . PHP_EOL;
         } else {
             $templateAttributes = <<<EOD
     /**
@@ -195,7 +221,9 @@ EOD;
         }
     }
 EOD;
-        return PHP_EOL.sprintf($templateGetterMap, $fieldName, $type, $setterName, $fieldName, $typeMap, $fieldName).PHP_EOL;
+        return PHP_EOL .
+            sprintf($templateGetterMap, $fieldName, $type, $setterName, $fieldName, $typeMap, $fieldName) .
+            PHP_EOL;
     }
 
     public function getGetter($fieldName, $type, $getterName): string
@@ -344,7 +372,13 @@ class %s extends Migration
         \$this->morphTable('%s', [
 %s
 EOD;
-        return sprintf($template, $className, $className, $table, $this->getMigrationDefinition('columns', $tableDefinition));
+        return sprintf(
+            $template,
+            $className,
+            $className,
+            $table,
+            $this->getMigrationDefinition('columns', $tableDefinition)
+        );
     }
 
     public function getMigrationUp(): string

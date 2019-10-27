@@ -46,7 +46,7 @@ final class OptionStackTest extends TestCase
     public function testGetAndSetOptions(): void
     {
         $options = [
-            'test' => 'foo', 
+            'test' => 'foo',
             'test2' => 'bar',
         ];
         

@@ -178,8 +178,11 @@ class Migration
      * @return array
      * @throws DbException
      */
-    public static function generateAll(ItemInterface $version, $exportData = null, array $exportDataFromTables = []): array
-    {
+    public static function generateAll(
+        ItemInterface $version,
+        $exportData = null,
+        array $exportDataFromTables = []
+    ): array {
         $classDefinition = [];
         $schema = Utils::resolveDbSchema(self::$databaseConfig);
 
