@@ -27,11 +27,11 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: composer validate
 
-      - name: Run Code Style checker
-        run: vendor/bin/phpcs
-
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run Code Style checker
+        run: vendor/bin/phpcs
 
       - name: Run test suite
         run: vendor/bin/phpunit
