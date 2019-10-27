@@ -6,13 +6,13 @@
     "require": {
         "php": ">=7.2",
         "ext-posix": "*",
-        "ext-phalcon": ">=4.0.0-rc.1",
-        "robmorgan/phinx": "^0.11.1"
+        "ext-phalcon": "4.0.0-rc.2",
+        "robmorgan/phinx": "0.11.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8",
-        "phalcon/ide-stubs": "4.0.0-rc.1",
-        "vimeo/psalm": "^3.6"
+        "phpunit/phpunit": "8.4.1",
+        "phalcon/ide-stubs": "4.0.0-rc.2",
+        "vimeo/psalm": "3.6.2"
     },
     "autoload": {
         "psr-4": {
