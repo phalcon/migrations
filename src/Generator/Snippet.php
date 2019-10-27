@@ -81,7 +81,14 @@ EOD;
     }
 
     /**
-     * @param ModelOption $modelOptions
+     * @param $namespace
+     * @param $useDefinition
+     * @param string $classDoc
+     * @param string $abstract
+     * @param ModelOption|null $modelOptions
+     * @param string $extends
+     * @param string $content
+     * @param string $license
      * @return string
      */
     public function getClass(
@@ -89,7 +96,7 @@ EOD;
         $useDefinition,
         $classDoc = '',
         $abstract = '',
-        $modelOptions = '',
+        ModelOption $modelOptions = null,
         $extends = '',
         $content = '',
         $license = ''
