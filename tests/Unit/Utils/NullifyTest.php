@@ -20,6 +20,9 @@ final class NullifyTest extends TestCase
     /**
      * @dataProvider dataProvider
      * @covers \Phalcon\Migrations\Utils\Nullify::__invoke
+     * 
+     * @param mixed $actual
+     * @param mixed $expected
      */
     public function testInvoke($actual, $expected): void
     {

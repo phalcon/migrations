@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Phalcon\Console;
+namespace Phalcon\Migrations\Tests\Unit\Console;
 
 use PHPUnit\Framework\TestCase;
 use Phalcon\Migrations\Console\OptionParserTrait;
