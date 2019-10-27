@@ -30,7 +30,7 @@ class IncrementalItem implements ItemInterface
     private $version;
 
     /**
-     * @var int|string
+     * @var int
      */
     private $versionStamp = 0;
 
