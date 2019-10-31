@@ -137,7 +137,7 @@ EOD;
 
     public function getMigrationUp(): string
     {
-        $template = <<<EOD
+        return <<<EOD
 
     /**
      * Run the migrations
@@ -148,12 +148,11 @@ EOD;
     {
 
 EOD;
-        return $template;
     }
 
     public function getMigrationDown(): string
     {
-        $template = <<<EOD
+        return <<<EOD
 
     /**
      * Reverse the migrations
@@ -164,7 +163,6 @@ EOD;
     {
 
 EOD;
-        return $template;
     }
 
     public function getMigrationBatchInsert($table, $allFields): string
@@ -252,33 +250,5 @@ new Reference(
 EOD;
 
         return sprintf($template, $constraintName, join(",\n                            ", $referenceDefinition));
-    }
-
-    public function getUse($class): string
-    {
-        $templateUse = 'use %s;';
-
-        return sprintf($templateUse, $class);
-    }
-
-    public function getUseAs($class, $alias): string
-    {
-        $templateUseAs = 'use %s as %s;';
-
-        return sprintf($templateUseAs, $class, $alias);
-    }
-
-    public function getThisMethod($method, $params): string
-    {
-        $templateThis = "        \$this->%s(%s);" . PHP_EOL;
-
-        return sprintf($templateThis, $method, '"' . $params . '"');
-    }
-
-    public function getRelation($relation, $column1, $entity, $column2, $alias): string
-    {
-        $templateRelation = "        \$this->%s('%s', '%s', '%s', %s);" . PHP_EOL;
-
-        return sprintf($templateRelation, $relation, $column1, $entity, $column2, $alias);
     }
 }
