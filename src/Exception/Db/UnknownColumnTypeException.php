@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Exception\Db;
 
-use Phalcon\Db\Exception;
 use Phalcon\Db\ColumnInterface;
+use Phalcon\Db\Exception;
 
 class UnknownColumnTypeException extends Exception
 {

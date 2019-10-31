@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Listeners;
 
-use Phalcon\Mvc\Model\Migration\Profiler;
 use Phalcon\Events\Event;
+use Phalcon\Mvc\Model\Migration\Profiler;
 
 /**
  * Db event listener

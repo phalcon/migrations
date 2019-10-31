@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Options;
 
-use Phalcon\Migrations\FactoryOptions;
 use Phalcon\Migrations\Exception\InvalidArgumentException;
+use Phalcon\Migrations\FactoryOptions;
 
 /**
  * Class that has option container and processing with it

@@ -14,8 +14,8 @@ namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
 use DirectoryIterator;
 use InvalidArgumentException;
-use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Db\Exception as DbException;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 
 class ListTablesDb implements ListTablesInterface
 {
