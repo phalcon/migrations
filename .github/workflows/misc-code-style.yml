@@ -1,0 +1,11 @@
+name: "Misc: Code Style"
+on: [push, pull_request]
+jobs:
+  run:
+    name: Validate PSR-2 Code Style
+    steps:
+      - name: Install PHP_CodeSniffer composer package
+        run: composer global require "squizlabs/php_codesniffer=*"
+
+      - name: Run Code Style checker
+        run: /$(whoami)/.composer/vendor/bin/phpcs
