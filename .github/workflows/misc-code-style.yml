@@ -4,6 +4,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
+
+      - name: ls
+        run: ls -la
+
       - name: Install PHP_CodeSniffer composer package
         run: composer global require "squizlabs/php_codesniffer=*"
 
