@@ -8,4 +8,4 @@ jobs:
         run: composer global require "squizlabs/php_codesniffer=*"
 
       - name: Validate PSR-2 Code Style
-        run: /$(whoami)/.composer/vendor/bin/phpcs
+        run: ~/.composer/vendor/bin/phpcs
