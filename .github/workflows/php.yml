@@ -10,15 +10,13 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          TEST_DB_HOST: 127.0.0.1
-          TEST_DB_PORT: 3306
-          TEST_DB_DATABASE: db1
+          MYSQL_ROOT_PASSWORD: root
     steps:
       - uses: actions/checkout@v1
 
       - name: Init Database
         run: |
-          mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS phalcon-migrations;'
 
       - name: Show PHP Version
         run: php -v
