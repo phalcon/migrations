@@ -5,15 +5,29 @@
         convertNoticesToExceptions="false"
         convertWarningsToExceptions="true"
         cacheResult="false"
-        bootstrap="vendor/autoload.php"
+        bootstrap="tests/bootstrap.php"
 >
-    <testsuite name="unit">
-        <directory>tests/Unit</directory>
-    </testsuite>
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
 
     <filter>
         <whitelist>
             <directory suffix=".php">src</directory>
         </whitelist>
     </filter>
+
+    <php>
+        <env name="TEST_DB_HOST" value="127.0.0.1" />
+        <env name="TEST_DB_PORT" value="3306" />
+        <env name="TEST_DB_DATABASE" value="phalcon-migrations" />
+        <env name="TEST_DB_USER" value="root" />
+        <env name="TEST_DB_PASSWORD" value="root" />
+    </php>
 </phpunit>

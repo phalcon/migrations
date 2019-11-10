@@ -20,6 +20,14 @@
             "Phalcon\\Migrations\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Phalcon\\Migrations\\Tests\\": "tests/"
+        },
+        "files": [
+            "tests/Helpers.php"
+        ]
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "archive": {
