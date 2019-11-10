@@ -16,7 +16,7 @@ jobs:
 
       - name: Init Database
         run: |
-          mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS phalcon-migrations;'
+          mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
 
       - name: Show PHP Version
         run: php -v
