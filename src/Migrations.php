@@ -134,7 +134,7 @@ class Migrations
             $migrations = ModelMigration::generateAll(
                 $versionItem,
                 $optionStack->getOption('exportData'),
-                $optionStack->getOption('exportDataFromTables')
+                $optionStack->getOption('exportDataFromTables') ?: []
             );
 
             if (!$optionStack->getOption('verbose')) {
@@ -166,7 +166,7 @@ class Migrations
                     $versionItem,
                     $table,
                     $optionStack->getOption('exportData'),
-                    $optionStack->getOption('exportDataFromTables')
+                    $optionStack->getOption('exportDataFromTables') ?: []
                 );
                 if (!$optionStack->getOption('verbose')) {
                     $tableFile = $migrationPath . DIRECTORY_SEPARATOR . $table . '.php';
