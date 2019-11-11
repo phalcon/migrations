@@ -24,6 +24,7 @@
     </filter>
 
     <php>
+        <env name="TEST_DB_ADAPTER" value="mysql" />
         <env name="TEST_DB_HOST" value="127.0.0.1" />
         <env name="TEST_DB_PORT" value="3306" />
         <env name="TEST_DB_DATABASE" value="phalcon-migrations" />
