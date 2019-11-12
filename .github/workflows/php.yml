@@ -24,8 +24,8 @@ jobs:
       - name: Add Phalcon package repository
         run: curl -s https://packagecloud.io/install/repositories/phalcon/mainline/script.deb.sh | sudo bash
 
-      - name: Install PSR PECL Package
-        run: sudo apt-get install php-pear && sudo pecl install --force psr
+      - name: Install PSR and Xdebug PECL Packages
+        run: sudo apt-get install php-pear && sudo pecl install --force psr xdebug
 
       - name: Install Phalcon
         run: sudo apt-get install php7.3-phalcon
@@ -42,11 +42,14 @@ jobs:
       - name: Install PHPStan
         run: composer require --prefer-dist --no-progress --no-suggest --dev phpstan/phpstan
 
-      - name: Run test suite
-        run: vendor/bin/phpunit
-
       - name: Run Psalm
         run: vendor/bin/psalm --show-info=false
 
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse -l 5 src
+
+      - name: Run test suite
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - name: Send Tests Coverage report to Codecov.io
+        run: bash <(curl -s https://codecov.io/bash)
