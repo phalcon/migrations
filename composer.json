@@ -33,7 +33,11 @@
     "archive": {
         "exclude": [
             "/.github",
-            "/tests"
+            "/tests",
+            "phpcs.xml.dist",
+            "phpstan.neon.dist",
+            "phpunit.xml.dist",
+            "psalm.xml.dist"
         ]
     }
 }
