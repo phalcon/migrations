@@ -30,7 +30,6 @@ use Phalcon\Migrations\Script\Color;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
-use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Migrations\Version\TimestampedItem;
 use Phalcon\Mvc\Model\Exception as ModelException;
 use RuntimeException;
