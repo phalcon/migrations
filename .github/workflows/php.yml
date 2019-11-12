@@ -1,10 +1,9 @@
-name: PHP Composer
+name: Main CI
 
-on:
-  push:
+on: [push, pull_request]
 
 jobs:
-  build:
+  run:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -36,7 +35,7 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: composer validate
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
       - name: Install PHPStan
