@@ -1,0 +1,8 @@
+parameters:
+    bootstrap: %rootDir%/../../../vendor/autoload.php
+
+    #excludes_analyse:
+    #    - %rootDir%/../../../src/Utils.php
+    ignoreErrors:
+        - '#Parameter \#1 \$eventsManager of method Phalcon#'
+    reportUnmatchedIgnoredErrors: false
