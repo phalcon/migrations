@@ -473,8 +473,8 @@ class Migration
     /**
      * Migrate
      *
-     * @param IncrementalItem|TimestampedItem $fromVersion
-     * @param IncrementalItem|TimestampedItem $toVersion
+     * @param ItemInterface $fromVersion
+     * @param ItemInterface $toVersion
      * @param string $tableName
      * @throws Exception
      */
@@ -629,7 +629,7 @@ class Migration
     {
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
-        $tableSchema = '';
+        $tableSchema = $defaultSchema;
 
         if (isset($definition['columns'])) {
             if (count($definition['columns']) == 0) {
@@ -642,18 +642,16 @@ class Migration
                 if (!is_object($tableColumn)) {
                     throw new DbException('Table must have at least one column');
                 }
+
                 /** @var \Phalcon\Db\ColumnInterface[] $fields */
                 $fields[$tableColumn->getName()] = $tableColumn;
-                if (empty($tableSchema)) {
-                    $tableSchema = $tableColumn->getSchemaName();
-                }
             }
 
             if ($tableExists == true) {
                 $localFields = [];
                 /**
-                 * @var ReferenceInterface[] $description
-                 * @var ReferenceInterface[] $localFields
+                 * @var ColumnInterface[] $description
+                 * @var ColumnInterface[] $localFields
                  */
                 $description = self::$connection->describeColumns($tableName, $defaultSchema);
                 foreach ($description as $field) {
@@ -662,7 +660,7 @@ class Migration
 
                 foreach ($fields as $fieldName => $column) {
                     if (!isset($localFields[$fieldName])) {
-                        self::$connection->addColumn($tableName, $column->getSchemaName(), $column);
+                        self::$connection->addColumn($tableName, $tableSchema, $column);
                     } else {
                         $changed = false;
 
@@ -685,7 +683,7 @@ class Migration
                         if ($changed == true) {
                             self::$connection->modifyColumn(
                                 $tableName,
-                                $column->getSchemaName(),
+                                $tableSchema,
                                 $column,
                                 $column
                             );

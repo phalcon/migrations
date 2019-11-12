@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Listeners;
 
 use Phalcon\Events\Event;
-use Phalcon\Mvc\Model\Migration\Profiler;
+use Phalcon\Migrations\Mvc\Model\Migration\Profiler;
 
 /**
  * Db event listener

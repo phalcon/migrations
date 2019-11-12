@@ -30,6 +30,7 @@ use Phalcon\Migrations\Script\Color;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
+use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Migrations\Version\TimestampedItem;
 use Phalcon\Mvc\Model\Exception as ModelException;
 use RuntimeException;
@@ -518,7 +519,7 @@ class Migrations
             }
         } else {
             if (empty($options['directory'])) {
-                $path = defined('BASE_PATH') ? BASE_PATH : defined('APP_PATH') ? dirname(APP_PATH) : '';
+                $path = defined('BASE_PATH') ? constant('BASE_PATH') : defined('APP_PATH') ? dirname(constant('APP_PATH')) : '';
                 $path = rtrim($path, '\\/') . '/.phalcon';
             } else {
                 $path = rtrim($options['directory'], '\\/') . '/.phalcon';

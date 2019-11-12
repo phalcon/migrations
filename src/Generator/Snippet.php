@@ -18,8 +18,8 @@ use Phalcon\Migrations\Options\OptionsAware as ModelOption;
 class Snippet
 {
     /**
-     * @param $namespace
-     * @param $useDefinition
+     * @param string $namespace
+     * @param string $useDefinition
      * @param string $classDoc
      * @param string $abstract
      * @param ModelOption|null $modelOptions
