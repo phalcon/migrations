@@ -50,5 +50,8 @@ jobs:
       - name: Run test suite
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
-      - name: Send Tests Coverage report to Codecov.io
-        run: bash <(curl -s https://codecov.io/bash)
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1.0.3
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.xml
