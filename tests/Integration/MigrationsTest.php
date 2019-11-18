@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Integration;
 
+use Exception;
 use Phalcon\Config;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
@@ -15,6 +16,9 @@ final class MigrationsTest extends IntegrationTestCase
      */
     protected static $generateConfig;
 
+    /**
+     * Set Up Before Class Fixture
+     */
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
@@ -30,6 +34,9 @@ final class MigrationsTest extends IntegrationTestCase
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testGenerateEmptyDataBase(): void
     {
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
@@ -46,7 +53,10 @@ final class MigrationsTest extends IntegrationTestCase
         $this->assertDirectoryExists($migrationsDir);
         $this->assertSame(count(scandir($migrationsDir . '/1.0.0')), 2);
     }
-    
+
+    /**
+     * @throws Exception
+     */
     public function testGenerateSingleTable(): void
     {
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
@@ -77,6 +87,9 @@ final class MigrationsTest extends IntegrationTestCase
         $this->assertSame(3, count(scandir($migrationsDir . '/1.0.0')));
     }
 
+    /**
+     * @throws Exception
+     */
     public function testGenerateTwoTables(): void
     {
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
@@ -122,5 +135,36 @@ final class MigrationsTest extends IntegrationTestCase
 
         $this->assertDirectoryExists($migrationsDir);
         $this->assertSame(4, count(scandir($migrationsDir . '/1.0.0')));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGenerateByMigrationsDirAsString(): void
+    {
+        $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
+
+        $this->db->createTable('test', getenv('TEST_DB_DATABASE'), [
+            'columns' => [
+                new Column('column_name', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'unsigned' => true,
+                    'notNull' => true,
+                    'first' => true,
+                ]),
+            ],
+        ]);
+
+        $options = [
+            'migrationsDir' => $migrationsDir,
+            'config' => self::$generateConfig,
+            'tableName' => '@',
+        ];
+
+        Migrations::generate($options);
+
+        $this->assertDirectoryExists($migrationsDir);
+        $this->assertSame(3, count(scandir($migrationsDir . '/1.0.0')));
     }
 }
