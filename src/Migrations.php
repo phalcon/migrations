@@ -237,6 +237,17 @@ class Migrations
                     $versionItems [] = $items;
                 }
             }
+        } else {
+            $migrationsDir = rtrim($migrationsDirList, '\\/');
+            if (!file_exists($migrationsDir)) {
+                throw new ModelException('Migrations directory was not found.');
+            }
+
+            $migrationsDirs[] = $migrationsDir;
+            foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
+                $items->setPath($migrationsDir);
+                $versionItems[] = $items;
+            }
         }
 
         $finalVersion = null;
