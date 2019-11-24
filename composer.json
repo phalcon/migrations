@@ -41,5 +41,6 @@
             "phpunit.xml.dist",
             "psalm.xml.dist"
         ]
-    }
+    },
+    "bin": ["phalcon-migrations"]
 }
