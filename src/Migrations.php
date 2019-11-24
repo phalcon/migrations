@@ -129,7 +129,7 @@ class Migrations
         }
 
         ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
-        ModelMigration::setSkipAutoIncrement($optionStack->getOption('noAutoIncrement'));
+        ModelMigration::setSkipAutoIncrement((bool)$optionStack->getOption('noAutoIncrement'));
         ModelMigration::setMigrationPath($migrationsDir);
 
         $wasMigrated = false;
@@ -354,7 +354,7 @@ class Migrations
                         continue;
                     }
 
-                    ModelMigration::migrate($initialVersion, $versionItem, $fileInfo->getBasename('.php'));
+                    ModelMigration::migrate($fileInfo->getBasename('.php'), $initialVersion, $versionItem);
                 }
             } else {
                 if (!empty($prefix)) {
@@ -363,7 +363,7 @@ class Migrations
 
                 $tables = explode(',', $optionStack->getOption('tableName'));
                 foreach ($tables as $tableName) {
-                    ModelMigration::migrate($initialVersion, $versionItem, $tableName);
+                    ModelMigration::migrate($tableName, $initialVersion, $versionItem);
                 }
             }
 

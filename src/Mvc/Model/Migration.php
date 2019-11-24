@@ -33,10 +33,8 @@ use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;
-use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
-use Phalcon\Migrations\Version\TimestampedItem;
 use Phalcon\Text;
 
 /**
@@ -96,9 +94,8 @@ class Migration
      * @param bool $verbose array with settings
      * @throws DbException
      * @since 3.2.1 Using Postgresql::describeReferences and DialectPostgresql dialect class
-     *
      */
-    public static function setup($database, $verbose = false): void
+    public static function setup(Config $database, bool $verbose = false): void
     {
         if (!isset($database->adapter)) {
             throw new DbException('Unspecified database Adapter in your configuration!');
@@ -141,10 +138,7 @@ class Migration
         }
 
         $eventsManager = new EventsManager();
-        $eventsManager->attach(
-            'db',
-            new DbProfilerListener()
-        );
+        $eventsManager->attach('db', new DbProfilerListener());
 
         self::$connection->setEventsManager($eventsManager);
     }
@@ -154,7 +148,7 @@ class Migration
      *
      * @param bool $skip
      */
-    public static function setSkipAutoIncrement($skip): void
+    public static function setSkipAutoIncrement(bool $skip): void
     {
         self::$skipAI = $skip;
     }
@@ -164,7 +158,7 @@ class Migration
      *
      * @param string $path
      */
-    public static function setMigrationPath($path): void
+    public static function setMigrationPath(string $path): void
     {
         self::$migrationPath = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
     }
@@ -180,7 +174,7 @@ class Migration
      */
     public static function generateAll(
         ItemInterface $version,
-        $exportData = null,
+        string $exportData = null,
         array $exportDataFromTables = []
     ): array {
         $classDefinition = [];
@@ -461,32 +455,20 @@ class Migration
     }
 
     /**
-     * Returns database name
-     *
-     * @return mixed
-     */
-    public static function getDbName()
-    {
-        return self::$databaseConfig->get('dbname');
-    }
-
-    /**
      * Migrate
      *
-     * @param ItemInterface $fromVersion
-     * @param ItemInterface $toVersion
      * @param string $tableName
+     * @param ItemInterface|null $fromVersion
+     * @param ItemInterface|null $toVersion
      * @throws Exception
      */
-    public static function migrate($fromVersion, $toVersion, $tableName)
-    {
-        if (!is_object($fromVersion)) {
-            $fromVersion = VersionCollection::createItem($fromVersion);
-        }
-
-        if (!is_object($toVersion)) {
-            $toVersion = VersionCollection::createItem($toVersion);
-        }
+    public static function migrate(
+        string $tableName,
+        ItemInterface $fromVersion = null,
+        ItemInterface $toVersion = null
+    ): void {
+        $fromVersion = $fromVersion ?: VersionCollection::createItem($fromVersion);
+        $toVersion = $toVersion ?: VersionCollection::createItem($toVersion);
 
         if ($fromVersion->getStamp() == $toVersion->getStamp()) {
             return; // nothing to do
@@ -524,11 +506,8 @@ class Migration
 
             // call the last morph function in the previous migration files
             $toMigration = self::createPrevClassWithMorphMethod($toVersion, $tableName);
-
-            if (is_object($toMigration)) {
-                if (method_exists($toMigration, 'morph')) {
-                    $toMigration->morph();
-                }
+            if ($toMigration !== null && method_exists($toMigration, 'morph')) {
+                $toMigration->morph();
             }
         }
     }
@@ -541,7 +520,7 @@ class Migration
      * @return null|Migration
      * @throws Exception
      */
-    private static function createClass(ItemInterface $version, $tableName)
+    private static function createClass(ItemInterface $version, string $tableName): ?Migration
     {
         $fileName = self::$migrationPath . $version->getVersion() . DIRECTORY_SEPARATOR . $tableName . '.php';
         if (!file_exists($fileName)) {
@@ -571,7 +550,7 @@ class Migration
      * @throws Exception
      * @internal param ItemInterface $version
      */
-    private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, $tableName)
+    private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, $tableName): ?Migration
     {
         $prevVersions = [];
         $versions = self::scanForVersions(self::$migrationPath);
@@ -602,12 +581,9 @@ class Migration
     {
         $versions = [];
         $iterator = new DirectoryIterator($dir);
-        foreach ($iterator as $fileinfo) {
-            $filename = $fileinfo->getFilename();
-            if (!$fileinfo->isDir()
-                || $fileinfo->isDot()
-                || !VersionCollection::isCorrectVersion($filename)
-            ) {
+        foreach ($iterator as $fileInfo) {
+            $filename = $fileInfo->getFilename();
+            if (!$fileInfo->isDir() || $fileInfo->isDot() || !VersionCollection::isCorrectVersion($filename)) {
                 continue;
             }
 
@@ -625,7 +601,7 @@ class Migration
      *
      * @throws DbException
      */
-    public function morphTable(string $tableName, array $definition)
+    public function morphTable(string $tableName, array $definition): void
     {
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
@@ -637,17 +613,17 @@ class Migration
             }
 
             $fields = [];
-            /** @var \Phalcon\Db\ColumnInterface $tableColumn */
+            /** @var ColumnInterface $tableColumn */
             foreach ($definition['columns'] as $tableColumn) {
                 if (!is_object($tableColumn)) {
                     throw new DbException('Table must have at least one column');
                 }
 
-                /** @var \Phalcon\Db\ColumnInterface[] $fields */
+                /** @var ColumnInterface[] $fields */
                 $fields[$tableColumn->getName()] = $tableColumn;
             }
 
-            if ($tableExists == true) {
+            if ($tableExists) {
                 $localFields = [];
                 /**
                  * @var ColumnInterface[] $description
@@ -680,13 +656,8 @@ class Migration
                             $changed = true;
                         }
 
-                        if ($changed == true) {
-                            self::$connection->modifyColumn(
-                                $tableName,
-                                $tableSchema,
-                                $column,
-                                $column
-                            );
+                        if ($changed) {
+                            self::$connection->modifyColumn($tableName, $tableSchema, $column, $column);
                         }
                     }
                 }
@@ -704,153 +675,145 @@ class Migration
             }
         }
 
-        if (isset($definition['references'])) {
-            if ($tableExists == true) {
-                $references = [];
-                foreach ($definition['references'] as $tableReference) {
-                    $references[$tableReference->getName()] = $tableReference;
+        if (isset($definition['references']) && $tableExists) {
+            $references = [];
+            foreach ($definition['references'] as $tableReference) {
+                $references[$tableReference->getName()] = $tableReference;
+            }
+
+            $localReferences = [];
+            $activeReferences = self::$connection->describeReferences($tableName, $defaultSchema);
+            /** @var ReferenceInterface $activeReference */
+            foreach ($activeReferences as $activeReference) {
+                $localReferences[$activeReference->getName()] = [
+                    'referencedTable' => $activeReference->getReferencedTable(),
+                    'referencedSchema' => $activeReference->getReferencedSchema(),
+                    'columns' => $activeReference->getColumns(),
+                    'referencedColumns' => $activeReference->getReferencedColumns(),
+                ];
+            }
+
+            foreach ($definition['references'] as $tableReference) {
+                if (!isset($localReferences[$tableReference->getName()])) {
+                    self::$connection->addForeignKey(
+                        $tableName,
+                        $tableReference->getSchemaName(),
+                        $tableReference
+                    );
+
+                    continue;
                 }
 
-                $localReferences = [];
-                $activeReferences = self::$connection->describeReferences($tableName, $defaultSchema);
-                foreach ($activeReferences as $activeReference) {
-                    $localReferences[$activeReference->getName()] = [
-                        'referencedTable' => $activeReference->getReferencedTable(),
-                        'referencedSchema' => $activeReference->getReferencedSchema(),
-                        'columns' => $activeReference->getColumns(),
-                        'referencedColumns' => $activeReference->getReferencedColumns(),
-                    ];
+                $changed = false;
+                if ($tableReference->getReferencedTable() !=
+                    $localReferences[$tableReference->getName()]['referencedTable']
+                ) {
+                    $changed = true;
                 }
 
-                foreach ($definition['references'] as $tableReference) {
-                    if (!isset($localReferences[$tableReference->getName()])) {
-                        self::$connection->addForeignKey(
-                            $tableName,
-                            $tableReference->getSchemaName(),
-                            $tableReference
-                        );
-                    } else {
-                        $changed = false;
-                        if ($tableReference->getReferencedTable() !=
-                            $localReferences[$tableReference->getName()]['referencedTable']
-                        ) {
+                if (!$changed) {
+                    if (count($tableReference->getColumns()) !=
+                        count($localReferences[$tableReference->getName()]['columns'])
+                    ) {
+                        $changed = true;
+                    }
+                }
+
+                if (!$changed) {
+                    if (count($tableReference->getReferencedColumns()) !=
+                        count($localReferences[$tableReference->getName()]['referencedColumns'])
+                    ) {
+                        $changed = true;
+                    }
+                }
+
+                if (!$changed) {
+                    foreach ($tableReference->getColumns() as $columnName) {
+                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'])) {
                             $changed = true;
-                        }
-
-                        if ($changed == false) {
-                            if (count($tableReference->getColumns()) !=
-                                count($localReferences[$tableReference->getName()]['columns'])
-                            ) {
-                                $changed = true;
-                            }
-                        }
-
-                        if ($changed == false) {
-                            if (count($tableReference->getReferencedColumns()) !=
-                                count($localReferences[$tableReference->getName()]['referencedColumns'])
-                            ) {
-                                $changed = true;
-                            }
-                        }
-                        if ($changed == false) {
-                            foreach ($tableReference->getColumns() as $columnName) {
-                                if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'])) {
-                                    $changed = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if ($changed == false) {
-                            foreach ($tableReference->getReferencedColumns() as $columnName) {
-                                if (!in_array(
-                                    $columnName,
-                                    $localReferences[$tableReference->getName()]['referencedColumns']
-                                )
-                                ) {
-                                    $changed = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ($changed == true) {
-                            self::$connection->dropForeignKey(
-                                $tableName,
-                                $tableReference->getSchemaName(),
-                                $tableReference->getName()
-                            );
-                            self::$connection->addForeignKey(
-                                $tableName,
-                                $tableReference->getSchemaName(),
-                                $tableReference
-                            );
+                            break;
                         }
                     }
                 }
 
-                foreach ($localReferences as $referenceName => $reference) {
-                    if (!isset($references[$referenceName])) {
-                        self::$connection->dropForeignKey($tableName, '', $referenceName);
+                if (!$changed) {
+                    foreach ($tableReference->getReferencedColumns() as $columnName) {
+                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['referencedColumns'])) {
+                            $changed = true;
+                            break;
+                        }
                     }
+                }
+
+                if ($changed) {
+                    self::$connection->dropForeignKey(
+                        $tableName,
+                        $tableReference->getSchemaName(),
+                        $tableReference->getName()
+                    );
+                    self::$connection->addForeignKey(
+                        $tableName,
+                        $tableReference->getSchemaName(),
+                        $tableReference
+                    );
+                }
+            }
+
+            foreach ($localReferences as $referenceName => $reference) {
+                if (!isset($references[$referenceName])) {
+                    self::$connection->dropForeignKey($tableName, '', $referenceName);
                 }
             }
         }
 
-        if (isset($definition['indexes'])) {
-            if ($tableExists == true) {
-                $indexes = [];
-                foreach ($definition['indexes'] as $tableIndex) {
-                    $indexes[$tableIndex->getName()] = $tableIndex;
-                }
+        if (isset($definition['indexes']) && $tableExists) {
+            $indexes = [];
+            foreach ($definition['indexes'] as $tableIndex) {
+                $indexes[$tableIndex->getName()] = $tableIndex;
+            }
 
-                $localIndexes = [];
-                $actualIndexes = self::$connection->describeIndexes($tableName, $defaultSchema);
-                foreach ($actualIndexes as $actualIndex) {
-                    $localIndexes[$actualIndex->getName()] = $actualIndex->getColumns();
-                }
+            $localIndexes = [];
+            $actualIndexes = self::$connection->describeIndexes($tableName, $defaultSchema);
+            /** @var ReferenceInterface $actualIndex */
+            foreach ($actualIndexes as $actualIndex) {
+                $localIndexes[$actualIndex->getName()] = $actualIndex->getColumns();
+            }
 
-                foreach ($definition['indexes'] as $tableIndex) {
-                    if (!isset($localIndexes[$tableIndex->getName()])) {
+            foreach ($definition['indexes'] as $tableIndex) {
+                if (!isset($localIndexes[$tableIndex->getName()])) {
+                    if ($tableIndex->getName() == 'PRIMARY') {
+                        self::$connection->addPrimaryKey($tableName, $tableSchema, $tableIndex);
+                    } else {
+                        self::$connection->addIndex($tableName, $tableSchema, $tableIndex);
+                    }
+                } else {
+                    $changed = false;
+                    if (count($tableIndex->getColumns()) != count($localIndexes[$tableIndex->getName()])) {
+                        $changed = true;
+                    } else {
+                        foreach ($tableIndex->getColumns() as $columnName) {
+                            if (!in_array($columnName, $localIndexes[$tableIndex->getName()])) {
+                                $changed = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($changed) {
                         if ($tableIndex->getName() == 'PRIMARY') {
+                            self::$connection->dropPrimaryKey($tableName, $tableSchema);
                             self::$connection->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                         } else {
+                            self::$connection->dropIndex($tableName, $tableSchema, $tableIndex->getName());
                             self::$connection->addIndex($tableName, $tableSchema, $tableIndex);
-                        }
-                    } else {
-                        $changed = false;
-                        if (count($tableIndex->getColumns()) != count($localIndexes[$tableIndex->getName()])) {
-                            $changed = true;
-                        } else {
-                            foreach ($tableIndex->getColumns() as $columnName) {
-                                if (!in_array($columnName, $localIndexes[$tableIndex->getName()])) {
-                                    $changed = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if ($changed == true) {
-                            if ($tableIndex->getName() == 'PRIMARY') {
-                                self::$connection->dropPrimaryKey($tableName, $tableSchema);
-                                self::$connection->addPrimaryKey(
-                                    $tableName,
-                                    $tableSchema,
-                                    $tableIndex
-                                );
-                            } else {
-                                self::$connection->dropIndex(
-                                    $tableName,
-                                    $tableSchema,
-                                    $tableIndex->getName()
-                                );
-                                self::$connection->addIndex($tableName, $tableSchema, $tableIndex);
-                            }
                         }
                     }
                 }
-                foreach ($localIndexes as $indexName => $indexColumns) {
-                    if (!isset($indexes[$indexName])) {
-                        self::$connection->dropIndex($tableName, '', $indexName);
-                    }
+            }
+
+            foreach ($localIndexes as $indexName => $indexColumns) {
+                if (!isset($indexes[$indexName])) {
+                    self::$connection->dropIndex($tableName, '', $indexName);
                 }
             }
         }
@@ -862,7 +825,7 @@ class Migration
      * @param string $tableName
      * @param string $fields
      */
-    public function batchInsert($tableName, $fields)
+    public function batchInsert(string $tableName, string $fields)
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
@@ -871,6 +834,7 @@ class Migration
 
         self::$connection->begin();
         self::$connection->delete($tableName);
+
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
@@ -884,6 +848,7 @@ class Migration
             self::$connection->insert($tableName, $nullify($values), $fields);
             unset($line);
         }
+
         fclose($batchHandler);
         self::$connection->commit();
     }
@@ -912,7 +877,7 @@ class Migration
                 $line
             );
 
-            self::$connection->delete($tableName, 'id=?', [$values[0]]);
+            self::$connection->delete($tableName, 'id = ?', [$values[0]]);
             unset($line);
         }
 
