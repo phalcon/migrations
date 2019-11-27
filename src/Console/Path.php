@@ -113,14 +113,4 @@ class Path
 
         return false;
     }
-
-    /**
-     * Check Phalcon system dir
-     *
-     * @return bool
-     */
-    public function hasPhalconDir(): bool
-    {
-        return file_exists($this->rootPath . '.phalcon');
-    }
 }
