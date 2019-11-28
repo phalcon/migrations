@@ -498,7 +498,7 @@ class Migrations
             }
 
             if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {
-                self::$storage->createTable(self::MIGRATION_LOG_TABLE, null, [
+                self::$storage->createTable(self::MIGRATION_LOG_TABLE, '', [
                     'columns' => [
                         new Column(
                             'version',
