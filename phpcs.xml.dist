@@ -6,4 +6,5 @@
 
     <file>src/</file>
     <file>tests/</file>
+    <file>phalcon-migrations</file>
 </ruleset>
