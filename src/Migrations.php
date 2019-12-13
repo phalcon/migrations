@@ -186,6 +186,8 @@ class Migrations
         } elseif (self::isConsole() && !$optionStack->getOption('verbose')) {
             print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
         }
+
+        return true;
     }
 
     /**

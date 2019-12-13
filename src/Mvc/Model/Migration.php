@@ -626,12 +626,10 @@ class Migration
 
             if ($tableExists) {
                 $localFields = [];
-                /**
-                 * @var ColumnInterface[] $description
-                 * @var ColumnInterface[] $localFields
-                 */
+                /** @var ColumnInterface[] $description */
                 $description = self::$connection->describeColumns($tableName, $defaultSchema);
                 foreach ($description as $field) {
+                    /** @var ColumnInterface[] $localFields */
                     $localFields[$field->getName()] = $field;
                 }
 
