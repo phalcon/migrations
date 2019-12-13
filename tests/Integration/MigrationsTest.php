@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Tests\Integration;
 
 use Exception;
+use Faker\Factory as FakerFactory;
 use Phalcon\Config;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
+use function Phalcon\Migrations\Tests\db_batch_insert;
 use function Phalcon\Migrations\Tests\root_path;
 
 final class MigrationsTest extends IntegrationTestCase
@@ -166,5 +168,64 @@ final class MigrationsTest extends IntegrationTestCase
 
         $this->assertDirectoryExists($migrationsDir);
         $this->assertSame(3, count(scandir($migrationsDir . '/1.0.0')));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testTypeDateWithManyRows(): void
+    {
+        $faker = FakerFactory::create();
+        $tableName = 'test_date_with_many_rows';
+        $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
+
+        $this->db->createTable($tableName, getenv('TEST_DB_DATABASE'), [
+            'columns' => [
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'unsigned' => true,
+                    'notNull' => true,
+                    'first' => true,
+                ]),
+                new Column('name', [
+                    'type' => Column::TYPE_VARCHAR,
+                    'size' => 255,
+                    'notNull' => true,
+                ]),
+                new Column('create_date', [
+                    'type' => Column::TYPE_DATE,
+                    'notNull' => true,
+                ]),
+            ],
+        ]);
+
+        $data = [];
+        for ($id = 1; $id <= 10000; $id++) {
+            $data[] = [
+                'id' => $id,
+                'name' => $faker->name,
+                'create_date' => $faker->date(),
+            ];
+        }
+
+        db_batch_insert($this->db, $tableName, ['id', 'name', 'create_date'], $data);
+
+        Migrations::generate([
+            'migrationsDir' => $migrationsDir,
+            'config' => self::$generateConfig,
+            'tableName' => '@',
+        ]);
+
+        for ($i = 0; $i < 3; $i++) {
+            Migrations::run([
+                'migrationsDir' => $migrationsDir,
+                'config' => self::$generateConfig,
+                'migrationsInDb' => true,
+            ]);
+        }
+
+        $this->assertDirectoryExists($migrationsDir);
+        $this->assertSame(3, count(scandir($migrationsDir)));
     }
 }
