@@ -281,9 +281,10 @@ class Migrations
             return;
         }
 
-        $direction = ModelMigration::DIRECTION_FORWARD;
         if ($finalVersion->getStamp() < $initialVersion->getStamp()) {
             $direction = ModelMigration::DIRECTION_BACK;
+        } else {
+            $direction = ModelMigration::DIRECTION_FORWARD;
         }
 
         if (ModelMigration::DIRECTION_FORWARD === $direction) {
