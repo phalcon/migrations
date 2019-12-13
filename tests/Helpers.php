@@ -60,7 +60,8 @@ function db_batch_insert(AbstractPdo $db, string $table, array $columns, array $
 
     $str = rtrim($str, ',');
     $str .= ';';
-    $query = sprintf("INSERT INTO `%s` (%s) VALUES %s",
+    $query = sprintf(
+        "INSERT INTO `%s` (%s) VALUES %s",
         $table,
         sprintf('`%s`', implode('`,`', $columns)),
         $str
