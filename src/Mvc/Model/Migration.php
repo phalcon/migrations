@@ -303,7 +303,8 @@ class Migration
             } else {
                 if ($field->getSize()) {
                     $fieldDefinition[] = "'size' => " . $field->getSize();
-                } else {
+                } elseif (!in_array($field->getType(), [Column::TYPE_DATE, Column::TYPE_DATETIME])) {
+                    // TODO: probably there are more types. Any way need global refactor of it
                     $fieldDefinition[] = "'size' => 1";
                 }
             }
