@@ -303,7 +303,8 @@ class Migration
             } else {
                 if ($field->getSize()) {
                     $fieldDefinition[] = "'size' => " . $field->getSize();
-                } else {
+                } elseif (!in_array($field->getType(), [Column::TYPE_DATE, Column::TYPE_DATETIME])) {
+                    // TODO: probably there are more types. Any way need global refactor of it
                     $fieldDefinition[] = "'size' => 1";
                 }
             }
@@ -625,12 +626,10 @@ class Migration
 
             if ($tableExists) {
                 $localFields = [];
-                /**
-                 * @var ColumnInterface[] $description
-                 * @var ColumnInterface[] $localFields
-                 */
+                /** @var ColumnInterface[] $description */
                 $description = self::$connection->describeColumns($tableName, $defaultSchema);
                 foreach ($description as $field) {
+                    /** @var ColumnInterface[] $localFields */
                     $localFields[$field->getName()] = $field;
                 }
 

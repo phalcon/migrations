@@ -186,6 +186,8 @@ class Migrations
         } elseif (self::isConsole() && !$optionStack->getOption('verbose')) {
             print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
         }
+
+        return true;
     }
 
     /**
@@ -278,12 +280,13 @@ class Migrations
         // Everything is up to date
         if ($initialVersion->getStamp() === $finalVersion->getStamp()) {
             print Color::info('Everything is up to date');
-            exit(0);
+            return;
         }
 
-        $direction = ModelMigration::DIRECTION_FORWARD;
         if ($finalVersion->getStamp() < $initialVersion->getStamp()) {
             $direction = ModelMigration::DIRECTION_BACK;
+        } else {
+            $direction = ModelMigration::DIRECTION_FORWARD;
         }
 
         if (ModelMigration::DIRECTION_FORWARD === $direction) {

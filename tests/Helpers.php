@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests;
 
+use Phalcon\Db\Adapter\Pdo\AbstractPdo;
+
 /**
  * @param string $prefix
  * @return string
@@ -27,4 +29,43 @@ function remove_dir(string $path): void
         $realPath = $file->getRealPath();
         $file->isDir() ? rmdir($realPath) : unlink($realPath);
     }
+}
+
+/**
+ * @see https://gist.github.com/afischoff/9608738
+ * @see https://github.com/phalcon/cphalcon/issues/14620
+ *
+ * @param AbstractPdo $db
+ * @param string $table
+ * @param array $columns
+ * @param array $rows
+ */
+function db_batch_insert(AbstractPdo $db, string $table, array $columns, array $rows): void
+{
+    $str = '';
+    foreach ($rows as $values) {
+        foreach ($values as &$val) {
+            if (is_null($val)) {
+                $val = 'NULL';
+                continue;
+            }
+
+            if (is_string($val)) {
+                $val = $db->escapeString($val);
+            }
+        }
+
+        $str .= sprintf('(%s),', implode(',', $values));
+    }
+
+    $str = rtrim($str, ',');
+    $str .= ';';
+    $query = sprintf(
+        "INSERT INTO `%s` (%s) VALUES %s",
+        $table,
+        sprintf('`%s`', implode('`,`', $columns)),
+        $str
+    );
+
+    $db->execute($query);
 }

@@ -11,7 +11,8 @@
         "phpunit/phpunit": "8.4.1",
         "phalcon/ide-stubs": "^4.0.0-rc.3",
         "vimeo/psalm": "3.6.2",
-        "squizlabs/php_codesniffer": "3.5.1"
+        "squizlabs/php_codesniffer": "3.5.1",
+        "fzaninotto/faker": "^1.9"
     },
     "autoload": {
         "psr-4": {

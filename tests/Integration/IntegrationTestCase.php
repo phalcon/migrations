@@ -54,7 +54,10 @@ class IntegrationTestCase extends TestCase
             'password' => getenv('TEST_DB_PASSWORD'),
         ]);
 
-        $db->query('CREATE DATABASE IF NOT EXISTS `' . getenv('TEST_DB_DATABASE') . '`;');
+        $databaseName = getenv('TEST_DB_DATABASE');
+        $db->query('DROP DATABASE IF EXISTS `' . $databaseName . '`;');
+        $db->query('CREATE DATABASE `' . $databaseName . '`;');
+        $db->query('USE `' . $databaseName . '`');
 
         return $db;
     }
