@@ -216,8 +216,23 @@ class Migration
             /** @var ColumnInterface $field */
             $fieldDefinition = [];
             switch ($field->getType()) {
+                case Column::TYPE_BIGINTEGER:
+                    $fieldDefinition[] = "'type' => Column::TYPE_BIGINTEGER";
+                    break;
                 case Column::TYPE_INTEGER:
                     $fieldDefinition[] = "'type' => Column::TYPE_INTEGER";
+                    $numericFields[$field->getName()] = true;
+                    break;
+                case Column::TYPE_MEDIUMINTEGER:
+                    $fieldDefinition[] = "'type' => Column::TYPE_MEDIUMINTEGER";
+                    $numericFields[$field->getName()] = true;
+                    break;
+                case Column::TYPE_SMALLINTEGER:
+                    $fieldDefinition[] = "'type' => Column::TYPE_SMALLINTEGER";
+                    $numericFields[$field->getName()] = true;
+                    break;
+                case Column::TYPE_TINYINTEGER:
+                    $fieldDefinition[] = "'type' => Column::TYPE_TINYINTEGER";
                     $numericFields[$field->getName()] = true;
                     break;
                 case Column::TYPE_VARCHAR:
@@ -241,6 +256,15 @@ class Migration
                     break;
                 case Column::TYPE_TEXT:
                     $fieldDefinition[] = "'type' => Column::TYPE_TEXT";
+                    break;
+                case Column::TYPE_MEDIUMTEXT:
+                    $fieldDefinition[] = "'type' => Column::TYPE_MEDIUMTEXT";
+                    break;
+                case Column::TYPE_LONGTEXT:
+                    $fieldDefinition[] = "'type' => Column::TYPE_LONGTEXT";
+                    break;
+                case Column::TYPE_TINYTEXT:
+                    $fieldDefinition[] = "'type' => Column::TYPE_TINYTEXT";
                     break;
                 case Column::TYPE_BOOLEAN:
                     $fieldDefinition[] = "'type' => Column::TYPE_BOOLEAN";
@@ -268,9 +292,6 @@ class Migration
                     break;
                 case Column::TYPE_JSONB:
                     $fieldDefinition[] = "'type' => Column::TYPE_JSONB";
-                    break;
-                case Column::TYPE_BIGINTEGER:
-                    $fieldDefinition[] = "'type' => Column::TYPE_BIGINTEGER";
                     break;
                 default:
                     throw new UnknownColumnTypeException($field);
