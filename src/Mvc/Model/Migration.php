@@ -317,6 +317,12 @@ class Migration
                 $fieldDefinition[] = "'autoIncrement' => true";
             }
 
+            $noSizeTypes = [
+                Column::TYPE_DATE,
+                Column::TYPE_DATETIME,
+                Column::TYPE_DOUBLE
+            ];
+
             if (self::$databaseConfig->path('adapter') == 'Postgresql' &&
                 in_array($field->getType(), [Column::TYPE_BOOLEAN, Column::TYPE_INTEGER, Column::TYPE_BIGINTEGER])
             ) {
@@ -324,7 +330,7 @@ class Migration
             } else {
                 if ($field->getSize()) {
                     $fieldDefinition[] = "'size' => " . $field->getSize();
-                } elseif (!in_array($field->getType(), [Column::TYPE_DATE, Column::TYPE_DATETIME])) {
+                } elseif (!in_array($field->getType(), $noSizeTypes)) {
                     // TODO: probably there are more types. Any way need global refactor of it
                     $fieldDefinition[] = "'size' => 1";
                 }
