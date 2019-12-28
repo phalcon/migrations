@@ -10,7 +10,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Phalcon\Migrations\Mvc\Model\Migration;
+namespace Phalcon\Migrations\Observer;
 
 use Phalcon\Db\Profiler as DbProfiler;
 use Phalcon\Db\Profiler\Item;
