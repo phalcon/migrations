@@ -849,9 +849,9 @@ class Migration
      * Inserts data from a data migration file in a table
      *
      * @param string $tableName
-     * @param string $fields
+     * @param mixed $fields
      */
-    public function batchInsert(string $tableName, string $fields)
+    public function batchInsert(string $tableName, $fields)
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
