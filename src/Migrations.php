@@ -690,4 +690,12 @@ class Migrations
 
         return array_flip($completedVersions);
     }
+
+    /**
+     * In case we need to renew our DB connection or file
+     */
+    public static function resetStorage(): void
+    {
+        self::$storage = null;
+    }
 }
