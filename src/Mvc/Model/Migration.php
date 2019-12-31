@@ -241,6 +241,9 @@ class Migration
                 case Column::TYPE_CHAR:
                     $fieldDefinition[] = "'type' => Column::TYPE_CHAR";
                     break;
+                case Column::TYPE_TIME:
+                    $fieldDefinition[] = "'type' => Column::TYPE_TIME";
+                    break;
                 case Column::TYPE_DATE:
                     $fieldDefinition[] = "'type' => Column::TYPE_DATE";
                     break;
