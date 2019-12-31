@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Integration;
 
+use Phalcon\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\PdoFactory;
 use PHPUnit\Framework\TestCase;
@@ -16,8 +17,23 @@ class IntegrationTestCase extends TestCase
      */
     protected $db;
 
+    /**
+     * @var array
+     */
+    protected static $generateConfig;
+
     public static function setUpBeforeClass(): void
     {
+        self::$generateConfig = new Config([
+            'database' => [
+                'adapter' => getenv('TEST_DB_ADAPTER'),
+                'host' => getenv('TEST_DB_HOST'),
+                'username' => getenv('TEST_DB_USER'),
+                'password' => getenv('TEST_DB_PASSWORD'),
+                'dbname' => getenv('TEST_DB_DATABASE'),
+            ],
+        ]);
+
         ob_start();
     }
 

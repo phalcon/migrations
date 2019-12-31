@@ -5,7 +5,6 @@ namespace Phalcon\Migrations\Tests\Integration;
 
 use Exception;
 use Faker\Factory as FakerFactory;
-use Phalcon\Config;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
 use function Phalcon\Migrations\Tests\db_batch_insert;
@@ -14,26 +13,11 @@ use function Phalcon\Migrations\Tests\root_path;
 final class MigrationsTest extends IntegrationTestCase
 {
     /**
-     * @var array
-     */
-    protected static $generateConfig;
-
-    /**
      * Set Up Before Class Fixture
      */
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
-        
-        self::$generateConfig = new Config([
-            'database' => [
-                'adapter' => getenv('TEST_DB_ADAPTER'),
-                'host' => getenv('TEST_DB_HOST'),
-                'username' => getenv('TEST_DB_USER'),
-                'password' => getenv('TEST_DB_PASSWORD'),
-                'dbname' => getenv('TEST_DB_DATABASE'),
-            ],
-        ]);
     }
 
     /**
