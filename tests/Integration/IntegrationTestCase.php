@@ -32,6 +32,9 @@ class IntegrationTestCase extends TestCase
                 'password' => getenv('TEST_DB_PASSWORD'),
                 'dbname' => getenv('TEST_DB_DATABASE'),
             ],
+            'application' => [
+                'logInDb' => true,
+            ],
         ]);
 
         ob_start();
