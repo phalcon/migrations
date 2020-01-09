@@ -537,7 +537,7 @@ class Migrations
             if (empty($options['directory'])) {
                 $path = defined('BASE_PATH') ?
                     constant('BASE_PATH') :
-                    defined('APP_PATH') ? dirname(constant('APP_PATH')) : '';
+                    (defined('APP_PATH') ? dirname(constant('APP_PATH')) : '');
                 $path = rtrim($path, '\\/') . '/.phalcon';
             } else {
                 $path = rtrim($options['directory'], '\\/') . '/.phalcon';
