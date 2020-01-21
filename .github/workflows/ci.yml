@@ -3,7 +3,7 @@ name: Main CI
 on: [push, pull_request]
 
 jobs:
-  run:
+  init:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -11,47 +11,49 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
     steps:
-      - uses: actions/checkout@v1
-
       - name: Init Database
         run: |
           mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
 
-      - name: Show PHP Version
-        run: php -v
+  run:
+    needs: init
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['7.2', '7.3', '7.4']
+    name: PHP ${{ matrix.php-versions }}
+    steps:
+      - uses: actions/checkout@v1
 
-      - name: Add Phalcon package repository
-        run: curl -s https://packagecloud.io/install/repositories/phalcon/mainline/script.deb.sh | sudo bash
-
-      - name: Install PSR and Xdebug PECL Packages
-        run: sudo apt-get install php-pear php-xdebug && sudo pecl install --force psr
-
-      - name: Install Phalcon
-        run: sudo apt-get install php7.3-phalcon
-
-      - name: Enable PHP PSR Extension
-        run: echo 'extension=psr.so' | sudo tee -a /etc/php/7.3/mods-available/phalcon.ini && cat /etc/php/7.3/mods-available/phalcon.ini
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v1
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, intl, json, phalcon4
+          pecl: true
 
       - name: Validate composer.json and composer.lock
         run: composer validate
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
-
-      - name: Install PHPStan
+      - name: Install Composer dependencies with PHPStan
         run: composer require --prefer-dist --no-progress --no-suggest --dev phpstan/phpstan
 
       - name: Run Psalm
+        if: always()
         run: vendor/bin/psalm --show-info=false
 
       - name: Run PHPStan
+        if: always()
         run: vendor/bin/phpstan analyse -l 5 src
 
       - name: Run test suite
+        if: always()
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1.0.3
+        if: always()
+        uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./coverage.xml
