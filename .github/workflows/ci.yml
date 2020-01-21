@@ -37,7 +37,7 @@ jobs:
         run: composer validate
 
       - name: Install Composer dependencies with PHPStan
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer require --prefer-dist --no-progress --no-suggest --dev phpstan/phpstan
 
       - name: Run Psalm
         if: always()
