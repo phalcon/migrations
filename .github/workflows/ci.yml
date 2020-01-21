@@ -11,8 +11,6 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
     steps:
-      - uses: actions/checkout@v1
-
       - name: Init Database
         run: |
           mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
@@ -26,6 +24,8 @@ jobs:
         php-versions: ['7.2', '7.3', '7.4']
     name: PHP ${{ matrix.php-versions }}
     steps:
+      - uses: actions/checkout@v1
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v1
         with:
