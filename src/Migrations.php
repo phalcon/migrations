@@ -535,9 +535,14 @@ class Migrations
             }
         } else {
             if (empty($options['directory'])) {
-                $path = defined('BASE_PATH') ?
-                    constant('BASE_PATH') :
-                    defined('APP_PATH') ? dirname(constant('APP_PATH')) : '';
+                if (defined('BASE_PATH')) {
+                    $path = constant('BASE_PATH');
+                } elseif (defined('APP_PATH')) {
+                    $path = dirname(constant('APP_PATH'));
+                } else {
+                    $path = '';
+                }
+
                 $path = rtrim($path, '\\/') . '/.phalcon';
             } else {
                 $path = rtrim($options['directory'], '\\/') . '/.phalcon';
