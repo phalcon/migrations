@@ -33,6 +33,14 @@ final class ColumnTypesTest extends IntegrationTestCase
                     'type' => Column::TYPE_TIME,
                 ],
                 ['00:00:00', '23:59:55', '12:00:12'],
+            ],
+            [
+                'column_json',
+                [
+                    'type' => Column::TYPE_JSON,
+                    'notNull' => true,
+                ],
+                ['{}', '{"type": "json"}', '{"random": 123, "is_true": false}'],
             ]
         ];
     }
