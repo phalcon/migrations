@@ -16,6 +16,8 @@ class Issue29Test extends IntegrationTestCase
             'migrationsInDb' => true,
         ]);
 
+        Migrations::resetStorage();
+
         $this->assertTrue($this->db->tableExists('tasks'));
         $this->assertTrue($this->db->tableExists('task_jobs'));
         $this->assertArrayHasKey('task_jobs_tasks_id_fk', $this->db->describeReferences('task_jobs'));
