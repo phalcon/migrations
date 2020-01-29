@@ -8,25 +8,18 @@ Main idea of Phalcon migrations is to automatically detect changes and morphing 
 
 ## Full documentation
 
-https://docs.phalcon.io/4.0/en/db-migrations
+https://docs.phalcon.io/latest/en/db-migrations
 
 ## Requirements
 
 * PHP >= 7.2
 * Phalcon >= 4.0.0
+* PHP ext-posix (Linux)
 
 ## Installing via Composer
 
 ```
 composer require --dev phalcon/migrations
-```
-
-```json
-{
-    "require": {
-        "phalcon/migrations": "^1.1"
-    }
-}
 ```
 
 ## Quick start
