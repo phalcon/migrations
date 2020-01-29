@@ -723,10 +723,12 @@ class Migration
             }
 
             foreach ($definition['references'] as $tableReference) {
+                $schemaName = $tableReference->getSchemaName() ?? '';
+
                 if (!isset($localReferences[$tableReference->getName()])) {
                     self::$connection->addForeignKey(
                         $tableName,
-                        $tableReference->getSchemaName(),
+                        $schemaName,
                         $tableReference
                     );
 
@@ -777,12 +779,12 @@ class Migration
                 if ($changed) {
                     self::$connection->dropForeignKey(
                         $tableName,
-                        $tableReference->getSchemaName(),
+                        $schemaName,
                         $tableReference->getName()
                     );
                     self::$connection->addForeignKey(
                         $tableName,
-                        $tableReference->getSchemaName(),
+                        $schemaName,
                         $tableReference
                     );
                 }
