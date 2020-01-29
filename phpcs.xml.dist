@@ -5,6 +5,7 @@
     <rule ref="PSR2"/>
 
     <file>src/</file>
-    <file>tests/</file>
+    <file>tests/Integration/</file>
+    <file>tests/Unit/</file>
     <file>phalcon-migrations</file>
 </ruleset>
