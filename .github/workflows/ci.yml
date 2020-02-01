@@ -38,9 +38,10 @@ jobs:
 
       - name: Get Composer Cache Directory
         id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache composer dependencies
         uses: actions/cache@v1
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
