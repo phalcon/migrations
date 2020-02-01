@@ -3,7 +3,7 @@ name: Main CI
 on: [push, pull_request]
 
 jobs:
-  init:
+  Initialize MySQL:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -15,8 +15,8 @@ jobs:
         run: |
           mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
 
-  run:
-    needs: init
+  Run With MySQL:
+    needs: Initialize MySQL
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -35,6 +35,17 @@ jobs:
 
       - name: Validate composer.json and composer.lock
         run: composer validate
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        uses: actions/cache@v1
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies with PHPStan
         run: composer require --prefer-dist --no-progress --no-suggest --dev phpstan/phpstan
