@@ -33,13 +33,13 @@ jobs:
     services:
       postgres:
         image: postgres:10.8
-      env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: phalcon-migrations
-      ports:
-        - 5432/tcp
-      options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: phalcon-migrations
+        ports:
+          - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
     steps:
       - name: Init Database
         run: echo "Init Database"
