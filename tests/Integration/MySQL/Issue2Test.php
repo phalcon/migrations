@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration;
+namespace Phalcon\Migrations\Tests\Integration\MySQL;
 
 use Phalcon\Migrations\Migrations;
 use function Phalcon\Migrations\Tests\root_path;
 
-class Issue2Test extends IntegrationTestCase
+class Issue2Test extends MySQLIntegrationTestCase
 {
     public function testDisableEnableForeignKeyChecks(): void
     {
