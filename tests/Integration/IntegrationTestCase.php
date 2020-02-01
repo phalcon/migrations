@@ -6,6 +6,7 @@ namespace Phalcon\Migrations\Tests\Integration;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\PdoFactory;
+use Phalcon\Migrations\Migrations;
 use PHPUnit\Framework\TestCase;
 use function Phalcon\Migrations\Tests\remove_dir;
 use function Phalcon\Migrations\Tests\root_path;
@@ -61,6 +62,11 @@ class IntegrationTestCase extends TestCase
          * Cleanup Database
          */
         $this->db->query('DROP DATABASE IF EXISTS `' . getenv('TEST_DB_DATABASE') . '`;');
+
+        /**
+         * Reset filename or DB connection
+         */
+        Migrations::resetStorage();
     }
 
     protected function initializeDatabase(): AbstractPdo
