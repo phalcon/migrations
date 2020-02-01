@@ -102,6 +102,9 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-suggest
+
       - name: Run test suite
         if: always()
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
