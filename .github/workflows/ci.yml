@@ -3,7 +3,7 @@ name: Main CI
 on: [push, pull_request]
 
 jobs:
-  Initialize MySQL:
+  initialize-mysql:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -15,8 +15,8 @@ jobs:
         run: |
           mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
 
-  Run With MySQL:
-    needs: Initialize MySQL
+  run-with-mysql:
+    needs: initialize-mysql
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
