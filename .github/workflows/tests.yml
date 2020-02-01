@@ -1,4 +1,4 @@
-name: "DB Tests"
+name: "Tests"
 
 on: [push, pull_request]
 
@@ -34,7 +34,7 @@ jobs:
         run: echo "Init Database"
 
   run-with-mysql:
-    name: Tests with MySQL and PHP ${{ matrix.php-versions }}
+    name: MySQL and PHP ${{ matrix.php-versions }}
     needs: initialize-mysql
     runs-on: ubuntu-latest
     strategy:
@@ -62,6 +62,9 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-suggest
+
       - name: Run test suite
         if: always()
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
@@ -74,7 +77,7 @@ jobs:
           file: ./coverage.xml
 
   run-with-postgres:
-    name: Tests with PostgreSQL and PHP ${{ matrix.php-versions }}
+    name: PostgreSQL and PHP ${{ matrix.php-versions }}
     needs: initialize-postgres
     runs-on: ubuntu-latest
     strategy:
