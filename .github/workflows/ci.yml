@@ -3,8 +3,21 @@ name: Main CI
 on: [push, pull_request]
 
 jobs:
+  validate-code-style:
+    name: Run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install PHP_CodeSniffer composer package
+        run: composer global require "squizlabs/php_codesniffer=*"
+
+      - name: Validate PSR-2 Code Style
+        run: ~/.composer/vendor/bin/phpcs
+
   initialize-mysql:
     runs-on: ubuntu-latest
+    if: jobs.validate-code-style.success()
     services:
       mysql:
         image: mysql:5.7
@@ -14,6 +27,19 @@ jobs:
       - name: Init Database
         run: |
           mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
+
+  initialize-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:10.8
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: phalcon-migrations
+      ports:
+        - 5432/tcp
+      options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
 
   run-with-mysql:
     needs: initialize-mysql
