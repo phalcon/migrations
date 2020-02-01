@@ -3,19 +3,6 @@ name: "Tests"
 on: [push, pull_request]
 
 jobs:
-  initialize-mysql:
-    name: "Init MySQL"
-    runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-    steps:
-      - name: Init Database
-        run: |
-          mysql -uroot -h127.0.0.1 -proot -e 'CREATE DATABASE IF NOT EXISTS `phalcon-migrations`;'
-
   initialize-postgres:
     name: "Init PostgreSQL"
     runs-on: ubuntu-latest
@@ -34,7 +21,7 @@ jobs:
 
   run-with-mysql:
     name: MySQL and PHP ${{ matrix.php-versions }}
-    needs: [initialize-mysql, initialize-postgres]
+    needs: [initialize-postgres]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
