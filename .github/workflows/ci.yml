@@ -17,7 +17,6 @@ jobs:
 
   initialize-mysql:
     runs-on: ubuntu-latest
-    if: jobs.validate-code-style.success()
     services:
       mysql:
         image: mysql:5.7

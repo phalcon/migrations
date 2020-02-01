@@ -2,7 +2,7 @@
 <ruleset name="Phalcon Developer Tools">
     <description>Phalcon Coding Standards</description>
     <arg value="s"/>
-    <rule ref="PSR2"/>
+    <rule ref="PSR12"/>
 
     <file>src/</file>
     <file>tests/Integration/</file>
