@@ -1,10 +1,8 @@
-name: Main CI
-
 on: [push, pull_request]
 
 jobs:
   validate-code-style:
-    name: Run
+    name: Validate Code Style
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
