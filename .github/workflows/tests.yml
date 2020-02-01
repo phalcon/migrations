@@ -25,7 +25,6 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: phalcon-migrations
         ports:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
@@ -84,11 +83,6 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['7.2', '7.3', '7.4']
-    env:
-      TEST_DB_ADAPTER: postgresql
-      TEST_DB_PORT: 5432
-      TEST_DB_USER: postgres
-      TEST_DB_PASSWORD: postgres
     steps:
       - uses: actions/checkout@v1
 
