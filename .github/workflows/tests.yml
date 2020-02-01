@@ -84,8 +84,16 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['7.2', '7.3', '7.4']
+    env:
+      TEST_DB_ADAPTER: postgresql
+      TEST_DB_PORT: 5432
+      TEST_DB_USER: postgres
+      TEST_DB_PASSWORD: postgres
     steps:
       - uses: actions/checkout@v1
+
+      - name: Check env variable TEST_DB_ADAPTER
+        run: echo ${TEST_DB_ADAPTER}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v1
