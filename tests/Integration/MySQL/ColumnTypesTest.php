@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration;
+namespace Phalcon\Migrations\Tests\Integration\MySQL;
 
 use Exception;
 use Phalcon\Db\Column;
@@ -11,7 +11,7 @@ use Phalcon\Migrations\Migrations;
 use function Phalcon\Migrations\Tests\remove_dir;
 use function Phalcon\Migrations\Tests\root_path;
 
-final class ColumnTypesTest extends IntegrationTestCase
+final class ColumnTypesTest extends MySQLIntegrationTestCase
 {
     public function columnsDataProvider(): array
     {
@@ -61,7 +61,7 @@ final class ColumnTypesTest extends IntegrationTestCase
         $tableName = $columnName . '_test';
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
 
-        $this->db->createTable($tableName, getenv('TEST_DB_DATABASE'), [
+        $this->db->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column($columnName, $definition),
             ],

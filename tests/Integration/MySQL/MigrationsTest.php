@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration;
+namespace Phalcon\Migrations\Tests\Integration\MySQL;
 
 use Exception;
 use Faker\Factory as FakerFactory;
@@ -10,7 +10,7 @@ use Phalcon\Migrations\Migrations;
 use function Phalcon\Migrations\Tests\db_batch_insert;
 use function Phalcon\Migrations\Tests\root_path;
 
-final class MigrationsTest extends IntegrationTestCase
+final class MigrationsTest extends MySQLIntegrationTestCase
 {
     /**
      * Set Up Before Class Fixture
@@ -47,7 +47,7 @@ final class MigrationsTest extends IntegrationTestCase
     {
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
         
-        $this->db->createTable('test', getenv('TEST_DB_DATABASE'), [
+        $this->db->createTable('test', getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column('column_name', [
                     'type' => Column::TYPE_INTEGER,
@@ -80,7 +80,7 @@ final class MigrationsTest extends IntegrationTestCase
     {
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
 
-        $this->db->createTable('test', getenv('TEST_DB_DATABASE'), [
+        $this->db->createTable('test', getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column('column_name', [
                     'type' => Column::TYPE_INTEGER,
@@ -98,7 +98,7 @@ final class MigrationsTest extends IntegrationTestCase
             ],
         ]);
 
-        $this->db->createTable('test2', getenv('TEST_DB_DATABASE'), [
+        $this->db->createTable('test2', getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column('another_column', [
                     'type' => Column::TYPE_VARCHAR,
@@ -130,7 +130,7 @@ final class MigrationsTest extends IntegrationTestCase
     {
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
 
-        $this->db->createTable('test', getenv('TEST_DB_DATABASE'), [
+        $this->db->createTable('test', getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column('column_name', [
                     'type' => Column::TYPE_INTEGER,
@@ -163,7 +163,7 @@ final class MigrationsTest extends IntegrationTestCase
         $tableName = 'test_date_with_many_rows';
         $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
 
-        $this->db->createTable($tableName, getenv('TEST_DB_DATABASE'), [
+        $this->db->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column('id', [
                     'type' => Column::TYPE_INTEGER,
