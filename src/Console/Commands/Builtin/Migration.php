@@ -73,7 +73,7 @@ class Migration extends Command
             $config = $this->getConfig($path);
         }
 
-        $exportDataFromTables= [];
+        $exportDataFromTables = [];
         if ($this->isReceivedOption('exportDataFromTables')) {
             $exportDataFromTables = explode(',', $this->getOption('exportDataFromTables'));
         } elseif (isset($config['application']['exportDataFromTables'])) {
@@ -129,6 +129,12 @@ class Migration extends Command
         $tableName = $this->isReceivedOption('table') ? $this->getOption('table') : '@';
         $action = $this->getOption(['action', 1]);
 
+        if (isset($config['application']['descr'])) {
+            $descr = $config['application']['descr'];
+        } else {
+            $descr = $this->getOption('descr');
+        }
+
         switch ($action) {
             case 'generate':
                 Migrations::generate([
@@ -141,7 +147,7 @@ class Migration extends Command
                     'force'           => $this->isReceivedOption('force'),
                     'noAutoIncrement' => $this->isReceivedOption('no-auto-increment'),
                     'config'          => $config,
-                    'descr'           => $this->getOption('descr'),
+                    'descr'           => $descr,
                     'verbose'         => $this->isReceivedOption('dry'),
                 ]);
                 break;
