@@ -209,8 +209,10 @@ class Migration
         $tableDefinition = [];
         $snippet = new Snippet();
 
+        $primaryColumn = null;
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $description = self::$connection->describeColumns($table, $defaultSchema);
+        $adapter = self::$databaseConfig->path('adapter');
 
         foreach ($description as $field) {
             /** @var ColumnInterface $field */
@@ -304,9 +306,11 @@ class Migration
                 $default = $field->getDefault();
                 $fieldDefinition[] = "'default' => \"$default\"";
             }
-            //if ($field->isPrimary()) {
-            //$fieldDefinition[] = "'primary' => true";
-            //}
+
+            if ($field->isPrimary() && $adapter == 'postgresql') {
+                $fieldDefinition[] = "'primary' => true";
+                $primaryColumn = $field->getName();
+            }
 
             if ($field->isUnsigned()) {
                 $fieldDefinition[] = "'unsigned' => true";
@@ -326,7 +330,7 @@ class Migration
                 Column::TYPE_DOUBLE
             ];
 
-            if (self::$databaseConfig->path('adapter') == 'Postgresql' &&
+            if ($adapter == 'postgresql' &&
                 in_array($field->getType(), [Column::TYPE_BOOLEAN, Column::TYPE_INTEGER, Column::TYPE_BIGINTEGER])
             ) {
                 // nothing
@@ -360,10 +364,14 @@ class Migration
             /** @var Index $dbIndex */
             $indexDefinition = [];
             foreach ($dbIndex->getColumns() as $indexColumn) {
-                $indexDefinition[] = "'" . $indexColumn . "'";
+                if ($indexColumn !== $primaryColumn) {
+                    $indexDefinition[] = "'" . $indexColumn . "'";
+                }
             }
 
-            $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $indexDefinition, $dbIndex->getType());
+            if (!empty($indexDefinition)) {
+                $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $indexDefinition, $dbIndex->getType());
+            }
         }
 
         $referencesDefinition = [];
