@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Developer Tools.
@@ -9,6 +8,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console\Commands;
 
@@ -32,7 +33,8 @@ class CommandsListener
     {
         $parameters = $command->parseParameters([], ['h' => 'help']);
 
-        if (count($parameters) < ($command->getRequiredParams() + 1) ||
+        if (
+            count($parameters) < ($command->getRequiredParams() + 1) ||
             $command->isReceivedOption(['help', 'h', '?']) ||
             in_array($command->getOption(1), ['help', 'h', '?'])
         ) {

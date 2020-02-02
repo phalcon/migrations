@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -9,6 +8,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Phalcon\Migrations;
 
@@ -39,7 +40,7 @@ class Migrations
     /**
      * name of the migration table
      */
-    const MIGRATION_LOG_TABLE = 'phalcon_migrations';
+    public const MIGRATION_LOG_TABLE = 'phalcon_migrations';
 
     /**
      * Filename or db connection to store migrations log
@@ -313,16 +314,20 @@ class Migrations
             }
 
             // If we are rolling back, we skip migrating when initialVersion is the same as current
-            if ($initialVersion->getVersion() === $versionItem->getVersion() &&
-                ModelMigration::DIRECTION_BACK === $direction) {
+            if (
+                $initialVersion->getVersion() === $versionItem->getVersion() &&
+                ModelMigration::DIRECTION_BACK === $direction
+            ) {
                 continue;
             }
 
             if ((ModelMigration::DIRECTION_FORWARD === $direction) && isset($completedVersions[(string)$versionItem])) {
                 print Color::info('Version ' . (string)$versionItem . ' was already applied');
                 continue;
-            } elseif ((ModelMigration::DIRECTION_BACK === $direction) &&
-                !isset($completedVersions[(string)$initialVersion])) {
+            } elseif (
+                (ModelMigration::DIRECTION_BACK === $direction) &&
+                !isset($completedVersions[(string)$initialVersion])
+            ) {
                 print Color::info('Version ' . (string)$initialVersion . ' was already rolled back');
                 $initialVersion = $versionItem;
                 continue;
@@ -331,10 +336,10 @@ class Migrations
             //Directory depends on Forward or Back Migration
             if (ModelMigration::DIRECTION_BACK === $direction) {
                 $migrationsDir = $initialVersion->getPath();
-                $directoryIterator = $migrationsDir . DIRECTORY_SEPARATOR.$initialVersion->getVersion();
+                $directoryIterator = $migrationsDir . DIRECTORY_SEPARATOR . $initialVersion->getVersion();
             } else {
                 $migrationsDir = $versionItem->getPath();
-                $directoryIterator = $migrationsDir . DIRECTORY_SEPARATOR.$versionItem->getVersion();
+                $directoryIterator = $migrationsDir . DIRECTORY_SEPARATOR . $versionItem->getVersion();
             }
 
             ModelMigration::setMigrationPath($migrationsDir);
@@ -344,8 +349,10 @@ class Migrations
             }
 
             $iterator = new DirectoryIterator($directoryIterator);
-            if ($initialVersion->getVersion() === $finalVersion->getVersion() &&
-                ModelMigration::DIRECTION_BACK === $direction) {
+            if (
+                $initialVersion->getVersion() === $finalVersion->getVersion() &&
+                ModelMigration::DIRECTION_BACK === $direction
+            ) {
                 break;
             }
 
@@ -492,12 +499,12 @@ class Migrations
             self::$storage = new $adapter($configArray);
 
             if ($database->adapter === 'Mysql') {
-                self::$storage->setDialect(new DialectMysql);
+                self::$storage->setDialect(new DialectMysql());
                 self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
             }
 
             if ($database->adapter == 'Postgresql') {
-                self::$storage->setDialect(new DialectPostgresql);
+                self::$storage->setDialect(new DialectPostgresql());
             }
 
             if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {

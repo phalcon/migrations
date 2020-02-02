@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -9,6 +8,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Phalcon\Migrations\Version;
 
@@ -133,8 +134,10 @@ class IncrementalItem implements ItemInterface
 
         foreach ($versions as $version) {
             /** @var ItemInterface $version */
-            if (($version->getStamp() >= $initialVersion->getStamp())
-                && ($version->getStamp() <= $finalVersion->getStamp())) {
+            if (
+                ($version->getStamp() >= $initialVersion->getStamp())
+                && ($version->getStamp() <= $finalVersion->getStamp())
+            ) {
                 $betweenVersions[] = $version;
             }
         }

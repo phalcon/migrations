@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -9,6 +8,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Phalcon\Migrations\Version;
 
@@ -24,14 +25,14 @@ class ItemCollection
      *
      * @const int
      */
-    const TYPE_INCREMENTAL = 1;
+    public const TYPE_INCREMENTAL = 1;
 
     /**
      * Timestamp prefixed version item
      *
      * @const int
      */
-    const TYPE_TIMESTAMPED = 2;
+    public const TYPE_TIMESTAMPED = 2;
 
     /**
      * @var int
@@ -145,7 +146,8 @@ class ItemCollection
         }
 
         foreach ($versions as $version) {
-            if ($version->getStamp() >= $initialVersion->getStamp() &&
+            if (
+                $version->getStamp() >= $initialVersion->getStamp() &&
                 $version->getStamp() <= $finalVersion->getStamp()
             ) {
                 $betweenVersions[] = $version;
