@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -10,6 +9,8 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Phalcon\Migrations;
 
 use InvalidArgumentException;
@@ -17,9 +18,9 @@ use Phalcon\Config;
 
 class Utils
 {
-    const DB_ADAPTER_POSTGRESQL = 'postgresql';
+    public const DB_ADAPTER_POSTGRESQL = 'postgresql';
 
-    const DB_ADAPTER_SQLITE = 'sqlite';
+    public const DB_ADAPTER_SQLITE = 'sqlite';
 
     /**
      * Converts the underscore_notation to the UpperCamelCase

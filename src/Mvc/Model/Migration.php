@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -9,6 +8,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Phalcon\Migrations\Mvc\Model;
 
@@ -49,8 +50,8 @@ use Phalcon\Text;
  */
 class Migration
 {
-    const DIRECTION_FORWARD = 1;
-    const DIRECTION_BACK = -1;
+    public const DIRECTION_FORWARD = 1;
+    public const DIRECTION_BACK = -1;
 
     /**
      * Migration database connection
@@ -125,12 +126,12 @@ class Migration
 
         // Connection custom dialect Dialect/DialectMysql
         if ($database->adapter == 'Mysql') {
-            self::$connection->setDialect(new DialectMysql);
+            self::$connection->setDialect(new DialectMysql());
         }
 
         // Connection custom dialect Dialect/DialectPostgresql
         if ($database->adapter == 'Postgresql') {
-            self::$connection->setDialect(new DialectPostgresql);
+            self::$connection->setDialect(new DialectPostgresql());
         }
 
         if (!Migrations::isConsole() || !$verbose) {
@@ -330,7 +331,8 @@ class Migration
                 Column::TYPE_DOUBLE
             ];
 
-            if ($adapter == 'postgresql' &&
+            if (
+                $adapter == 'postgresql' &&
                 in_array($field->getType(), [Column::TYPE_BOOLEAN, Column::TYPE_INTEGER, Column::TYPE_BIGINTEGER])
             ) {
                 // nothing
@@ -456,9 +458,11 @@ class Migration
         $classData .= "\n}\n";
 
         // dump data
-        if ($exportData == 'always' ||
+        if (
+            $exportData == 'always' ||
             $exportData == 'oncreate' ||
-            self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+            self::shouldExportDataFromTable($table, $exportDataFromTables)
+        ) {
             $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
             $cursor = self::$connection->query('SELECT * FROM ' . self::$connection->escapeIdentifier($table));
             $cursor->setFetchMode(Enum::FETCH_ASSOC);
@@ -745,14 +749,16 @@ class Migration
                 }
 
                 $changed = false;
-                if ($tableReference->getReferencedTable() !=
+                if (
+                    $tableReference->getReferencedTable() !=
                     $localReferences[$tableReference->getName()]['referencedTable']
                 ) {
                     $changed = true;
                 }
 
                 if (!$changed) {
-                    if (count($tableReference->getColumns()) !=
+                    if (
+                        count($tableReference->getColumns()) !=
                         count($localReferences[$tableReference->getName()]['columns'])
                     ) {
                         $changed = true;
@@ -760,7 +766,8 @@ class Migration
                 }
 
                 if (!$changed) {
-                    if (count($tableReference->getReferencedColumns()) !=
+                    if (
+                        count($tableReference->getReferencedColumns()) !=
                         count($localReferences[$tableReference->getName()]['referencedColumns'])
                     ) {
                         $changed = true;

@@ -1,4 +1,14 @@
 <?php
+
+/**
+ * This file is part of the Phalcon Migrations.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Integration\MySQL;
@@ -7,6 +17,7 @@ use Exception;
 use Faker\Factory as FakerFactory;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
+
 use function Phalcon\Migrations\Tests\db_batch_insert;
 use function Phalcon\Migrations\Tests\root_path;
 

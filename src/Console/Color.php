@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Migrations.
@@ -10,6 +9,8 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Phalcon\Migrations\Console;
 
 /**
@@ -17,41 +18,41 @@ namespace Phalcon\Migrations\Console;
  */
 final class Color
 {
-    const FG_BLACK = 1;
-    const FG_DARK_GRAY = 2;
-    const FG_BLUE = 3;
-    const FG_LIGHT_BLUE = 4;
-    const FG_GREEN = 5;
-    const FG_LIGHT_GREEN = 6;
-    const FG_CYAN = 7;
-    const FG_LIGHT_CYAN = 8;
-    const FG_RED = 9;
-    const FG_LIGHT_RED = 10;
-    const FG_PURPLE = 11;
-    const FG_LIGHT_PURPLE = 12;
-    const FG_BROWN = 13;
-    const FG_YELLOW = 14;
-    const FG_LIGHT_GRAY = 15;
-    const FG_WHITE = 16;
+    public const FG_BLACK = 1;
+    public const FG_DARK_GRAY = 2;
+    public const FG_BLUE = 3;
+    public const FG_LIGHT_BLUE = 4;
+    public const FG_GREEN = 5;
+    public const FG_LIGHT_GREEN = 6;
+    public const FG_CYAN = 7;
+    public const FG_LIGHT_CYAN = 8;
+    public const FG_RED = 9;
+    public const FG_LIGHT_RED = 10;
+    public const FG_PURPLE = 11;
+    public const FG_LIGHT_PURPLE = 12;
+    public const FG_BROWN = 13;
+    public const FG_YELLOW = 14;
+    public const FG_LIGHT_GRAY = 15;
+    public const FG_WHITE = 16;
 
-    const BG_BLACK = 1;
-    const BG_RED = 2;
-    const BG_GREEN = 3;
-    const BG_YELLOW = 4;
-    const BG_BLUE = 5;
-    const BG_MAGENTA = 6;
-    const BG_CYAN = 7;
-    const BG_LIGHT_GRAY = 8;
+    public const BG_BLACK = 1;
+    public const BG_RED = 2;
+    public const BG_GREEN = 3;
+    public const BG_YELLOW = 4;
+    public const BG_BLUE = 5;
+    public const BG_MAGENTA = 6;
+    public const BG_CYAN = 7;
+    public const BG_LIGHT_GRAY = 8;
 
-    const AT_NORMAL = 1;
-    const AT_BOLD = 2;
-    const AT_ITALIC = 3;
-    const AT_UNDERLINE = 4;
-    const AT_BLINK = 5;
-    const AT_OUTLINE = 6;
-    const AT_REVERSE = 7;
-    const AT_NONDISP = 8;
-    const AT_STRIKE = 9;
+    public const AT_NORMAL = 1;
+    public const AT_BOLD = 2;
+    public const AT_ITALIC = 3;
+    public const AT_UNDERLINE = 4;
+    public const AT_BLINK = 5;
+    public const AT_OUTLINE = 6;
+    public const AT_REVERSE = 7;
+    public const AT_NONDISP = 8;
+    public const AT_STRIKE = 9;
 
     /**
      * @var array Map of supported foreground colors

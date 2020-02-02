@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Developer Tools.
@@ -9,6 +8,8 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console\Commands;
 
@@ -244,7 +245,8 @@ abstract class Command implements CommandsInterface
 
         for ($i = 1; $i < $numberArguments; $i++) {
             $argv = $_SERVER['argv'][$i];
-            if (is_string($argv) &&
+            if (
+                is_string($argv) &&
                 preg_match('#^([\-]{1,2})([a-zA-Z0-9][a-zA-Z0-9\-]*)(=(.*)){0,1}$#', $argv, $matches)
             ) {
                 if (strlen($matches[1]) == 1) {
