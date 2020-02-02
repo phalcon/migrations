@@ -237,7 +237,7 @@ class Migrations
                 $migrationsDirs[] = $migrationsDir;
                 foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
                     $items->setPath($migrationsDir);
-                    $versionItems [] = $items;
+                    $versionItems[] = $items;
                 }
             }
         } else {
@@ -260,14 +260,12 @@ class Migrations
 
         $optionStack->setOption('tableName', $options['tableName'] ?? null, '@');
 
-        if (!isset($versionItems[0])) {
-            if (php_sapi_name() == 'cli') {
-                fwrite(STDERR, PHP_EOL . 'Migrations were not found at ' .
-                    $optionStack->getOption('migrationsDir') . PHP_EOL);
-                exit;
-            } else {
-                throw new ModelException('Migrations were not found at ' . $optionStack->getOption('migrationsDir'));
-            }
+        if (empty($versionItems)) {
+            $migrationsPath = is_array($migrationsDirList) ?
+                join(PHP_EOL, $migrationsDirList) :
+                $migrationsDirList;
+
+            throw new ModelException('Migrations were not found at:' . PHP_EOL . PHP_EOL . $migrationsPath);
         }
 
         // Set default final version
