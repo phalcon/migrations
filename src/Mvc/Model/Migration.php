@@ -364,6 +364,7 @@ class Migration
             /** @var Index $dbIndex */
             $indexDefinition = [];
             foreach ($dbIndex->getColumns() as $indexColumn) {
+                // [PGSQL] Skip primary key column
                 if ($indexColumn !== $primaryColumn) {
                     $indexDefinition[] = "'" . $indexColumn . "'";
                 }
