@@ -1,5 +1,6 @@
 # Phalcon Migrations
 
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.2-8892BF.svg)](https://php.net/)
 [![Discord](https://img.shields.io/discord/310910488152375297?label=Discord)](http://phalcon.link/discord)
 [![codecov](https://codecov.io/gh/phalcon/migrations/branch/master/graph/badge.svg)](https://codecov.io/gh/phalcon/migrations)
 
