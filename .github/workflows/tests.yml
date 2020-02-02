@@ -52,11 +52,11 @@ jobs:
         env:
           MYSQL_TEST_DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           POSTGRES_TEST_DB_PORT: ${{ job.services.postgres.ports['5432'] }}
-        if: always()
+        if: success()
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
       - name: Upload coverage to Codecov
-        if: always()
+        if: success()
         uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_TOKEN}}
