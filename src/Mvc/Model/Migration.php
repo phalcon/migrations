@@ -355,7 +355,6 @@ class Migration
                 if ($field->getSize()) {
                     $fieldDefinition[] = "'size' => " . $field->getSize();
                 } elseif (!in_array($field->getType(), $noSizeTypes)) {
-                    // TODO: probably there are more types. Any way need global refactor of it
                     $fieldDefinition[] = "'size' => 1";
                 }
             }
