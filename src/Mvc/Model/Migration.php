@@ -25,7 +25,6 @@ use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\Index;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
-use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
