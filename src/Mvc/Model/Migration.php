@@ -328,7 +328,22 @@ class Migration
             $noSizeTypes = [
                 Column::TYPE_DATE,
                 Column::TYPE_DATETIME,
-                Column::TYPE_DOUBLE
+
+                Column::TYPE_TIMESTAMP,
+                Column::TYPE_TIME,
+
+                Column::TYPE_FLOAT,
+                Column::TYPE_DOUBLE,
+                Column::TYPE_DECIMAL,
+
+                Column::TYPE_TINYTEXT,
+                Column::TYPE_TEXT,
+                Column::TYPE_MEDIUMTEXT,
+                Column::TYPE_LONGTEXT,
+
+                Column::TYPE_TINYBLOB,
+                Column::TYPE_MEDIUMBLOB,
+                Column::TYPE_LONGBLOB,
             ];
 
             if (
@@ -340,7 +355,6 @@ class Migration
                 if ($field->getSize()) {
                     $fieldDefinition[] = "'size' => " . $field->getSize();
                 } elseif (!in_array($field->getType(), $noSizeTypes)) {
-                    // TODO: probably there are more types. Any way need global refactor of it
                     $fieldDefinition[] = "'size' => 1";
                 }
             }
