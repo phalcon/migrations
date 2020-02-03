@@ -25,6 +25,7 @@ use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\Index;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
+use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
@@ -328,7 +329,22 @@ class Migration
             $noSizeTypes = [
                 Column::TYPE_DATE,
                 Column::TYPE_DATETIME,
-                Column::TYPE_DOUBLE
+
+                Column::TYPE_TIMESTAMP,
+                Column::TYPE_TIME,
+
+                Column::TYPE_FLOAT,
+                Column::TYPE_DOUBLE,
+                Column::TYPE_DECIMAL,
+
+                Column::TYPE_TINYTEXT,
+                Column::TYPE_TEXT,
+                Column::TYPE_MEDIUMTEXT,
+                Column::TYPE_LONGTEXT,
+
+                Column::TYPE_TINYBLOB,
+                Column::TYPE_MEDIUMBLOB,
+                Column::TYPE_LONGBLOB,
             ];
 
             if (
