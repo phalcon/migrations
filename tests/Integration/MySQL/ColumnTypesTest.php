@@ -42,6 +42,7 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
                 'column_time',
                 [
                     'type' => Column::TYPE_TIME,
+                    'notNull' => false,
                 ],
                 ['00:00:00', '23:59:55', '12:00:12'],
             ],
@@ -109,6 +110,7 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
         $rows = Arr::flatten($rows);
 
         $this->assertSame($definition['type'], $column->getType());
+        $this->assertSame($definition['notNull'], $column->isNotNull());
         $this->assertEquals($values, $rows);
     }
 }
