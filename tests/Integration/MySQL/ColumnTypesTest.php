@@ -39,6 +39,27 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
                 [0, 1, 123, 9000],
             ],
             [
+                'column_int_primary',
+                [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 11,
+                    'first' => true,
+                    'primary' => true,
+                ],
+                [1, 2, 3, 4],
+            ],
+            [
+                'column_int_pri_inc',
+                [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 11,
+                    'first' => true,
+                    'primary' => true,
+                    'autoIncrement' => true,
+                ],
+                [1, 2, 3, 4],
+            ],
+            [
                 'column_time',
                 [
                     'type' => Column::TYPE_TIME,
@@ -110,7 +131,7 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
         $rows = Arr::flatten($rows);
 
         $this->assertSame($definition['type'], $column->getType());
-        $this->assertSame($definition['notNull'], $column->isNotNull());
+        $this->assertSame($definition['notNull'] ?? true, $column->isNotNull());
         $this->assertEquals($values, $rows);
     }
 }
