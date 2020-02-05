@@ -319,11 +319,9 @@ class Migration
 
             if ($field->isNotNull()) {
                 $fieldDefinition[] = "'notNull' => true";
-            } else {
-                if (!$field->isPrimary()) {
-                    // A primary key column cannot have NULL values.
-                    $fieldDefinition[] = "'notNull' => false";
-                }
+            } elseif (!$field->isPrimary()) {
+                // A primary key column cannot have NULL values.
+                $fieldDefinition[] = "'notNull' => false";
             }
 
             if ($field->isAutoIncrement()) {
