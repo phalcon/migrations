@@ -108,7 +108,7 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
             'config' => self::$generateConfig,
             'tableName' => $tableName,
         ]);
-        $this->db->query('DROP TABLE ' . $tableName);
+        $this->db->dropTable($tableName);
         Migrations::run([
             'migrationsDir' => $migrationsDir,
             'config' => self::$generateConfig,
