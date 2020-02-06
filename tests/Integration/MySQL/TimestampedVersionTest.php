@@ -106,6 +106,7 @@ final class TimestampedVersionTest extends MySQLIntegrationTestCase
             'tableName' => '@',
             'descr' => '1',
             'tsBased' => true,
+            'migrationsInDb' => true,
         ];
     }
 }
