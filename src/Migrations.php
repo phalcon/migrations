@@ -207,7 +207,7 @@ class Migrations
         $optionStack->setDefaultOption('verbose', false);
 
         // Define versioning type to be used
-        if (isset($options['tsBased']) && $optionStack->getOption('tsBased') === true) {
+        if (!empty($options['tsBased']) || $optionStack->getOption('tsBased')) {
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
         } else {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
