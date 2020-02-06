@@ -42,7 +42,7 @@ final class TimestampedVersionTest extends MySQLIntegrationTestCase
         ]);
 
         Migrations::generate($options);
-        $this->db->query('DROP TABLE `' . $tableName . '`');
+        $this->db->dropTable($tableName);
         Migrations::run($options);
 
         $this->assertTrue($this->db->tableExists($tableName));
@@ -90,8 +90,8 @@ final class TimestampedVersionTest extends MySQLIntegrationTestCase
         /**
          * Drop tables and run migrations
          */
-        $this->db->query('DROP TABLE `' . $tableName1 . '`');
-        $this->db->query('DROP TABLE `' . $tableName2 . '`');
+        $this->db->dropTable($tableName1);
+        $this->db->dropTable($tableName2);
         Migrations::run($options);
 
         $this->assertTrue($this->db->tableExists($tableName1));
