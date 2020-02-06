@@ -95,7 +95,7 @@ final class OptionStackTest extends TestCase
         $this->assertSame($expected, $this->options->getOption($key));
     }
 
-    public function testCheckingRecievedOption(): void
+    public function testCheckingReceivedOption(): void
     {
         $this->options->setOption('true-option', 'foo-bar');
 
