@@ -15,6 +15,7 @@ namespace Phalcon\Migrations\Tests\Integration\MySQL;
 
 use Exception;
 use Phalcon\Db\Column;
+use Phalcon\Db\Dialect\Mysql;
 use Phalcon\Db\Enum;
 use Phalcon\Helper\Arr;
 use Phalcon\Migrations\Migrations;
@@ -74,6 +75,15 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
                     'notNull' => true,
                 ],
                 ['{}', '{"type": "json"}', '{"random": 123, "is_true": false}'],
+            ],
+            [
+                'column_enum_not_null',
+                [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => "'Y','N','D', ''",
+                    'notNull' => true,
+                ],
+                ['Y', 'N', 'D', ''],
             ]
         ];
     }
