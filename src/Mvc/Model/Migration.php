@@ -299,6 +299,9 @@ class Migration
                 case Column::TYPE_JSONB:
                     $fieldDefinition[] = "'type' => Column::TYPE_JSONB";
                     break;
+                case Column::TYPE_ENUM:
+                    $fieldDefinition[] = "'type' => Column::TYPE_ENUM";
+                    break;
                 default:
                     throw new UnknownColumnTypeException($field);
             }
@@ -356,7 +359,11 @@ class Migration
                 // nothing
             } else {
                 if ($field->getSize()) {
-                    $fieldDefinition[] = "'size' => " . $field->getSize();
+                    if ($field->getType() === Column::TYPE_ENUM) {
+                        $fieldDefinition[] = "'size' => \"" . $field->getSize() . "\"";
+                    } else {
+                        $fieldDefinition[] = "'size' => " . $field->getSize();
+                    }
                 } elseif (!in_array($field->getType(), $noSizeTypes)) {
                     $fieldDefinition[] = "'size' => 1";
                 }

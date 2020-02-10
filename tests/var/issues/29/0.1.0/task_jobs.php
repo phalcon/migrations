@@ -27,7 +27,8 @@ class TaskJobsMigration_10 extends Migration
                 new Column('task_id', [
                     'type' => Column::TYPE_INTEGER,
                     'size' => 20,
-                    'after' => 'id'
+                    'after' => 'id',
+                    'notNull' => false
                 ]),
                 new Column('run_at', [
                     'type' => Column::TYPE_DATETIME,

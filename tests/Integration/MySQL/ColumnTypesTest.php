@@ -74,6 +74,15 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
                     'notNull' => true,
                 ],
                 ['{}', '{"type": "json"}', '{"random": 123, "is_true": false}'],
+            ],
+            [
+                'column_enum_not_null',
+                [
+                    'type' => Column::TYPE_ENUM,
+                    'size' => "'Y','N','D', ''",
+                    'notNull' => true,
+                ],
+                ['Y', 'N', 'D', ''],
             ]
         ];
     }
