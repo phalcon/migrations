@@ -2,7 +2,7 @@ name: "Validations"
 on: [push, pull_request]
 jobs:
   validate-code-style:
-    name: PSR-2 Code style
+    name: PSR-12 Code style
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -24,7 +24,7 @@ jobs:
       - name: Install PHP_CodeSniffer composer package
         run: composer global require "squizlabs/php_codesniffer=*"
 
-      - name: Validate PSR-2 Code Style
+      - name: Validate PSR-12 Code Style
         run: ~/.composer/vendor/bin/phpcs
 
   validate-code-static:
