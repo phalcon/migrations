@@ -79,7 +79,7 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
             [
                 'column_enum_not_null',
                 [
-                    'type' => Column::TYPE_INTEGER,
+                    'type' => Column::TYPE_ENUM,
                     'size' => "'Y','N','D', ''",
                     'notNull' => true,
                 ],
