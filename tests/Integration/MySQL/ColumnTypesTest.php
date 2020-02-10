@@ -15,7 +15,6 @@ namespace Phalcon\Migrations\Tests\Integration\MySQL;
 
 use Exception;
 use Phalcon\Db\Column;
-use Phalcon\Db\Dialect\Mysql;
 use Phalcon\Db\Enum;
 use Phalcon\Helper\Arr;
 use Phalcon\Migrations\Migrations;
