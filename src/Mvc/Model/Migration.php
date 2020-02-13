@@ -414,15 +414,14 @@ class Migration
                 $referencedColumns[] = "'" . $referencedColumn . "'";
             }
 
-            $referenceDefinition = [];
-            $referenceDefinition[] = "'referencedTable' => '" . $dbReference->getReferencedTable() . "'";
-            $referenceDefinition[] = "'referencedSchema' => '" . $dbReference->getReferencedSchema() . "'";
-            $referenceDefinition[] = "'columns' => [" . join(",", array_unique($columns)) . "]";
-            $referenceDefinition[] = "'referencedColumns' => [" . join(",", array_unique($referencedColumns)) . "]";
-            $referenceDefinition[] = "'onUpdate' => '" . $dbReference->getOnUpdate() . "'";
-            $referenceDefinition[] = "'onDelete' => '" . $dbReference->getOnDelete() . "'";
-
-            $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, $referenceDefinition);
+            $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, [
+                "'referencedTable' => '" . $dbReference->getReferencedTable() . "'",
+                "'referencedSchema' => '" . $dbReference->getReferencedSchema() . "'",
+                "'columns' => [" . join(",", array_unique($columns)) . "]",
+                "'referencedColumns' => [" . join(",", array_unique($referencedColumns)) . "]",
+                "'onUpdate' => '" . $dbReference->getOnUpdate() . "'",
+                "'onDelete' => '" . $dbReference->getOnDelete() . "'",
+            ]);
         }
 
         $optionsDefinition = [];
