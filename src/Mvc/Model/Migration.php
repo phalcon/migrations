@@ -18,7 +18,6 @@ use Exception;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
-use Phalcon\Db\Column;
 use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
@@ -31,6 +30,7 @@ use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
+use Phalcon\Migrations\Migration\Action\Generate;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;
@@ -204,194 +204,29 @@ class Migration
         $exportData = null,
         array $exportDataFromTables = []
     ): string {
-        $oldColumn = null;
         $allFields = [];
-        $numericFields = [];
         $tableDefinition = [];
         $snippet = new Snippet();
-
-        $primaryColumn = null;
+        $adapter = (string)self::$databaseConfig->path('adapter');
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $description = self::$connection->describeColumns($table, $defaultSchema);
-        $adapter = self::$databaseConfig->path('adapter');
+        $indexes = self::$connection->describeIndexes($table, $defaultSchema);
+        $references = self::$connection->describeReferences($table, $defaultSchema);
+        $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
 
-        foreach ($description as $field) {
-            /** @var ColumnInterface $field */
-            $fieldDefinition = [];
-            switch ($field->getType()) {
-                case Column::TYPE_BIGINTEGER:
-                    $fieldDefinition[] = "'type' => Column::TYPE_BIGINTEGER";
-                    break;
-                case Column::TYPE_INTEGER:
-                    $fieldDefinition[] = "'type' => Column::TYPE_INTEGER";
-                    $numericFields[$field->getName()] = true;
-                    break;
-                case Column::TYPE_MEDIUMINTEGER:
-                    $fieldDefinition[] = "'type' => Column::TYPE_MEDIUMINTEGER";
-                    $numericFields[$field->getName()] = true;
-                    break;
-                case Column::TYPE_SMALLINTEGER:
-                    $fieldDefinition[] = "'type' => Column::TYPE_SMALLINTEGER";
-                    $numericFields[$field->getName()] = true;
-                    break;
-                case Column::TYPE_TINYINTEGER:
-                    $fieldDefinition[] = "'type' => Column::TYPE_TINYINTEGER";
-                    $numericFields[$field->getName()] = true;
-                    break;
-                case Column::TYPE_VARCHAR:
-                    $fieldDefinition[] = "'type' => Column::TYPE_VARCHAR";
-                    break;
-                case Column::TYPE_CHAR:
-                    $fieldDefinition[] = "'type' => Column::TYPE_CHAR";
-                    break;
-                case Column::TYPE_TIME:
-                    $fieldDefinition[] = "'type' => Column::TYPE_TIME";
-                    break;
-                case Column::TYPE_DATE:
-                    $fieldDefinition[] = "'type' => Column::TYPE_DATE";
-                    break;
-                case Column::TYPE_DATETIME:
-                    $fieldDefinition[] = "'type' => Column::TYPE_DATETIME";
-                    break;
-                case Column::TYPE_TIMESTAMP:
-                    $fieldDefinition[] = "'type' => Column::TYPE_TIMESTAMP";
-                    break;
-                case Column::TYPE_DECIMAL:
-                    $fieldDefinition[] = "'type' => Column::TYPE_DECIMAL";
-                    $numericFields[$field->getName()] = true;
-                    break;
-                case Column::TYPE_TEXT:
-                    $fieldDefinition[] = "'type' => Column::TYPE_TEXT";
-                    break;
-                case Column::TYPE_MEDIUMTEXT:
-                    $fieldDefinition[] = "'type' => Column::TYPE_MEDIUMTEXT";
-                    break;
-                case Column::TYPE_LONGTEXT:
-                    $fieldDefinition[] = "'type' => Column::TYPE_LONGTEXT";
-                    break;
-                case Column::TYPE_TINYTEXT:
-                    $fieldDefinition[] = "'type' => Column::TYPE_TINYTEXT";
-                    break;
-                case Column::TYPE_BOOLEAN:
-                    $fieldDefinition[] = "'type' => Column::TYPE_BOOLEAN";
-                    break;
-                case Column::TYPE_FLOAT:
-                    $fieldDefinition[] = "'type' => Column::TYPE_FLOAT";
-                    break;
-                case Column::TYPE_DOUBLE:
-                    $fieldDefinition[] = "'type' => Column::TYPE_DOUBLE";
-                    break;
-                case Column::TYPE_TINYBLOB:
-                    $fieldDefinition[] = "'type' => Column::TYPE_TINYBLOB";
-                    break;
-                case Column::TYPE_BLOB:
-                    $fieldDefinition[] = "'type' => Column::TYPE_BLOB";
-                    break;
-                case Column::TYPE_MEDIUMBLOB:
-                    $fieldDefinition[] = "'type' => Column::TYPE_MEDIUMBLOB";
-                    break;
-                case Column::TYPE_LONGBLOB:
-                    $fieldDefinition[] = "'type' => Column::TYPE_LONGBLOB";
-                    break;
-                case Column::TYPE_JSON:
-                    $fieldDefinition[] = "'type' => Column::TYPE_JSON";
-                    break;
-                case Column::TYPE_JSONB:
-                    $fieldDefinition[] = "'type' => Column::TYPE_JSONB";
-                    break;
-                case Column::TYPE_ENUM:
-                    $fieldDefinition[] = "'type' => Column::TYPE_ENUM";
-                    break;
-                default:
-                    throw new UnknownColumnTypeException($field);
-            }
-
-            if ($field->hasDefault() && !$field->isAutoIncrement()) {
-                $default = $field->getDefault();
-                $fieldDefinition[] = "'default' => \"$default\"";
-            }
-
-            if ($field->isPrimary() && $adapter == 'postgresql') {
-                $fieldDefinition[] = "'primary' => true";
-                $primaryColumn = $field->getName();
-            }
-
-            if ($field->isUnsigned()) {
-                $fieldDefinition[] = "'unsigned' => true";
-            }
-
-            if ($field->isNotNull()) {
-                $fieldDefinition[] = "'notNull' => true";
-            } elseif (!$field->isPrimary()) {
-                // A primary key column cannot have NULL values.
-                $fieldDefinition[] = "'notNull' => false";
-            }
-
-            if ($field->isAutoIncrement()) {
-                $fieldDefinition[] = "'autoIncrement' => true";
-            }
-
-            $noSizeTypes = [
-                Column::TYPE_DATE,
-                Column::TYPE_DATETIME,
-
-                Column::TYPE_TIMESTAMP,
-                Column::TYPE_TIME,
-
-                Column::TYPE_FLOAT,
-                Column::TYPE_DOUBLE,
-                Column::TYPE_DECIMAL,
-
-                Column::TYPE_TINYTEXT,
-                Column::TYPE_TEXT,
-                Column::TYPE_MEDIUMTEXT,
-                Column::TYPE_LONGTEXT,
-
-                Column::TYPE_TINYBLOB,
-                Column::TYPE_MEDIUMBLOB,
-                Column::TYPE_LONGBLOB,
-            ];
-
-            if (
-                $adapter == 'postgresql' &&
-                in_array($field->getType(), [Column::TYPE_BOOLEAN, Column::TYPE_INTEGER, Column::TYPE_BIGINTEGER])
-            ) {
-                // nothing
-            } else {
-                if ($field->getSize()) {
-                    if ($field->getType() === Column::TYPE_ENUM) {
-                        $fieldDefinition[] = "'size' => \"" . $field->getSize() . "\"";
-                    } else {
-                        $fieldDefinition[] = "'size' => " . $field->getSize();
-                    }
-                } elseif (!in_array($field->getType(), $noSizeTypes)) {
-                    $fieldDefinition[] = "'size' => 1";
-                }
-            }
-
-            if ($field->getScale()) {
-                $fieldDefinition[] = "'scale' => " . $field->getScale();
-            }
-
-            if ($oldColumn != null) {
-                $fieldDefinition[] = "'after' => '" . $oldColumn . "'";
-            } else {
-                $fieldDefinition[] = "'first' => true";
-            }
-
-            $oldColumn = $field->getName();
-            $tableDefinition[] = $snippet->getColumnDefinition($field->getName(), $fieldDefinition);
-            $allFields[] = "'" . $field->getName() . "'";
+        $generateAction = new Generate($adapter, $description, $indexes, $references, $tableOptions);
+        foreach ($generateAction->getColumns() as $columnName => $columnDefinition) {
+            $tableDefinition[] = $snippet->getColumnDefinition($columnName, $columnDefinition);
+            $allFields[] = "'" . $columnName . "'";
         }
 
         $indexesDefinition = [];
-        $indexes = self::$connection->describeIndexes($table, $defaultSchema);
         foreach ($indexes as $indexName => $dbIndex) {
             /** @var Index $dbIndex */
             $indexDefinition = [];
             foreach ($dbIndex->getColumns() as $indexColumn) {
                 // [PGSQL] Skip primary key column
-                if ($indexColumn !== $primaryColumn) {
+                if ($indexColumn !== $generateAction->getPrimaryColumnName()) {
                     $indexDefinition[] = "'" . $indexColumn . "'";
                 }
             }
@@ -402,7 +237,6 @@ class Migration
         }
 
         $referencesDefinition = [];
-        $references = self::$connection->describeReferences($table, $defaultSchema);
         foreach ($references as $constraintName => $dbReference) {
             $columns = [];
             foreach ($dbReference->getColumns() as $column) {
@@ -425,7 +259,6 @@ class Migration
         }
 
         $optionsDefinition = [];
-        $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
         foreach ($tableOptions as $optionName => $optionValue) {
             if (self::$skipAI && strtoupper($optionName) == "AUTO_INCREMENT") {
                 $optionValue = '';
@@ -480,6 +313,7 @@ class Migration
         // end of class
         $classData .= "\n}\n";
 
+        $numericColumns = $generateAction->getNumericColumns();
         // dump data
         if (
             $exportData == 'always' ||
@@ -492,7 +326,7 @@ class Migration
             while ($row = $cursor->fetchArray()) {
                 $data = [];
                 foreach ($row as $key => $value) {
-                    if (isset($numericFields[$key])) {
+                    if (isset($numericColumns[$key])) {
                         if ($value === '' || is_null($value)) {
                             $data[] = 'NULL';
                         } else {
