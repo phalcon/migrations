@@ -30,7 +30,7 @@ use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
-use Phalcon\Migrations\Migration\Action\Generate;
+use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;
@@ -214,7 +214,7 @@ class Migration
         $references = self::$connection->describeReferences($table, $defaultSchema);
         $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
 
-        $generateAction = new Generate($adapter, $description, $indexes, $references, $tableOptions);
+        $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
         foreach ($generateAction->getColumns() as $columnName => $columnDefinition) {
             $tableDefinition[] = $snippet->getColumnDefinition($columnName, $columnDefinition);
             $allFields[] = "'" . $columnName . "'";

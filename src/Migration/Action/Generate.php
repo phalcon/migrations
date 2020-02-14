@@ -205,7 +205,7 @@ class Generate
             ];
 
             if ($column->hasDefault() && !$column->isAutoIncrement()) {
-                $definition[] = "'default' => \"$column->getDefault()\"";
+                $definition[] = sprintf("'default' => \"%s\"", $column->getDefault());
             }
 
             if ($column->isPrimary() && $this->adapter == Utils::DB_ADAPTER_POSTGRESQL) {
@@ -256,14 +256,17 @@ class Generate
 
     public function getIndexes(): array
     {
+        return [];
     }
 
     public function getReferences(): array
     {
+        return [];
     }
 
     public function getOptions(): array
     {
+        return [];
     }
 
     /**
@@ -282,5 +285,13 @@ class Generate
     public function getNumericColumns(): array
     {
         return $this->numericColumns;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAdapter(): string
+    {
+        return $this->adapter;
     }
 }
