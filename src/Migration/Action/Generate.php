@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Migration\Action;
 
+use Generator;
 use Phalcon\Db\Column;
 use Phalcon\Db\ColumnInterface;
+use Phalcon\Db\Index;
 use Phalcon\Db\IndexInterface;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
@@ -160,6 +162,13 @@ class Generate
     protected $numericColumns = [];
 
     /**
+     * Table columns wrapped with "'" single quote symbol
+     *
+     * @var array
+     */
+    protected $quoteWrappedColumns = [];
+
+    /**
      * Generate constructor.
      * @param string $adapter
      * @param array|ColumnInterface[] $columns
@@ -182,9 +191,12 @@ class Generate
     }
 
     /**
+     * Prepare table columns
+     *
      * @throws UnknownColumnTypeException
+     * @return Generator
      */
-    public function getColumns()
+    public function getColumns(): Generator
     {
         $currentColumnName = null;
 
@@ -247,6 +259,11 @@ class Generate
                 $definition[] = "'scale' => " . $column->getScale();
             }
 
+            $this->quoteWrappedColumns[] = $this->wrapWithQuotes($column->getName());
+
+            /**
+             * Aggregate column definition
+             */
             $definition[] = $currentColumnName === null ? "'first' => true" : "'after' => '" . $currentColumnName . "'";
             $currentColumnName = $column->getName();
 
@@ -254,19 +271,65 @@ class Generate
         }
     }
 
-    public function getIndexes(): array
+    /**
+     * @return Generator
+     */
+    public function getIndexes(): Generator
     {
-        return [];
+        foreach ($this->indexes as $name => $index) {
+        /** @var Index $index */
+            $definition = [];
+            foreach ($index->getColumns() as $column) {
+                // [PostgreSQL] Skip primary key column
+                if ($this->adapter !== Utils::DB_ADAPTER_POSTGRESQL && $column !== $this->getPrimaryColumnName()) {
+                    $definition[] = $this->wrapWithQuotes($column);
+                }
+            }
+
+            if (!empty($definition)) {
+                yield $name => [$definition, $index->getType()];
+            }
+        }
     }
 
-    public function getReferences(): array
+    /**
+     * @return Generator
+     */
+    public function getReferences(): Generator
     {
-        return [];
+        foreach ($this->references as $constraintName => $reference) {
+            $referencedColumns = [];
+            foreach ($reference->getReferencedColumns() as $referencedColumn) {
+                $referencedColumns[] = $this->wrapWithQuotes($referencedColumn);
+            }
+            
+            yield $constraintName => [
+                sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
+                sprintf("'referencedSchema' => %s", $this->wrapWithQuotes($reference->getReferencedSchema())),
+                "'columns' => [" . join(",", array_unique($this->getQuoteWrappedColumns())) . "]",
+                "'referencedColumns' => [" . join(',', array_unique($referencedColumns)) . "]",
+                sprintf("'onUpdate' => %s", $reference->getOnUpdate()),
+                sprintf("'onDelete' => %s", $reference->getOnDelete()),
+            ];
+        }
     }
 
-    public function getOptions(): array
+    /**
+     * @param bool $skipAI Skip Auto Increment
+     * @return array
+     */
+    public function getOptions(bool $skipAI): array
     {
-        return [];
+        $options = [];
+        foreach ($this->options as $name => $value) {
+            if ($skipAI && strtoupper($name) == 'AUTO_INCREMENT') {
+                $value = '';
+            }
+
+            $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
+        }
+        
+        return $options;
     }
 
     /**
@@ -293,5 +356,24 @@ class Generate
     public function getAdapter(): string
     {
         return $this->adapter;
+    }
+
+    /**
+     * Just wrap string with single quotes
+     *
+     * @param string $columnName
+     * @return string
+     */
+    public function wrapWithQuotes(string $columnName): string
+    {
+        return "'" . $columnName . "'";
+    }
+
+    /**
+     * @return array
+     */
+    public function getQuoteWrappedColumns(): array
+    {
+        return $this->quoteWrappedColumns;
     }
 }

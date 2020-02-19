@@ -25,9 +25,9 @@ final class GenerateTest extends TestCase
 
         $this->assertSame($adapter, $class->getAdapter());
         $this->assertIsObject($class->getColumns());
-        $this->assertIsArray($class->getIndexes());
-        $this->assertIsArray($class->getReferences());
-        $this->assertIsArray($class->getOptions());
+        $this->assertIsObject($class->getIndexes());
+        $this->assertIsObject($class->getReferences());
+        $this->assertIsArray($class->getOptions(false));
         $this->assertIsArray($class->getNumericColumns());
         $this->assertNull($class->getPrimaryColumnName());
     }

@@ -204,8 +204,6 @@ class Migration
         $exportData = null,
         array $exportDataFromTables = []
     ): string {
-        $allFields = [];
-        $tableDefinition = [];
         $snippet = new Snippet();
         $adapter = (string)self::$databaseConfig->path('adapter');
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
@@ -215,57 +213,36 @@ class Migration
         $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
 
         $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
+
+        /**
+         * Generate Columns
+         */
+        $tableDefinition = [];
         foreach ($generateAction->getColumns() as $columnName => $columnDefinition) {
             $tableDefinition[] = $snippet->getColumnDefinition($columnName, $columnDefinition);
-            $allFields[] = "'" . $columnName . "'";
         }
 
+        /**
+         * Generate Indexes
+         */
         $indexesDefinition = [];
-        foreach ($indexes as $indexName => $dbIndex) {
-            /** @var Index $dbIndex */
-            $indexDefinition = [];
-            foreach ($dbIndex->getColumns() as $indexColumn) {
-                // [PGSQL] Skip primary key column
-                if ($indexColumn !== $generateAction->getPrimaryColumnName()) {
-                    $indexDefinition[] = "'" . $indexColumn . "'";
-                }
-            }
-
-            if (!empty($indexDefinition)) {
-                $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $indexDefinition, $dbIndex->getType());
-            }
+        foreach ($generateAction->getIndexes() as $indexName => $indexDefinition) {
+            list($definition, $type) = $indexDefinition;
+            $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $definition, $type);
         }
 
+        /**
+         * Generate References
+         */
         $referencesDefinition = [];
-        foreach ($references as $constraintName => $dbReference) {
-            $columns = [];
-            foreach ($dbReference->getColumns() as $column) {
-                $columns[] = "'" . $column . "'";
-            }
-
-            $referencedColumns = [];
-            foreach ($dbReference->getReferencedColumns() as $referencedColumn) {
-                $referencedColumns[] = "'" . $referencedColumn . "'";
-            }
-
-            $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, [
-                "'referencedTable' => '" . $dbReference->getReferencedTable() . "'",
-                "'referencedSchema' => '" . $dbReference->getReferencedSchema() . "'",
-                "'columns' => [" . join(",", array_unique($columns)) . "]",
-                "'referencedColumns' => [" . join(",", array_unique($referencedColumns)) . "]",
-                "'onUpdate' => '" . $dbReference->getOnUpdate() . "'",
-                "'onDelete' => '" . $dbReference->getOnDelete() . "'",
-            ]);
+        foreach ($generateAction->getReferences() as $constraintName => $referenceDefinition) {
+            $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, $referenceDefinition);
         }
 
-        $optionsDefinition = [];
-        foreach ($tableOptions as $optionName => $optionValue) {
-            if (self::$skipAI && strtoupper($optionName) == "AUTO_INCREMENT") {
-                $optionValue = '';
-            }
-
-            $optionsDefinition[] = "'" . strtoupper($optionName) . "' => '" . $optionValue . "'";
-        }
+        /**
+         * Generate Options
+         */
+        $optionsDefinition = $generateAction->getOptions(self::$skipAI);
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
         $className = Text::camelize($table) . 'Migration_' . $classVersion;
@@ -273,15 +250,15 @@ class Migration
         // morph()
         $classData = $snippet->getMigrationMorph($className, $table, $tableDefinition);
 
-        if (count($indexesDefinition)) {
+        if (count($indexesDefinition) > 0) {
             $classData .= $snippet->getMigrationDefinition('indexes', $indexesDefinition);
         }
 
-        if (count($referencesDefinition)) {
+        if (count($referencesDefinition) > 0) {
             $classData .= $snippet->getMigrationDefinition('references', $referencesDefinition);
         }
 
-        if (count($optionsDefinition)) {
+        if (count($optionsDefinition) > 0) {
             $classData .= $snippet->getMigrationDefinition('options', $optionsDefinition);
         }
 
@@ -291,7 +268,7 @@ class Migration
         $classData .= $snippet->getMigrationUp();
 
         if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
-            $classData .= $snippet->getMigrationBatchInsert($table, $allFields);
+            $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
         }
 
         $classData .= "\n    }\n";
@@ -307,7 +284,7 @@ class Migration
 
         // afterCreateTable()
         if ($exportData == 'oncreate' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
-            $classData .= $snippet->getMigrationAfterCreateTable($table, $allFields);
+            $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
         }
 
         // end of class
@@ -333,7 +310,7 @@ class Migration
                             $data[] = addslashes($value);
                         }
                     } else {
-                        $data[] = is_null($value) ? "NULL" : addslashes($value);
+                        $data[] = is_null($value) ? 'NULL' : addslashes($value);
                     }
 
                     unset($value);
