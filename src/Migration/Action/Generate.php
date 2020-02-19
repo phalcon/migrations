@@ -246,7 +246,10 @@ class Generate
             ) {
                 if ($column->getSize()) {
                     if ($columnType === Column::TYPE_ENUM) {
-                        $definition[] = "'size' => \"" . $column->getSize() . "\"";
+                        $definition[] = sprintf(
+                            "'size' => %s",
+                            $this->wrapWithQuotes((string)$column->getSize(), '"')
+                        );
                     } else {
                         $definition[] = "'size' => " . $column->getSize();
                     }
@@ -362,11 +365,12 @@ class Generate
      * Just wrap string with single quotes
      *
      * @param string $columnName
+     * @param string $quote
      * @return string
      */
-    public function wrapWithQuotes(string $columnName): string
+    public function wrapWithQuotes(string $columnName, string $quote = "'"): string
     {
-        return "'" . $columnName . "'";
+        return $quote . $columnName . $quote;
     }
 
     /**

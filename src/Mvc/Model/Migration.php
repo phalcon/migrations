@@ -21,7 +21,6 @@ use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
-use Phalcon\Db\Index;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
