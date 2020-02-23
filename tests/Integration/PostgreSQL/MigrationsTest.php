@@ -16,6 +16,7 @@ namespace Phalcon\Migrations\Tests\Integration\PostgreSQL;
 use Exception;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
+
 use function Phalcon\Migrations\Tests\root_path;
 
 final class MigrationsTest extends PostgreSQLIntegrationTestCase
