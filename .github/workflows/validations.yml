@@ -69,15 +69,15 @@ jobs:
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-      - name: Install Composer dependencies with PHPStan
-        run: composer require --prefer-dist --no-progress --no-suggest --dev phpstan/phpstan
-
       - name: Cache composer dependencies
         uses: actions/cache@v1
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies with PHPStan
+        run: composer require --prefer-dist --no-progress --no-suggest --dev phpstan/phpstan
 
       - name: Run Psalm
         if: always()
