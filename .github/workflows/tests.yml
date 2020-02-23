@@ -22,7 +22,7 @@ jobs:
         image: postgres:10.8
         ports:
           - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 2
     strategy:
       fail-fast: false
       matrix:
