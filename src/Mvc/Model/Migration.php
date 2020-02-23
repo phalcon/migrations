@@ -79,7 +79,7 @@ class Migration
      *
      * @var bool
      */
-    private static $skipAI = false;
+    private static $skipAI = true;
 
     /**
      * Version of the migration file
