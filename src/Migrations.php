@@ -20,7 +20,6 @@ use Phalcon\Config;
 use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Db\Column;
 use Phalcon\Db\Exception as DbException;
-use Phalcon\Db\Index;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\OptionStack;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
@@ -514,6 +513,8 @@ class Migrations
                                 'type' => Column::TYPE_VARCHAR,
                                 'size' => 255,
                                 'notNull' => true,
+                                'first' => true,
+                                'primary' => true,
                             ]
                         ),
                         new Column(
@@ -533,9 +534,6 @@ class Migrations
                             ]
                         )
                     ],
-                    'indexes' => [
-                        new Index('idx_' . self::MIGRATION_LOG_TABLE . '_version', ['version'])
-                    ]
                 ]);
             }
         } else {
