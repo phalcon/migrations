@@ -6,6 +6,9 @@ jobs:
   run-tests:
     name: PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
+    env:
+      extensions: mbstring, intl, json, phalcon4, mysql, pgsql
+      key: cache-v1.2
     services:
       mysql:
         image: mysql:5.7
@@ -27,12 +30,27 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v1
+      - name: Setup cache environment
+        id: cache-env
+        uses: shivammathur/cache-extensions@v1
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, intl, json, phalcon4, mysql, pgsql
-          pecl: true
+          extensions: ${{ env.extensions }}
+          key: ${{ env.key }}
+
+      - name: Cache extensions
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.cache-env.outputs.dir }}
+          key: ${{ steps.cache-env.outputs.key }}
+          restore-keys: ${{ steps.cache-env.outputs.key }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: ${{ env.extensions }}
+          tools: pecl
 
       - name: Get Composer Cache Directory
         id: composer-cache
