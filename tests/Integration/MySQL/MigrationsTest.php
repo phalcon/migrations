@@ -223,4 +223,50 @@ final class MigrationsTest extends MySQLIntegrationTestCase
         $this->assertDirectoryExists($migrationsDir);
         $this->assertSame(3, count(scandir($migrationsDir)));
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testMySQLPhalconMigrationsTable(): void
+    {
+        $tableName = 'test_mysql_phalcon_migrations';
+        $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
+
+        $this->db->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+            'columns' => [
+                new Column('column_name', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'unsigned' => true,
+                    'notNull' => true,
+                    'first' => true,
+                ]),
+            ],
+        ]);
+
+        $options = [
+            'migrationsDir' => [
+                $migrationsDir,
+            ],
+            'config' => self::$generateConfig,
+            'tableName' => '@',
+        ];
+
+        Migrations::generate($options);
+        $this->db->dropTable($tableName);
+        Migrations::run([
+            'migrationsDir' => $migrationsDir,
+            'config' => self::$generateConfig,
+            'migrationsInDb' => true,
+        ]);
+
+        $indexes = $this->db->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $currentIndex = current($indexes);
+
+        $this->assertTrue($this->db->tableExists($tableName));
+        $this->assertTrue($this->db->tableExists(Migrations::MIGRATION_LOG_TABLE));
+        $this->assertSame(1, count($indexes));
+        $this->assertArrayHasKey('PRIMARY', $indexes);
+        $this->assertSame('PRIMARY', $currentIndex->getType());
+    }
 }
