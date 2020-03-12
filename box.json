@@ -1,0 +1,19 @@
+{
+    "directories": [
+        "src"
+    ],
+    "files": [
+        "phalcon-migrations"
+    ],
+    "finder": [
+        {
+            "in": "src",
+            "name": "*.*"
+        }
+    ],
+    "git-version": "git_tag",
+    "compression": "GZ",
+    "compactors": [
+        "KevinGH\\Box\\Compactor\\Php"
+    ]
+}

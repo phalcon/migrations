@@ -1,8 +1,25 @@
 {
     "name": "phalcon/migrations",
     "description": "Run and Generate DB Migrations with Phalcon Framework",
+    "keywords": ["framework", "phalcon", "migration", "phar"],
     "homepage": "https://phalcon.io",
     "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Phalcon Team",
+            "email": "team@phalcon.io",
+            "homepage": "https://phalcon.io/en/team"
+        },
+        {
+            "name": "Contributors",
+            "homepage": "https://github.com/phalcon/phalcon-devtools/graphs/contributors"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/phalcon/phalcon-devtools/issues",
+        "source": "https://github.com/phalcon/phalcon-devtools",
+        "forum": "https://forum.phalcon.io"
+    },
     "require": {
         "php": ">=7.2",
         "ext-phalcon": "^4.0.0"
@@ -12,7 +29,8 @@
         "phalcon/ide-stubs": "^4.0.0",
         "vimeo/psalm": "3.6.2",
         "squizlabs/php_codesniffer": "3.5.1",
-        "fzaninotto/faker": "^1.9"
+        "fzaninotto/faker": "^1.9",
+        "humbug/box": "^3.8"
     },
     "autoload": {
         "psr-4": {
