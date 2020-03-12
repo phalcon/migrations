@@ -240,22 +240,12 @@ class Generate
                 $definition[] = "'autoIncrement' => true";
             }
 
-            if (
-                $this->adapter !== Utils::DB_ADAPTER_POSTGRESQL &&
-                !in_array($columnType, $this->noSizeColumnTypesPostgreSQL)
-            ) {
-                if ($column->getSize()) {
-                    if ($columnType === Column::TYPE_ENUM) {
-                        $definition[] = sprintf(
-                            "'size' => %s",
-                            $this->wrapWithQuotes((string)$column->getSize(), '"')
-                        );
-                    } else {
-                        $definition[] = "'size' => " . $column->getSize();
-                    }
-                } elseif (!in_array($columnType, $this->noSizeColumnTypes)) {
-                    $definition[] = "'size' => 1";
-                }
+            /**
+             * Define column size
+             */
+            $columnSize = $this->getColumnSize($column);
+            if ($columnSize !== null) {
+                $definition[] = "'size' => $columnSize";
             }
 
             if ($column->getScale()) {
@@ -379,5 +369,40 @@ class Generate
     public function getQuoteWrappedColumns(): array
     {
         return $this->quoteWrappedColumns;
+    }
+
+    /**
+     * Get column size basing on its type
+     *
+     * @param ColumnInterface $column
+     * @return int|string|null
+     */
+    protected function getColumnSize(ColumnInterface $column)
+    {
+        $columnType = $column->getType();
+        $columnsSize = $column->getSize();
+
+        /**
+         * Check Postgres
+         */
+        $noSizePostgres = $this->noSizeColumnTypesPostgreSQL;
+        if ($this->adapter === Utils::DB_ADAPTER_POSTGRESQL && in_array($columnType, $noSizePostgres)) {
+            return null;
+        }
+
+        /**
+         * Check MySQL and SQLite
+         */
+        if (in_array($columnType, $this->noSizeColumnTypes)) {
+            return null;
+        }
+
+        if ($columnType === Column::TYPE_ENUM) {
+            $size = $this->wrapWithQuotes((string)$columnsSize, '"');
+        } else {
+            $size = $columnsSize ?: 1;
+        }
+
+        return $size;
     }
 }
