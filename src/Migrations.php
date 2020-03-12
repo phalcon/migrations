@@ -505,36 +505,7 @@ class Migrations
             }
 
             if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {
-                self::$storage->createTable(self::MIGRATION_LOG_TABLE, '', [
-                    'columns' => [
-                        new Column(
-                            'version',
-                            [
-                                'type' => Column::TYPE_VARCHAR,
-                                'size' => 255,
-                                'notNull' => true,
-                                'first' => true,
-                                'primary' => true,
-                            ]
-                        ),
-                        new Column(
-                            'start_time',
-                            [
-                                'type' => Column::TYPE_TIMESTAMP,
-                                'notNull' => true,
-                                'default' => 'CURRENT_TIMESTAMP',
-                            ]
-                        ),
-                        new Column(
-                            'end_time',
-                            [
-                                'type' => Column::TYPE_TIMESTAMP,
-                                'notNull' => true,
-                                'default' => 'CURRENT_TIMESTAMP',
-                            ]
-                        )
-                    ],
-                ]);
+                self::createLogTable();
             }
         } else {
             if (empty($options['directory'])) {
@@ -705,5 +676,42 @@ class Migrations
     public static function resetStorage(): void
     {
         self::$storage = null;
+    }
+
+    /**
+     * Executes creation of Migrations Log Table
+     */
+    public static function createLogTable(): void
+    {
+        self::$storage->createTable(self::MIGRATION_LOG_TABLE, '', [
+            'columns' => [
+                new Column(
+                    'version',
+                    [
+                        'type' => Column::TYPE_VARCHAR,
+                        'size' => 255,
+                        'notNull' => true,
+                        'first' => true,
+                        'primary' => true,
+                    ]
+                ),
+                new Column(
+                    'start_time',
+                    [
+                        'type' => Column::TYPE_TIMESTAMP,
+                        'notNull' => true,
+                        'default' => 'CURRENT_TIMESTAMP',
+                    ]
+                ),
+                new Column(
+                    'end_time',
+                    [
+                        'type' => Column::TYPE_TIMESTAMP,
+                        'notNull' => true,
+                        'default' => 'CURRENT_TIMESTAMP',
+                    ]
+                )
+            ],
+        ]);
     }
 }
