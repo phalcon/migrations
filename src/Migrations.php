@@ -275,8 +275,12 @@ class Migrations
         ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
         self::connectionSetup($optionStack->getOptions());
 
-        // Everything is up to date
-        if ($initialVersion->getStamp() === $finalVersion->getStamp()) {
+        /**
+         * Everything is up to date
+         */
+        if ($initialVersion->getStamp() === $finalVersion->getStamp() &&
+            count($completedVersions) === count($versionItems)
+        ) {
             print Color::info('Everything is up to date');
             return;
         }
