@@ -18,6 +18,8 @@ use Phalcon\Config;
 
 class Utils
 {
+    public const DB_ADAPTER_MYSQL = 'mysql';
+
     public const DB_ADAPTER_POSTGRESQL = 'postgresql';
 
     public const DB_ADAPTER_SQLITE = 'sqlite';
