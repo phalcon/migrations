@@ -65,11 +65,7 @@ class Migration extends Command
      */
     public function run(array $parameters): void
     {
-        if (
-            count($parameters) < ($this->getRequiredParams() + 1) ||
-            $this->isReceivedOption(['help', 'h', '?']) ||
-            in_array($this->getOption(1), ['help', 'h', '?'])
-        ) {
+        if ($this->isReceivedOption(['help', 'h', '?']) || in_array($this->getOption(1), ['help', 'h', '?'])) {
             $this->getHelp();
 
             return;
@@ -138,7 +134,7 @@ class Migration extends Command
         }
 
         $tableName = $this->isReceivedOption('table') ? $this->getOption('table') : '@';
-        $action = $this->getOption(['action', 1]);
+        $action = $this->getOption(['action', 0]);
 
         if (isset($config['application']['descr'])) {
             $descr = $config['application']['descr'];

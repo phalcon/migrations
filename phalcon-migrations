@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-declare(strict_types=1);
 
 /**
  * This file is part of the Phalcon Developer Tools.
@@ -11,10 +10,14 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
+use Phalcon\Cop\Parser;
 use Phalcon\Events\Manager as EventsManager;
+use Phalcon\Migrations\Console\BuilderException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\Commands\Builtin\Migration;
-use Phalcon\Migrations\Console\Script;
+use Phalcon\Migrations\Console\Commands\CommandsException;
 
 try {
     foreach ([__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'] as $file) {
@@ -26,11 +29,19 @@ try {
 
     print PHP_EOL . Color::colorize('Phalcon Migrations', Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL . PHP_EOL;
 
-    $eventsManager = new EventsManager();
+    $parser = new Parser();
+    $parser->parse();
 
-    $script = new Script($eventsManager);
-    $script->attach(new Migration($script, $eventsManager));
-    $script->run();
+    $eventsManager = new EventsManager();
+    $command = new Migration($parser, $eventsManager);
+
+    try {
+        $command->run([]);
+    } catch (BuilderException $builderException) {
+        echo Color::error($builderException->getMessage());
+    } catch (CommandsException $commandsException) {
+        echo Color::error($commandsException->getMessage());
+    }
 } catch (Exception $e) {
     fwrite(STDERR, 'ERROR: ' . $e->getMessage() . PHP_EOL);
     exit(1);
