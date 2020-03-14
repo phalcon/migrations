@@ -50,13 +50,6 @@ interface CommandsInterface
     public function getHelp(): void;
 
     /**
-     * Return required parameters.
-     *
-     * @return int
-     */
-    public function getRequiredParams(): int;
-
-    /**
      * Checks whether the command has identifier.
      *
      * @param string $identifier

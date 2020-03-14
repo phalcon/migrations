@@ -219,14 +219,4 @@ class Migration extends Command
 
         $this->printParameters($this->getPossibleParams());
     }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return int
-     */
-    public function getRequiredParams(): int
-    {
-        return 1;
-    }
 }
