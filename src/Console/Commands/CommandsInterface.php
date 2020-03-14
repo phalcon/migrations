@@ -28,13 +28,6 @@ interface CommandsInterface
     public function run();
 
     /**
-     * Returns the command identifier.
-     *
-     * @return array
-     */
-    public function getCommands(): array;
-
-    /**
      * Prints help on the usage of the command.
      *
      * @return void

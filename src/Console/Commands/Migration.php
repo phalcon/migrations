@@ -182,17 +182,7 @@ class Migration implements CommandsInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return array
-     */
-    public function getCommands(): array
-    {
-        return ['migration', 'create-migration'];
-    }
-
-    /**
-     * {@inheritdoc}
+     * Print Help information
      *
      * @return void
      */
