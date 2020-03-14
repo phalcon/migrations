@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "phalcon/cli-options-parser",
-            "version": "v1.2.0",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phalcon/cli-options-parser.git",
-                "reference": "b3260ed2d77abbc98274ac797fdf5922ed8f4b49"
+                "reference": "9487c84fb320c6b6882c76d4388d039316d234b9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phalcon/cli-options-parser/zipball/b3260ed2d77abbc98274ac797fdf5922ed8f4b49",
-                "reference": "b3260ed2d77abbc98274ac797fdf5922ed8f4b49",
+                "url": "https://api.github.com/repos/phalcon/cli-options-parser/zipball/9487c84fb320c6b6882c76d4388d039316d234b9",
+                "reference": "9487c84fb320c6b6882c76d4388d039316d234b9",
                 "shasum": ""
             },
             "require": {
@@ -67,7 +67,7 @@
                 "parser",
                 "terminal"
             ],
-            "time": "2019-10-27T22:34:35+00:00"
+            "time": "2020-03-14T18:48:08+00:00"
         }
     ],
     "packages-dev": [
