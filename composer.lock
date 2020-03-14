@@ -4,8 +4,72 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "51d3971876bd68999ec5a31159a1d674",
-    "packages": [],
+    "content-hash": "bf95dccf4f44ecf66b7d3b03eff788dc",
+    "packages": [
+        {
+            "name": "phalcon/cli-options-parser",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phalcon/cli-options-parser.git",
+                "reference": "b3260ed2d77abbc98274ac797fdf5922ed8f4b49"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phalcon/cli-options-parser/zipball/b3260ed2d77abbc98274ac797fdf5922ed8f4b49",
+                "reference": "b3260ed2d77abbc98274ac797fdf5922ed8f4b49",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0 <8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=5.3 <8.0",
+                "squizlabs/php_codesniffer": "3.*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.1-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Phalcon\\Cop\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Phalcon Team",
+                    "email": "team@phalconphp.com",
+                    "homepage": "https://phalconphp.com/en/team"
+                },
+                {
+                    "name": "Contributors",
+                    "homepage": "https://github.com/phalcon/cli-options-parser/graphs/contributors"
+                }
+            ],
+            "description": "Command line arguments/options parser.",
+            "homepage": "https://phalconphp.com",
+            "keywords": [
+                "argparse",
+                "cli",
+                "command",
+                "command-line",
+                "getopt",
+                "line",
+                "option",
+                "optparse",
+                "parser",
+                "terminal"
+            ],
+            "time": "2019-10-27T22:34:35+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "amphp/amp",
