@@ -27,14 +27,11 @@ use Phalcon\Mvc\Model\Exception;
 class Migration extends Command
 {
     /**
-     * {@inheritdoc}
-     *
      * @return array
      */
     public function getPossibleParams(): array
     {
         return [
-            'action=s' => 'Generates a Migration [generate|run]',
             'config=s' => 'Configuration file',
             'migrations=s' => 'Migrations directory. Use comma separated string to specify multiple directories',
             'directory=s' => 'Directory where the project was created',
@@ -54,45 +51,31 @@ class Migration extends Command
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @param array $parameters
      * @throws CommandsException
      * @throws ScriptException
      * @throws Exception
      */
-    public function run(array $parameters): void
+    public function run(): void
     {
-        if ($this->isReceivedOption(['help', 'h', '?']) || in_array($this->getOption(1), ['help', 'h', '?'])) {
+        $action = $this->parser->get(0);
+
+        if (in_array($action, [null, 'help', 'h', '?'], true)) {
             $this->getHelp();
 
             return;
         }
 
-        $path = $this->isReceivedOption('directory') ? $this->getOption('directory') : '';
-        $path = realpath($path) . DIRECTORY_SEPARATOR;
-
-        if ($this->isReceivedOption('config')) {
-            $config = $this->loadConfig($path . $this->getOption('config'));
+        $path = realpath($this->parser->get('directory', '')) . DIRECTORY_SEPARATOR;
+        if ($this->parser->has('config')) {
+            $config = $this->loadConfig($path . $this->parser->get('config'));
         } else {
             $config = $this->getConfig($path);
         }
 
-        $exportDataFromTables = [];
-        if ($this->isReceivedOption('exportDataFromTables')) {
-            $exportDataFromTables = explode(',', $this->getOption('exportDataFromTables'));
-        } elseif (isset($config['application']['exportDataFromTables'])) {
-            if ($config['application']['exportDataFromTables'] instanceof Config) {
-                $exportDataFromTables = $config['application']['exportDataFromTables']->toArray();
-            } else {
-                $exportDataFromTables = explode(',', $config['application']['exportDataFromTables']);
-            }
-        }
-
-        //multiple dir
+        // Multiple dir
         $migrationsDir = [];
-        if ($this->isReceivedOption('migrations')) {
-            $migrationsDir = explode(',', $this->getOption('migrations'));
+        if ($this->parser->has('migrations')) {
+            $migrationsDir = explode(',', $this->parser->get('migrations'));
         } elseif (isset($config['application']['migrationsDir'])) {
             $migrationsDir = explode(',', $config['application']['migrationsDir']);
         }
@@ -112,48 +95,35 @@ class Migration extends Command
             $migrationsDir[] = $path . 'migrations';
         }
 
+        /**
+         * Keep migrations log in db either "log-in-db" option or "logInDb"
+         * config variable from "application" block
+         */
+        $migrationsInDb = $config['application']['logInDb'] ?? $this->parser->has('log-in-db');
 
-        // keep migrations log in db
-        // either "log-in-db" option or "logInDb" config variable from "application" block
-        $migrationsInDb = false;
-        if ($this->isReceivedOption('log-in-db')) {
-            $migrationsInDb = true;
-        } elseif (isset($config['application']['logInDb'])) {
-            $migrationsInDb = $config['application']['logInDb'];
-        }
+        /**
+         * Migrations naming is timestamp-based rather than traditional, dotted versions
+         * either "ts-based" option or "migrationsTsBased" config variable from "application" block
+         */
+        $migrationsTsBased = $config['application']['migrationsTsBased'] ?? $this->parser->has('ts-based');
 
-        // migrations naming is timestamp-based rather than traditional, dotted versions
-        // either "ts-based" option or "migrationsTsBased" config variable from "application" block
-        $migrationsTsBased = false;
-        if ($this->isReceivedOption('ts-based')) {
-            $migrationsTsBased = true;
-        } elseif (isset($config['application']['migrationsTsBased'])) {
-            $migrationsTsBased = $config['application']['migrationsTsBased'];
-        }
-
-        $tableName = $this->isReceivedOption('table') ? $this->getOption('table') : '@';
-        $action = $this->getOption(['action', 0]);
-
-        if (isset($config['application']['descr'])) {
-            $descr = $config['application']['descr'];
-        } else {
-            $descr = $this->getOption('descr');
-        }
+        $descr = $config['application']['descr'] ?? $this->parser->get('descr');
+        $tableName = $this->parser->get('table', '@');
 
         switch ($action) {
             case 'generate':
                 Migrations::generate([
                     'directory'       => $path,
                     'tableName'       => $tableName,
-                    'exportData'      => $this->getOption('data'),
-                    'exportDataFromTables'      => $exportDataFromTables,
+                    'exportData'      => $this->parser->get('data'),
+                    'exportDataFromTables'      => $this->exportFromTables($config),
                     'migrationsDir'   => $migrationsDir,
-                    'version'         => $this->getOption('version'),
-                    'force'           => $this->isReceivedOption('force'),
-                    'noAutoIncrement' => $this->isReceivedOption('no-auto-increment'),
+                    'version'         => $this->parser->get('version'),
+                    'force'           => $this->parser->has('force'),
+                    'noAutoIncrement' => $this->parser->has('no-auto-increment'),
                     'config'          => $config,
                     'descr'           => $descr,
-                    'verbose'         => $this->isReceivedOption('dry'),
+                    'verbose'         => $this->parser->has('dry'),
                 ]);
                 break;
             case 'run':
@@ -161,12 +131,12 @@ class Migration extends Command
                     'directory'      => $path,
                     'tableName'      => $tableName,
                     'migrationsDir'  => $migrationsDir,
-                    'force'          => $this->isReceivedOption('force'),
+                    'force'          => $this->parser->has('force'),
                     'tsBased'        => $migrationsTsBased,
                     'config'         => $config,
-                    'version'        => $this->getOption('version'),
+                    'version'        => $this->parser->get('version'),
                     'migrationsInDb' => $migrationsInDb,
-                    'verbose'        => $this->isReceivedOption('verbose'),
+                    'verbose'        => $this->parser->has('verbose'),
                 ]);
                 break;
             case 'list':
@@ -174,13 +144,16 @@ class Migration extends Command
                     'directory'      => $path,
                     'tableName'      => $tableName,
                     'migrationsDir'  => $migrationsDir,
-                    'force'          => $this->isReceivedOption('force'),
+                    'force'          => $this->parser->has('force'),
                     'tsBased'        => $migrationsTsBased,
                     'config'         => $config,
-                    'version'        => $this->getOption('version'),
+                    'version'        => $this->parser->get('version'),
                     'migrationsInDb' => $migrationsInDb,
                 ]);
                 break;
+
+            default:
+                throw new CommandsException('Unknown action. Use help, h or ? to see all available commands');
         }
     }
 
@@ -218,5 +191,27 @@ class Migration extends Command
         print Color::colorize("\tShows this help text") . PHP_EOL . PHP_EOL;
 
         $this->printParameters($this->getPossibleParams());
+    }
+
+    /**
+     * @param mixed $config
+     * @return array
+     */
+    protected function exportFromTables($config): array
+    {
+        $tables = [];
+
+        if ($this->parser->has('exportDataFromTables')) {
+            $tables = explode(',', $this->parser->get('exportDataFromTables'));
+        } elseif (isset($config['application']['exportDataFromTables'])) {
+            $configTables = $config['application']['exportDataFromTables'];
+            if ($configTables instanceof Config) {
+                $tables = $configTables->toArray();
+            } else {
+                $tables = explode(',', $configTables);
+            }
+        }
+
+        return $tables;
     }
 }

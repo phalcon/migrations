@@ -13,11 +13,10 @@
 declare(strict_types=1);
 
 use Phalcon\Cop\Parser;
-use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Console\BuilderException;
 use Phalcon\Migrations\Console\Color;
-use Phalcon\Migrations\Console\Commands\Migration;
 use Phalcon\Migrations\Console\Commands\CommandsException;
+use Phalcon\Migrations\Console\Commands\Migration;
 
 try {
     foreach ([__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'] as $file) {
@@ -29,14 +28,11 @@ try {
 
     print PHP_EOL . Color::colorize('Phalcon Migrations', Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL . PHP_EOL;
 
-    $parser = new Parser();
-    $parser->parse();
-
-    $eventsManager = new EventsManager();
-    $command = new Migration($parser, $eventsManager);
-
     try {
-        $command->run([]);
+        $parser = new Parser();
+        $parser->parse();
+        $command = new Migration($parser);
+        $command->run();
     } catch (BuilderException $builderException) {
         echo Color::error($builderException->getMessage());
     } catch (CommandsException $commandsException) {

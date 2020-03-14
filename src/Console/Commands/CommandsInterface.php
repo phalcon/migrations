@@ -23,10 +23,9 @@ interface CommandsInterface
     /**
      * Executes the command.
      *
-     * @param array $parameters
      * @return mixed
      */
-    public function run(array $parameters);
+    public function run();
 
     /**
      * Returns the command identifier.
@@ -36,26 +35,11 @@ interface CommandsInterface
     public function getCommands(): array;
 
     /**
-     * Checks whether the command can be executed outside a Phalcon project.
-     *
-     * @return bool
-     */
-    public function canBeExternal(): bool;
-
-    /**
      * Prints help on the usage of the command.
      *
      * @return void
      */
     public function getHelp(): void;
-
-    /**
-     * Checks whether the command has identifier.
-     *
-     * @param string $identifier
-     * @return bool
-     */
-    public function hasIdentifier($identifier): bool;
 
     /**
      * Gets possible command parameters.
