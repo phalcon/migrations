@@ -11,11 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Console\Commands\Builtin;
+namespace Phalcon\Migrations\Console\Commands;
 
 use Phalcon\Config;
-use Phalcon\Migrations\Console\Commands\Command;
-use Phalcon\Migrations\Console\Commands\CommandsException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Script\ScriptException;

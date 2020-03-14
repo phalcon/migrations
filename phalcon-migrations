@@ -16,7 +16,7 @@ use Phalcon\Cop\Parser;
 use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Console\BuilderException;
 use Phalcon\Migrations\Console\Color;
-use Phalcon\Migrations\Console\Commands\Builtin\Migration;
+use Phalcon\Migrations\Console\Commands\Migration;
 use Phalcon\Migrations\Console\Commands\CommandsException;
 
 try {
