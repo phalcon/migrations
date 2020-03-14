@@ -65,6 +65,16 @@ class Migration extends Command
      */
     public function run(array $parameters): void
     {
+        if (
+            count($parameters) < ($this->getRequiredParams() + 1) ||
+            $this->isReceivedOption(['help', 'h', '?']) ||
+            in_array($this->getOption(1), ['help', 'h', '?'])
+        ) {
+            $this->getHelp();
+
+            return;
+        }
+
         $path = $this->isReceivedOption('directory') ? $this->getOption('directory') : '';
         $path = realpath($path) . DIRECTORY_SEPARATOR;
 

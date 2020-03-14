@@ -14,7 +14,6 @@ declare(strict_types=1);
 use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\Commands\Builtin\Migration;
-use Phalcon\Migrations\Console\Commands\CommandsListener;
 use Phalcon\Migrations\Console\Script;
 
 try {
@@ -28,7 +27,6 @@ try {
     print PHP_EOL . Color::colorize('Phalcon Migrations', Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL . PHP_EOL;
 
     $eventsManager = new EventsManager();
-    $eventsManager->attach('command', new CommandsListener());
 
     $script = new Script($eventsManager);
     $script->attach(new Migration($script, $eventsManager));
