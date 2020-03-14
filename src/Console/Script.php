@@ -121,88 +121,9 @@ class Script
 
     /**
      * Run the scripts
-     *
-     * @throws ScriptException
      */
     public function run()
     {
-        if (!isset($_SERVER['argv'][1])) {
-            $_SERVER['argv'][1] = 'migration';
-        }
-
-        $input = $_SERVER['argv'][1];
-
-        // Try to dispatch the command
-        foreach ($this->commands as $command) {
-            if ($command->hasIdentifier($input)) {
-                return $this->dispatch($command);
-            }
-        }
-
-        // Check for alternatives
-        $available = [];
-        foreach ($this->commands as $command) {
-            $providedCommands = $command->getCommands();
-            foreach ($providedCommands as $alias) {
-                $soundex = soundex($alias);
-                if (!isset($available[$soundex])) {
-                    $available[$soundex] = [];
-                }
-
-                $available[$soundex][] = $alias;
-            }
-        }
-
-        // Show exception with/without alternatives
-        $soundex = soundex($input);
-        $message = sprintf('%s is not a recognized command.', $input);
-
-        if (isset($available[$soundex])) {
-            throw new ScriptException(sprintf('%s Did you mean: %s?', $message, join(' or ', $available[$soundex])));
-        }
-
-        throw new ScriptException($message);
-    }
-
-    public function loadUserScripts(): void
-    {
-        if (!file_exists('.phalcon/project.ini')) {
-            return;
-        }
-
-        $config = parse_ini_file('.phalcon/project.ini');
-
-        if (!isset($config['scripts'])) {
-            return;
-        }
-
-        foreach (explode(',', $config['scripts']) as $directory) {
-            if (!is_dir($directory)) {
-                throw new ScriptException("Cannot load user scripts in directory '" . $directory . "'");
-            }
-
-            $iterator = new DirectoryIterator($directory);
-            foreach ($iterator as $item) {
-                if ($item->isDir() || $item->isDot()) {
-                    continue;
-                }
-
-                /** @noinspection PhpIncludeInspection */
-                require $item->getPathname();
-
-                $className = preg_replace('/\.php$/', '', $item->getBasename());
-                if (!class_exists($className)) {
-                    throw new ScriptException(
-                        sprintf(
-                            "Expecting class '%s' to be located at '%s'",
-                            $className,
-                            $item->getPathname()
-                        )
-                    );
-                }
-
-                $this->attach(new $className($this, $this->eventsManager));
-            }
-        }
+        return $this->dispatch($this->commands[0]);
     }
 }

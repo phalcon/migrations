@@ -31,7 +31,6 @@ try {
     $eventsManager->attach('command', new CommandsListener());
 
     $script = new Script($eventsManager);
-    $script->loadUserScripts();
     $script->attach(new Migration($script, $eventsManager));
     $script->run();
 } catch (Exception $e) {
