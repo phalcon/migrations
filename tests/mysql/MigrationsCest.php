@@ -2,50 +2,45 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration;
+namespace Phalcon\Migrations\Tests\Mysql;
 
+use Codeception\Example;
+use MysqlTester;
+use PDO;
+use Phalcon\Config;
+use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
-use Phalcon\Migrations\Tests\Integration\MySQL\MySQLIntegrationTestCase;
 
 use function count;
-use function Phalcon\Migrations\Tests\root_path;
 
-final class MigrationsTest extends MySQLIntegrationTestCase
+/**
+ * @method Config getMigrationsConfig()
+ * @method AbstractPdo getPhalconDb()
+ * @method PDO getDb()
+ */
+final class MigrationsCest
 {
     /**
      * @throws \Phalcon\Migrations\Script\ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      */
-    public function testRunAllMigrations(): void
+    public function runAllMigrations(MysqlTester $I): void
     {
-        $this->runIssue66Migrations();
-        $migrations = $this->db->fetchAll('SELECT * FROM phalcon_migrations');
+        $this->runIssue66Migrations($I);
 
-        $this->assertEquals(4, count($migrations));
+        $I->seeNumRecords(4, 'phalcon_migrations');
     }
 
     public function specificMigrationsDataProvider(): array
     {
         return [
-            [
-                ['0.0.1'],
-            ],
-            [
-                ['0.0.2', '0.0.3'],
-            ],
-            [
-                ['0.0.2', '0.0.3', '0.0.4'],
-            ],
-            [
-                ['0.0.1', '0.0.3', '0.0.4'],
-            ],
-            [
-                ['0.0.1', '0.0.4'],
-            ],
-            [
-                ['0.0.4'],
-            ],
+            ['0.0.1'],
+            ['0.0.2', '0.0.3'],
+            ['0.0.2', '0.0.3', '0.0.4'],
+            ['0.0.1', '0.0.3', '0.0.4'],
+            ['0.0.1', '0.0.4'],
+            ['0.0.4'],
         ];
     }
 
@@ -56,38 +51,41 @@ final class MigrationsTest extends MySQLIntegrationTestCase
      * @throws \Phalcon\Migrations\Script\ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      */
-    public function testRunSpecificMigrations(array $completedVersion): void
+    public function testRunSpecificMigrations(MysqlTester $I, Example $example): void
     {
-        $this->insertCompletedMigrations($completedVersion);
+        $versions = current($example);
+        $this->insertCompletedMigrations($I, $versions);
 
-        $migrations = $this->db->fetchAll('SELECT * FROM phalcon_migrations');
-        $this->assertEquals(count($completedVersion), count($migrations));
+        $I->seeNumRecords(count($versions), 'phalcon_migrations');
 
-        $this->runIssue66Migrations();
+        $this->runIssue66Migrations($I);
 
-        $migrations = $this->db->fetchAll('SELECT * FROM phalcon_migrations');
-        $this->assertEquals(4, count($migrations));
+        $I->seeNumRecords(4, 'phalcon_migrations');
     }
 
     /**
      * @throws \Phalcon\Migrations\Script\ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      */
-    protected function runIssue66Migrations(): void
+    protected function runIssue66Migrations(MysqlTester $I): void
     {
+        ob_start();
+
         Migrations::run([
-            'migrationsDir' => root_path('tests/var/issues/66'),
-            'config' => self::$generateConfig,
+            'migrationsDir' => codecept_data_dir('issues/66'),
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
+
+        ob_clean();
     }
 
     /**
      * @param array $versions
      */
-    protected function insertCompletedMigrations(array $versions): void
+    protected function insertCompletedMigrations(MysqlTester $I, array $versions): void
     {
-        $this->db->createTable(Migrations::MIGRATION_LOG_TABLE, '', [
+        $I->getPhalconDb()->createTable(Migrations::MIGRATION_LOG_TABLE, '', [
             'columns' => [
                 new Column(
                     'version',
@@ -126,7 +124,7 @@ final class MigrationsTest extends MySQLIntegrationTestCase
                 $date,
                 $date
             );
-            $this->db->execute($sql);
+            $I->getPhalconDb()->execute($sql);
         }
     }
 }
