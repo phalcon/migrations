@@ -80,8 +80,9 @@ class Integration extends \Codeception\Module
      * @param string $table
      * @param array $columns
      * @param array $rows
+     * @return void
      */
-    function db_batch_insert(AbstractPdo $db, string $table, array $columns, array $rows): void
+    function db_batch_insert(AbstractPdo $db, string $table, array $columns, array $rows)
     {
         $str = '';
         foreach ($rows as $values) {
