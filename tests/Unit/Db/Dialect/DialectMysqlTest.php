@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Db\Dialect;
 
+use Codeception\Test\Unit;
 use Phalcon\Db\Dialect\Mysql;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
-use PHPUnit\Framework\TestCase;
 
-final class DialectMysqlTest extends TestCase
+final class DialectMysqlTest extends Unit
 {
     public function testConstruct(): void
     {

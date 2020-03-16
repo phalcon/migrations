@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Migration\Action;
 
+use Codeception\Test\Unit;
 use Phalcon\Migrations\Migration\Action\Generate;
-use PHPUnit\Framework\TestCase;
 
-final class GenerateTest extends TestCase
+final class GenerateTest extends Unit
 {
     public function testConstruct(): void
     {

@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Console;
 
+use Codeception\Test\Unit;
 use Phalcon\Migrations\Console\OptionParserTrait;
 use Phalcon\Migrations\Console\OptionStack;
-use PHPUnit\Framework\TestCase;
 
-final class OptionStackTest extends TestCase
+final class OptionStackTest extends Unit
 {
     use OptionParserTrait;
 

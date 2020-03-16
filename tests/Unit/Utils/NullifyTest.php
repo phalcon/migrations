@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Utils;
 
+use Codeception\Test\Unit;
 use Phalcon\Migrations\Utils\Nullify;
-use PHPUnit\Framework\TestCase;
 
-final class NullifyTest extends TestCase
+final class NullifyTest extends Unit
 {
     public function dataProvider(): array
     {

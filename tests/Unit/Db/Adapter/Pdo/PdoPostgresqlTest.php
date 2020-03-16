@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Db\Adapter\Pdo;
 
+use Codeception\Test\Unit;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
-use PHPUnit\Framework\TestCase;
 
-final class PdoPostgresqlTest extends TestCase
+final class PdoPostgresqlTest extends Unit
 {
     public function testConstruct(): void
     {

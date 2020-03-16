@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Db\Dialect;
 
+use Codeception\Test\Unit;
 use Phalcon\Db\Dialect\Postgresql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
-use PHPUnit\Framework\TestCase;
 
-final class DialectPostgresqlTest extends TestCase
+final class DialectPostgresqlTest extends Unit
 {
     public function testConstruct(): void
     {
