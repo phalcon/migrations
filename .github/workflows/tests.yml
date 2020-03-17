@@ -69,12 +69,12 @@ jobs:
       - name: Copy .env file
         run: cp tests/.env.example tests/.env
 
-      - name: Run test suite
+      - name: Run test suites
         env:
           MYSQL_TEST_DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           POSTGRES_TEST_DB_PORT: ${{ job.services.postgres.ports['5432'] }}
         if: success()
-        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+        run: vendor/bin/codecept run
 
       - name: Upload coverage to Codecov
         if: success()
