@@ -11,28 +11,28 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration\MySQL;
+namespace Phalcon\Migrations\Tests\Mysql;
 
+use MysqlTester;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Mvc\Model\Exception;
 
-use function Phalcon\Migrations\Tests\root_path;
-
-final class TimestampedVersionTest extends MySQLIntegrationTestCase
+final class TimestampedVersionCest
 {
     /**
-     * @throws ScriptException
+     * @param MysqlTester $I
      * @throws Exception
+     * @throws ScriptException
      * @throws \Exception
      */
-    public function testSingleVersion(): void
+    public function singleVersion(MysqlTester $I): void
     {
-        $options = $this->getOptions(root_path('tests/var/output/timestamp-single-version'));
+        $options = $this->getOptions($I, codecept_output_dir('timestamp-single-version'));
 
         $tableName = 'timestamp-versions-1';
-        $this->db->createTable($tableName, '', [
+        $I->getPhalconDb()->createTable($tableName, '', [
             'columns' => [
                 new Column('name', [
                     'type' => Column::TYPE_VARCHAR,
@@ -41,27 +41,30 @@ final class TimestampedVersionTest extends MySQLIntegrationTestCase
             ],
         ]);
 
+        ob_start();
         Migrations::generate($options);
-        $this->db->dropTable($tableName);
+        $I->getPhalconDb()->dropTable($tableName);
         Migrations::run($options);
+        ob_clean();
 
-        $this->assertTrue($this->db->tableExists($tableName));
+        $I->assertTrue($I->getPhalconDb()->tableExists($tableName));
     }
 
     /**
+     * @param MysqlTester $I
      * @throws Exception
      * @throws ScriptException
      * @throws \Exception
      */
-    public function testSeveralVersions(): void
+    public function testSeveralVersions(MysqlTester $I): void
     {
-        $options = $this->getOptions(root_path('tests/var/output/timestamp-several-versions'));
+        $options = $this->getOptions($I, codecept_output_dir('tests/var/output/timestamp-several-versions'));
 
         /**
          * Generate first version
          */
         $tableName1 = 'timestamp-versions-2';
-        $this->db->createTable($tableName1, '', [
+        $I->getPhalconDb()->createTable($tableName1, '', [
             'columns' => [
                 new Column('name', [
                     'type' => Column::TYPE_VARCHAR,
@@ -70,13 +73,14 @@ final class TimestampedVersionTest extends MySQLIntegrationTestCase
             ],
         ]);
 
+        ob_start();
         Migrations::generate($options);
 
         /**
          * Generate second version
          */
         $tableName2 = 'timestamp-versions-3';
-        $this->db->createTable($tableName2, '', [
+        $I->getPhalconDb()->createTable($tableName2, '', [
             'columns' => [
                 new Column('name', [
                     'type' => Column::TYPE_VARCHAR,
@@ -90,19 +94,25 @@ final class TimestampedVersionTest extends MySQLIntegrationTestCase
         /**
          * Drop tables and run migrations
          */
-        $this->db->dropTable($tableName1);
-        $this->db->dropTable($tableName2);
+        $I->getPhalconDb()->dropTable($tableName1);
+        $I->getPhalconDb()->dropTable($tableName2);
         Migrations::run($options);
+        ob_clean();
 
-        $this->assertTrue($this->db->tableExists($tableName1));
-        $this->assertTrue($this->db->tableExists($tableName2));
+        $I->assertTrue($I->getPhalconDb()->tableExists($tableName1));
+        $I->assertTrue($I->getPhalconDb()->tableExists($tableName2));
     }
 
-    private function getOptions(string $path): array
+    /**
+     * @param MysqlTester $I
+     * @param string $path
+     * @return array
+     */
+    private function getOptions(MysqlTester $I, string $path): array
     {
         return [
             'migrationsDir' => $path,
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'tableName' => '@',
             'descr' => '1',
             'tsBased' => true,

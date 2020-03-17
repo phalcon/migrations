@@ -31,6 +31,7 @@
         "phalcon/cli-options-parser": "^1.2"
     },
     "require-dev": {
+        "ext-pdo": "*",
         "phalcon/ide-stubs": "^4.0.0",
         "vimeo/psalm": "3.6.2",
         "squizlabs/php_codesniffer": "3.5.1",

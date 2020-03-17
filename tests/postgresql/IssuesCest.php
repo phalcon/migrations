@@ -11,21 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration\PostgreSQL;
+namespace Phalcon\Migrations\Tests\Postgresql;
 
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
+use PostgresqlTester;
 
-use function Phalcon\Migrations\Tests\root_path;
-
-final class IssuesTest extends PostgreSQLIntegrationTestCase
+final class IssuesCest
 {
-    public function testIssue1(): void
+    public function issue1(PostgresqlTester $I): void
     {
         $tableName = 'table_primary_test';
-        $migrationsDir = $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
+        $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $this->db->createTable($tableName, $this->defaultSchema, [
+        $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
             'columns' => [
                 new Column('id', [
                     'type' => Column::TYPE_INTEGER,
@@ -39,20 +38,22 @@ final class IssuesTest extends PostgreSQLIntegrationTestCase
         /**
          * Generate | Drop | Run
          */
+        ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'tableName' => $tableName,
         ]);
-        $this->db->dropTable($tableName);
+        $I->getPhalconDb()->dropTable($tableName);
         Migrations::run([
             'migrationsDir' => $migrationsDir,
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
+        ob_clean();
 
-        $indexes = $this->db->describeIndexes($tableName, $this->defaultSchema);
+        $indexes = $I->getPhalconDb()->describeIndexes($tableName, $I->getDefaultSchema());
 
-        $this->assertSame(1, count($indexes));
+        $I->assertSame(1, count($indexes));
     }
 }

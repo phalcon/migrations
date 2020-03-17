@@ -11,20 +11,26 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Integration\MySQL;
+namespace Phalcon\Migrations\Tests\Mysql;
 
+use Codeception\Example;
 use Exception;
+use MysqlTester;
+use PDO;
+use Phalcon\Config;
+use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
-use Phalcon\Db\Enum;
-use Phalcon\Helper\Arr;
 use Phalcon\Migrations\Migrations;
 
-use function Phalcon\Migrations\Tests\remove_dir;
-use function Phalcon\Migrations\Tests\root_path;
-
-final class ColumnTypesTest extends MySQLIntegrationTestCase
+/**
+ * @method Config getMigrationsConfig()
+ * @method AbstractPdo getPhalconDb()
+ * @method PDO getDb()
+ * @method removeDir(string $path)
+ */
+final class ColumnTypesCest
 {
-    public function columnsDataProvider(): array
+    protected function columnsDataProvider(): array
     {
         return [
             [
@@ -90,20 +96,20 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
     /**
      * @dataProvider columnsDataProvider
      *
-     * @param string $columnName
-     * @param array $definition
-     * @param array $values
-     *
+     * @param MysqlTester $I
+     * @param Example $example
      * @throws \Phalcon\Migrations\Script\ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      * @throws Exception
      */
-    public function testColumnDefinition(string $columnName, array $definition, array $values): void
+    public function columnDefinition(MysqlTester $I, Example $example): void
     {
-        $tableName = $columnName . '_test';
-        $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
+        list($columnName, $definition, $values) = $example;
 
-        $this->db->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+        $tableName = $example[0] . '_test';
+        $migrationsDir = codecept_output_dir('tests/var/output/' . __FUNCTION__);
+
+        $I->getPhalconDb()->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
             'columns' => [
                 new Column($columnName, $definition),
             ],
@@ -112,35 +118,36 @@ final class ColumnTypesTest extends MySQLIntegrationTestCase
         /**
          * Generate | Drop | Run
          */
+        ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'tableName' => $tableName,
         ]);
-        $this->db->dropTable($tableName);
+        $I->getPhalconDb()->dropTable($tableName);
         Migrations::run([
             'migrationsDir' => $migrationsDir,
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
+        ob_clean();
 
         /**
          * Insert values
          */
         foreach ($values as $value) {
-            $this->db->insert($tableName, [$value], [$columnName]);
+            $I->getPhalconDb()->insert($tableName, [$value], [$columnName]);
         }
 
         Migrations::resetStorage();
-        remove_dir($migrationsDir);
+        $I->removeDir($migrationsDir);
 
         /** @var Column $column */
-        $column = $this->db->describeColumns($tableName)[0];
-        $rows = $this->db->fetchAll("SELECT $columnName FROM $tableName", Enum::FETCH_ASSOC);
-        $rows = Arr::flatten($rows);
+        $column = $I->getPhalconDb()->describeColumns($tableName)[0];
+        $rows = $I->grabColumnFromDatabase($tableName, $columnName);
 
-        $this->assertSame($definition['type'], $column->getType());
-        $this->assertSame($definition['notNull'] ?? true, $column->isNotNull());
-        $this->assertEquals($values, $rows);
+        $I->assertSame($definition['type'], $column->getType());
+        $I->assertSame($definition['notNull'] ?? true, $column->isNotNull());
+        $I->assertEquals($values, $rows);
     }
 }

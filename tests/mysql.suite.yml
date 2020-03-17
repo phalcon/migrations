@@ -2,13 +2,13 @@ actor: MysqlTester
 modules:
   enabled:
     - \Helper\Mysql
+    - \Helper\Integration
     - Asserts
     - Db:
         dsn: 'mysql:host=%MYSQL_TEST_DB_HOST%;'
         user: 'root'
         password: 'root'
         cleanup: true
-        populate: true
         reconnect: true
         waitlock: 10
         initial_queries:

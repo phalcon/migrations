@@ -16,20 +16,19 @@ namespace Phalcon\Migrations\Tests\Integration\PostgreSQL;
 use Exception;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
+use PostgresqlTester;
 
-use function Phalcon\Migrations\Tests\root_path;
-
-final class MigrationsTest extends PostgreSQLIntegrationTestCase
+final class MigrationsCest
 {
     /**
      * @throws Exception
      */
-    public function testPostgreSQLPhalconMigrationsTable(): void
+    public function postgresPhalconMigrationsTable(PostgresqlTester $I): void
     {
         $tableName = 'pg_phalcon_migrations';
-        $migrationsDir = root_path('tests/var/output/' . __FUNCTION__);
+        $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $this->db->createTable($tableName, $this->defaultSchema, [
+        $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
             'columns' => [
                 new Column('column_name', [
                     'type' => Column::TYPE_INTEGER,
@@ -41,26 +40,26 @@ final class MigrationsTest extends PostgreSQLIntegrationTestCase
             ],
         ]);
 
-        $options = [
+        ob_start();
+        Migrations::generate([
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'tableName' => '@',
-        ];
-
-        Migrations::generate($options);
-        $this->db->dropTable($tableName);
+        ]);
+        $I->getPhalconDb()->dropTable($tableName);
         Migrations::run([
             'migrationsDir' => $migrationsDir,
-            'config' => self::$generateConfig,
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
+        ob_clean();
 
-        $indexes = $this->db->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $indexes = $I->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
 
-        $this->assertTrue($this->db->tableExists($tableName, $this->defaultSchema));
-        $this->assertTrue($this->db->tableExists(Migrations::MIGRATION_LOG_TABLE, $this->defaultSchema));
-        $this->assertSame(1, count($indexes));
+        $I->assertTrue($I->getPhalconDb()->tableExists($tableName, $I->getDefaultSchema()));
+        $I->assertTrue($I->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
+        $I->assertSame(1, count($indexes));
     }
 }
