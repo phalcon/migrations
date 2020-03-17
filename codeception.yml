@@ -9,6 +9,9 @@ bootstrap: bootstrap.php
 extensions:
     enabled:
         - Codeception\Extension\RunFailed
-
 params:
   - tests/.env
+coverage:
+  enabled: true
+  include:
+    - src/*
