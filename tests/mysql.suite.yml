@@ -6,8 +6,8 @@ modules:
     - Asserts
     - Db:
         dsn: 'mysql:host=%MYSQL_TEST_DB_HOST%;'
-        user: 'root'
-        password: 'root'
+        user: '%MYSQL_TEST_DB_USER%'
+        password: '%MYSQL_TEST_DB_PASSWORD%'
         cleanup: true
         reconnect: true
         waitlock: 10
