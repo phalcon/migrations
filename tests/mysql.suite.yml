@@ -5,7 +5,7 @@ modules:
     - \Helper\Integration
     - Asserts
     - Db:
-        dsn: 'mysql:host=%MYSQL_TEST_DB_HOST%;'
+        dsn: 'mysql:host=%MYSQL_TEST_DB_HOST%;port=%MYSQL_TEST_DB_PORT%'
         user: '%MYSQL_TEST_DB_USER%'
         password: '%MYSQL_TEST_DB_PASSWORD%'
         cleanup: true

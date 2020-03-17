@@ -5,7 +5,7 @@ modules:
     - \Helper\Integration
     - Asserts
     - Db:
-        dsn: 'pgsql:host=%POSTGRES_TEST_DB_HOST%;dbname=%POSTGRES_TEST_DB_DATABASE%'
+        dsn: 'pgsql:host=%POSTGRES_TEST_DB_HOST%;dbname=%POSTGRES_TEST_DB_DATABASE%;port=%POSTGRES_TEST_DB_PORT%'
         user: '%POSTGRES_TEST_DB_USER%'
         password: '%POSTGRES_TEST_DB_PASSWORD%'
         cleanup: true
