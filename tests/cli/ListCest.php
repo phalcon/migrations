@@ -27,7 +27,7 @@ final class ListCest
 
         $I->runShellCommand('php phalcon-migrations list --directory=' . $directory, false);
         $I->seeInShellOutput('Phalcon Migrations');
-        $I->seeInShellOutput('Error: Cannot load database configuration');
+        $I->seeInShellOutput("Error: Can't locate the configuration file.");
         $I->seeResultCodeIs(1);
     }
 
