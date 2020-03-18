@@ -13,7 +13,6 @@
 declare(strict_types=1);
 
 use Phalcon\Cop\Parser;
-use Phalcon\Migrations\Console\BuilderException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\Commands\CommandsException;
 use Phalcon\Migrations\Console\Commands\Migration;
@@ -33,12 +32,14 @@ try {
         $parser->parse();
         $command = new Migration($parser);
         $command->run();
-    } catch (BuilderException $builderException) {
-        echo Color::error($builderException->getMessage());
     } catch (CommandsException $commandsException) {
         echo Color::error($commandsException->getMessage());
+        exit(1);
+    } catch (RuntimeException $runtimeException) {
+        echo Color::error($runtimeException->getMessage());
+        exit(1);
     }
-} catch (Exception $e) {
-    fwrite(STDERR, 'ERROR: ' . $e->getMessage() . PHP_EOL);
+} catch (Throwable $e) {
+    fwrite(STDERR, 'FATAL ERROR: ' . $e->getMessage() . PHP_EOL);
     exit(1);
 }

@@ -16,7 +16,6 @@ namespace Phalcon\Migrations\Console\Commands;
 use Phalcon\Config;
 use Phalcon\Cop\Parser;
 use Phalcon\Migrations\Console\Color;
-use Phalcon\Migrations\Console\Path;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Mvc\Model\Exception;
@@ -37,17 +36,11 @@ class Migration implements CommandsInterface
     protected $parser;
 
     /**
-     * @var Path
-     */
-    protected $path;
-
-    /**
      * @param Parser $parser
      */
     final public function __construct(Parser $parser)
     {
         $this->parser = $parser;
-        $this->path = new Path();
     }
 
     /**
@@ -107,7 +100,7 @@ class Migration implements CommandsInterface
 
         if (!empty($migrationsDir)) {
             foreach ($migrationsDir as $id => $dir) {
-                if (!$this->path->isAbsolutePath($dir)) {
+                if (!$this->isAbsolutePath($dir)) {
                     $migrationsDir[$id] = $path . $dir;
                 }
             }
@@ -323,5 +316,26 @@ class Migration implements CommandsInterface
             print Color::colorize(' --' . $parameter . str_repeat(' ', $length - strlen($parameter)), Color::FG_GREEN);
             print Color::colorize('    ' . $description) . PHP_EOL;
         }
+    }
+
+    /**
+     * Check if a path is absolute
+     *
+     * @param string $path Path to check
+     * @return bool
+     */
+    protected function isAbsolutePath(string $path): bool
+    {
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            if (preg_match('/^[A-Z]:\\\\/', $path)) {
+                return true;
+            }
+        } else {
+            if (substr($path, 0, 1) == DIRECTORY_SEPARATOR) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
