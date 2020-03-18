@@ -247,7 +247,7 @@ class Migration implements CommandsInterface
             }
         }
 
-        throw new CommandsException("Builder can't locate the configuration file.");
+        throw new CommandsException("Can't locate the configuration file.");
     }
 
     /**

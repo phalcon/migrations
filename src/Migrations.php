@@ -15,7 +15,6 @@ namespace Phalcon\Migrations;
 
 use DirectoryIterator;
 use Exception;
-use LogicException;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Db\Column;
@@ -24,15 +23,13 @@ use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\OptionStack;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
+use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
-use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\TimestampedItem;
-use Phalcon\Mvc\Model\Exception as ModelException;
-use RuntimeException;
 
 class Migrations
 {
@@ -64,7 +61,6 @@ class Migrations
      * @param array $options
      * @return bool|void
      * @throws Exception
-     * @throws LogicException
      * @throws RuntimeException
      */
     public static function generate(array $options)
@@ -110,9 +106,7 @@ class Migrations
         $versionItem = $optionStack->getVersionNameGeneratingMigration();
 
         // Path to migration dir
-        $migrationPath = rtrim($migrationsDir, '\\/') .
-            DIRECTORY_SEPARATOR . $versionItem->getVersion();
-
+        $migrationPath = rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion();
         if (!file_exists($migrationPath)) {
             if (is_writable(dirname($migrationPath)) && !$optionStack->getOption('verbose')) {
                 mkdir($migrationPath);
@@ -120,7 +114,7 @@ class Migrations
                 throw new RuntimeException("Unable to write '{$migrationPath}' directory. Permission denied");
             }
         } elseif (!$optionStack->getOption('force')) {
-            throw new LogicException('Version ' . $versionItem->getVersion() . ' already exists');
+            throw new RuntimeException('Version ' . $versionItem->getVersion() . ' already exists');
         }
 
         // Try to connect to the DB
@@ -194,9 +188,8 @@ class Migrations
      * Run migrations
      *
      * @param array $options
-     * @throws Exception
-     * @throws ModelException
-     * @throws ScriptException
+     * @throws DbException
+     * @throws RuntimeException
      */
     public static function run(array $options)
     {
@@ -213,12 +206,12 @@ class Migrations
         }
 
         if (!$optionStack->getOption('config') instanceof Config) {
-            throw new ModelException('Internal error. Config should be an instance of ' . Config::class);
+            throw new RuntimeException('Internal error. Config should be an instance of ' . Config::class);
         }
 
         // Init ModelMigration
         if (!isset($optionStack->getOption('config')->database)) {
-            throw new ScriptException('Cannot load database configuration');
+            throw new RuntimeException('Cannot load database configuration');
         }
 
         /** @var IncrementalItem $initialVersion */
@@ -231,7 +224,7 @@ class Migrations
             foreach ($migrationsDirList as $migrationsDir) {
                 $migrationsDir = rtrim($migrationsDir, '\\/');
                 if (!file_exists($migrationsDir)) {
-                    throw new ModelException('Migrations directory was not found.');
+                    throw new RuntimeException('Migrations directory was not found.');
                 }
                 $migrationsDirs[] = $migrationsDir;
                 foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
@@ -242,7 +235,7 @@ class Migrations
         } else {
             $migrationsDir = rtrim($migrationsDirList, '\\/');
             if (!file_exists($migrationsDir)) {
-                throw new ModelException('Migrations directory was not found.');
+                throw new RuntimeException('Migrations directory was not found.');
             }
 
             $migrationsDirs[] = $migrationsDir;
@@ -264,7 +257,7 @@ class Migrations
                 join(PHP_EOL, $migrationsDirList) :
                 $migrationsDirList;
 
-            throw new ModelException('Migrations were not found at:' . PHP_EOL . PHP_EOL . $migrationsPath);
+            throw new RuntimeException('Migrations were not found at:' . PHP_EOL . PHP_EOL . $migrationsPath);
         }
 
         // Set default final version
@@ -396,8 +389,7 @@ class Migrations
      *
      * @param array $options
      * @throws Exception
-     * @throws ModelException
-     * @throws ScriptException
+     * @throws RuntimeException
      */
     public static function listAll(array $options): void
     {
@@ -411,12 +403,12 @@ class Migrations
         /** @var Config $config */
         $config = $options['config'];
         if (!$config instanceof Config) {
-            throw new ModelException('Internal error. Config should be an instance of ' . Config::class);
+            throw new RuntimeException('Internal error. Config should be an instance of ' . Config::class);
         }
 
         // Init ModelMigration
         if (!isset($config->database)) {
-            throw new ScriptException('Cannot load database configuration');
+            throw new RuntimeException('Cannot load database configuration');
         }
 
         $versionItems = [];
@@ -425,7 +417,7 @@ class Migrations
             foreach ($migrationsDirList as $migrationsDir) {
                 $migrationsDir = rtrim($migrationsDir, '/');
                 if (!file_exists($migrationsDir)) {
-                    throw new ModelException('Migrations directory was not found.');
+                    throw new RuntimeException('Migrations directory was not found.');
                 }
                 $versionItem = ModelMigration::scanForVersions($migrationsDir);
 
@@ -475,7 +467,7 @@ class Migrations
      * Initialize migrations log storage
      *
      * @param array $options Applications options
-     * @throws DbException
+     * @throws RuntimeException
      */
     private static function connectionSetup(array $options): void
     {
@@ -488,12 +480,12 @@ class Migrations
             $database = $options['config']['database'];
 
             if (!isset($database->adapter)) {
-                throw new DbException('Unspecified database Adapter in your configuration!');
+                throw new RuntimeException('Unspecified database Adapter in your configuration!');
             }
 
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
             if (!class_exists($adapter)) {
-                throw new DbException('Invalid database Adapter!');
+                throw new RuntimeException('Invalid database Adapter!');
             }
 
             $configArray = $database->toArray();
@@ -557,7 +549,6 @@ class Migrations
      *
      * @param array $options Applications options
      * @return IncrementalItem|TimestampedItem
-     * @throws DbException
      */
     public static function getCurrentVersion($options)
     {
@@ -654,7 +645,6 @@ class Migrations
      *
      * @param array $options Applications options
      * @return array
-     * @throws DbException
      */
     public static function getCompletedVersions(array $options): array
     {

@@ -13,9 +13,11 @@
 declare(strict_types=1);
 
 use Phalcon\Cop\Parser;
+use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\Commands\CommandsException;
 use Phalcon\Migrations\Console\Commands\Migration;
+use Phalcon\Migrations\Exception\RuntimeException;
 
 try {
     foreach ([__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'] as $file) {
@@ -37,6 +39,9 @@ try {
         exit(1);
     } catch (RuntimeException $runtimeException) {
         echo Color::error($runtimeException->getMessage());
+        exit(1);
+    } catch (DbException $dbException) {
+        echo Color::error($dbException->getMessage());
         exit(1);
     }
 } catch (Throwable $e) {
