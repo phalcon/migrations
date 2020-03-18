@@ -38,6 +38,10 @@ class Mysql extends Module
 
     public function _after(TestInterface $test)
     {
+        foreach ($this->getPhalconDb()->listTables() as $table) {
+            $this->getPhalconDb()->dropTable($table);
+        }
+
         /**
          * Reset filename or DB connection
          */

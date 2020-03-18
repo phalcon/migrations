@@ -13,7 +13,47 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Cli;
 
+use CliTester;
+use Phalcon\Db\Column;
+
 final class RunCest
 {
-    //
+    /**
+     * @param CliTester $I
+     */
+    public function runCommandWithoutDbConfig(CliTester $I): void
+    {
+        $directory = codecept_output_dir();
+
+        $I->runShellCommand('php phalcon-migrations run --directory=' . $directory, false);
+        $I->seeInShellOutput('Phalcon Migrations');
+        $I->seeInShellOutput('Error: Cannot load database configuration');
+        $I->seeResultCodeIs(1);
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    public function generateAndRun(CliTester $I): void
+    {
+        $I->getPhalconDb()->createTable('cli-first-test', '', [
+            'columns' => [
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'notNull' => true,
+                ]),
+            ],
+        ]);
+
+        $configPath = 'tests/_data/cli/migrations.php';
+
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
+        $I->seeResultCodeIs(0);
+
+        $I->runShellCommand('php phalcon-migrations run --config=' . $configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully migrated');
+        $I->seeResultCodeIs(0);
+    }
 }
