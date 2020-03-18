@@ -33,6 +33,7 @@ final class BasicCest
      * @dataProvider helpArgumentsDataProvider
      *
      * @param CliTester $I
+     * @param Example $example
      */
     public function runHelp(CliTester $I, Example $example): void
     {
@@ -51,6 +52,7 @@ final class BasicCest
     {
         return [
             ['help'],
+            ['--help'],
             ['h'],
             ['?'],
             [null],
