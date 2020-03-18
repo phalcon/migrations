@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "791dae74d9903b626c270f7ea0779b73",
+    "content-hash": "27ca7ff517a9b7707a90706b1629bb13",
     "packages": [
         {
             "name": "phalcon/cli-options-parser",
@@ -6295,7 +6295,7 @@
     "prefer-lowest": false,
     "platform": {
         "php": ">=7.2",
-        "ext-phalcon": "^4.0.0"
+        "ext-phalcon": "^4.0.5"
     },
     "platform-dev": {
         "ext-pdo": "*"
