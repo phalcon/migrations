@@ -291,6 +291,11 @@ class Generate
     public function getReferences(): Generator
     {
         foreach ($this->references as $constraintName => $reference) {
+            $referenceColumns = [];
+            foreach ($reference->getColumns() as $column) {
+                $referenceColumns[] = sprintf("'%s'", $column);
+            }
+
             $referencedColumns = [];
             foreach ($reference->getReferencedColumns() as $referencedColumn) {
                 $referencedColumns[] = $this->wrapWithQuotes($referencedColumn);
@@ -299,10 +304,10 @@ class Generate
             yield $constraintName => [
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
                 sprintf("'referencedSchema' => %s", $this->wrapWithQuotes($reference->getReferencedSchema())),
-                "'columns' => [" . join(",", array_unique($this->getQuoteWrappedColumns())) . "]",
+                "'columns' => [" . join(',', array_unique($referenceColumns)) . "]",
                 "'referencedColumns' => [" . join(',', array_unique($referencedColumns)) . "]",
-                sprintf("'onUpdate' => %s", $reference->getOnUpdate()),
-                sprintf("'onDelete' => %s", $reference->getOnDelete()),
+                sprintf("'onUpdate' => '%s'", $reference->getOnUpdate()),
+                sprintf("'onDelete' => '%s'", $reference->getOnDelete()),
             ];
         }
     }
