@@ -1,0 +1,18 @@
+actor: MysqlTester
+modules:
+  enabled:
+    - \Helper\Mysql
+    - \Helper\Integration
+    - Asserts
+    - Db:
+        dsn: 'mysql:host=%MYSQL_TEST_DB_HOST%;port=%MYSQL_TEST_DB_PORT%'
+        user: '%MYSQL_TEST_DB_USER%'
+        password: '%MYSQL_TEST_DB_PASSWORD%'
+        cleanup: true
+        reconnect: true
+        waitlock: 10
+        initial_queries:
+          - "SET NAMES utf8;"
+          - "CREATE DATABASE IF NOT EXISTS `%MYSQL_TEST_DB_DATABASE%`"
+          - "USE `%MYSQL_TEST_DB_DATABASE%`"
+  step_decorators: ~

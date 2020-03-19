@@ -109,14 +109,6 @@ class OptionStack
     }
 
     /**
-     * Count options
-     */
-    public function countOptions(): int
-    {
-        return count($this->options);
-    }
-
-    /**
      * Indicates whether the script was a particular option.
      *
      * @param string $key

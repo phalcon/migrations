@@ -1,0 +1,9 @@
+actor: CliTester
+modules:
+  enabled:
+    - \Helper\Cli
+    - \Helper\Integration
+    - \Helper\Mysql
+    - Asserts
+    - Cli
+  step_decorators: ~

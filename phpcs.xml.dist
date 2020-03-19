@@ -7,7 +7,9 @@
     <rule ref="PSR12"/>
 
     <file>src/</file>
-    <file>tests/Integration/</file>
-    <file>tests/Unit/</file>
+    <file>tests/integration/</file>
+    <file>tests/mysql/</file>
+    <file>tests/postgresql/</file>
+    <file>tests/unit/</file>
     <file>phalcon-migrations</file>
 </ruleset>

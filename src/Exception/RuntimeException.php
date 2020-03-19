@@ -11,6 +11,8 @@
 
 declare(strict_types=1);
 
-use Dotenv\Dotenv;
+namespace Phalcon\Migrations\Exception;
 
-Dotenv::createImmutable(codecept_root_dir('tests'))->load();
+class RuntimeException extends \InvalidArgumentException
+{
+}
