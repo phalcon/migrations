@@ -14,7 +14,7 @@ https://docs.phalcon.io/latest/en/db-migrations
 ## Requirements
 
 * PHP >= 7.2
-* Phalcon >= 4.0.0
+* Phalcon >= 4.0.5
 * PHP ext-posix (Linux)
 
 ## Installing via Composer
@@ -52,7 +52,7 @@ return new Config([
     'application' => [
         'logInDb' => true,
         'migrationsDir' => 'db/migrations',
-        'migrationsTsBased' => true, // true - Use TIMESTAMP as version name, false - use versions (1.0.1)
+        'migrationsTsBased' => true, // true - Use TIMESTAMP as version name, false - use versions
         'exportDataFromTables' => [
             // Tables names
             // Attention! It will export data every new migration
@@ -64,11 +64,17 @@ return new Config([
 ### Generate migrations
 
 ```
-vendor/bin/phalcon-migrations migration generate
+vendor/bin/phalcon-migrations generate
 ```
 
-### Run Migrations
+### Run migrations
 
 ```
-vendor/bin/phalcon-migrations migration run
+vendor/bin/phalcon-migrations run
+```
+
+### List existing migrations
+
+```
+vendor/bin/phalcon-migrations list
 ```
