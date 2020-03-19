@@ -235,12 +235,13 @@ final class MigrationsCest
      * @param MysqlTester $I
      * @throws Exception
      */
-    public function generateWithoutAutoIncrement(MysqlTester $I): void
+    public function generateWithAutoIncrement(MysqlTester $I): void
     {
+        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
         $tableName = 'generate_ai';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+        $I->getPhalconDb()->createTable($tableName, $dbName, [
             'columns' => [
                 new Column('id', [
                     'type' => Column::TYPE_INTEGER,
@@ -249,6 +250,7 @@ final class MigrationsCest
                     'notNull' => true,
                     'first' => true,
                     'primary' => true,
+                    'autoIncrement' => true,
                 ]),
             ],
         ]);
@@ -258,6 +260,9 @@ final class MigrationsCest
             [2],
             [3],
         ]);
+        $autoIncrement = $I
+            ->getPhalconDb()
+            ->fetchColumn(sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName), [], 10);
 
         ob_start();
         Migrations::generate([
@@ -267,6 +272,56 @@ final class MigrationsCest
         ]);
         ob_clean();
 
+        $I->assertEquals(4, $autoIncrement);
+        $I->assertContains(
+            "'auto_increment' => '4'",
+            file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
+        );
+    }
+
+    /**
+     * @param MysqlTester $I
+     * @throws Exception
+     */
+    public function generateWithoutAutoIncrement(MysqlTester $I): void
+    {
+        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName = 'generate_no_ai';
+        $migrationsDir = codecept_output_dir(__FUNCTION__);
+
+        $I->getPhalconDb()->createTable($tableName, $dbName, [
+            'columns' => [
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'unsigned' => true,
+                    'notNull' => true,
+                    'first' => true,
+                    'primary' => true,
+                    'autoIncrement' => true,
+                ]),
+            ],
+        ]);
+
+        $I->batchInsert($tableName, ['id'], [
+            [1],
+            [2],
+            [3],
+        ]);
+        $autoIncrement = $I
+            ->getPhalconDb()
+            ->fetchColumn(sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName), [], 10);
+
+        ob_start();
+        Migrations::generate([
+            'migrationsDir' => $migrationsDir,
+            'config' => $I->getMigrationsConfig(),
+            'tableName' => '@',
+            'noAutoIncrement' => true,
+        ]);
+        ob_clean();
+
+        $I->assertEquals(4, $autoIncrement);
         $I->assertContains(
             "'auto_increment' => ''",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
