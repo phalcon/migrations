@@ -3,6 +3,7 @@
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.2-8892BF.svg)](https://php.net/)
 [![Discord](https://img.shields.io/discord/310910488152375297?label=Discord)](http://phalcon.link/discord)
 [![codecov](https://codecov.io/gh/phalcon/migrations/branch/master/graph/badge.svg)](https://codecov.io/gh/phalcon/migrations)
+![Packagist](https://img.shields.io/packagist/dd/phalcon/migrations)
 
 Generate or migrate database changes via migrations.  
 Main idea of Phalcon migrations is to automatically detect changes and morphing without writing manual migrations.
