@@ -21,8 +21,6 @@ use Phalcon\Db\Column;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\OptionStack;
-use Phalcon\Migrations\Db\Dialect\DialectMysql;
-use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
@@ -493,12 +491,7 @@ class Migrations
             self::$storage = new $adapter($configArray);
 
             if ($database->adapter === 'Mysql') {
-                self::$storage->setDialect(new DialectMysql());
                 self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
-            }
-
-            if ($database->adapter == 'Postgresql') {
-                self::$storage->setDialect(new DialectPostgresql());
             }
 
             if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {
