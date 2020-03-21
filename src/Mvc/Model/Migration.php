@@ -18,14 +18,12 @@ use Exception;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
+use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
 use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
-use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
-use Phalcon\Migrations\Db\Dialect\DialectMysql;
-use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
@@ -93,7 +91,6 @@ class Migration
      * @param Config $database Database config
      * @param bool $verbose array with settings
      * @throws DbException
-     * @since 3.2.1 Using Postgresql::describeReferences and DialectPostgresql dialect class
      */
     public static function setup(Config $database, bool $verbose = false): void
     {
@@ -122,16 +119,6 @@ class Migration
         unset($configArray['adapter']);
         self::$connection = new $adapter($configArray);
         self::$databaseConfig = $database;
-
-        // Connection custom dialect Dialect/DialectMysql
-        if ($database->adapter == 'Mysql') {
-            self::$connection->setDialect(new DialectMysql());
-        }
-
-        // Connection custom dialect Dialect/DialectPostgresql
-        if ($database->adapter == 'Postgresql') {
-            self::$connection->setDialect(new DialectPostgresql());
-        }
 
         if (!Migrations::isConsole() || !$verbose) {
             return;
