@@ -169,19 +169,21 @@ class Migration
      * @param ItemInterface $version
      * @param string $exportData
      * @param array $exportDataFromTables
+     * @param bool $skipRefSchema
      * @return array
-     * @throws DbException
+     * @throws UnknownColumnTypeException
      */
     public static function generateAll(
         ItemInterface $version,
         string $exportData = null,
-        array $exportDataFromTables = []
+        array $exportDataFromTables = [],
+        bool $skipRefSchema = false
     ): array {
         $classDefinition = [];
         $schema = Utils::resolveDbSchema(self::$databaseConfig);
 
         foreach (self::$connection->listTables($schema) as $table) {
-            $classDefinition[$table] = self::generate($version, $table, $exportData, $exportDataFromTables);
+            $classDefinition[$table] = self::generate($version, $table, $exportData, $exportDataFromTables, $skipRefSchema);
         }
 
         return $classDefinition;
@@ -194,6 +196,7 @@ class Migration
      * @param string $table
      * @param mixed $exportData
      * @param array $exportDataFromTables
+     * @param bool $skipRefSchema
      * @return string
      * @throws UnknownColumnTypeException
      */
@@ -201,7 +204,8 @@ class Migration
         ItemInterface $version,
         string $table,
         $exportData = null,
-        array $exportDataFromTables = []
+        array $exportDataFromTables = [],
+        bool $skipRefSchema = false
     ): string {
         $snippet = new Snippet();
         $adapter = (string)self::$databaseConfig->path('adapter');
@@ -234,7 +238,7 @@ class Migration
          * Generate References
          */
         $referencesDefinition = [];
-        foreach ($generateAction->getReferences() as $constraintName => $referenceDefinition) {
+        foreach ($generateAction->getReferences($skipRefSchema) as $constraintName => $referenceDefinition) {
             $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, $referenceDefinition);
         }
 

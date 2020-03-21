@@ -72,6 +72,7 @@ class Migrations
         $optionStack->setDefaultOption('descr', null);
         $optionStack->setDefaultOption('noAutoIncrement', null);
         $optionStack->setDefaultOption('verbose', false);
+        $optionStack->setDefaultOption('skip-ref-schema', false);
 
         $migrationsDirs = $optionStack->getOption('migrationsDir');
         if (is_array($migrationsDirs)) {

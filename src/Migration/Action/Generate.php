@@ -286,9 +286,10 @@ class Generate
     }
 
     /**
+     * @param bool $skipRefSchema
      * @return Generator
      */
-    public function getReferences(): Generator
+    public function getReferences(bool $skipRefSchema = false): Generator
     {
         foreach ($this->references as $constraintName => $reference) {
             $referenceColumns = [];
@@ -300,10 +301,18 @@ class Generate
             foreach ($reference->getReferencedColumns() as $referencedColumn) {
                 $referencedColumns[] = $this->wrapWithQuotes($referencedColumn);
             }
+
+            $referencesOptions = [];
+            $referencedSchema = $reference->getReferencedSchema();
+            if ($skipRefSchema === false && $referencedSchema !== null) {
+                $referencesOptions[] = sprintf(
+                    "'referencedSchema' => %s",
+                    $this->wrapWithQuotes($referencedSchema)
+                );
+            }
             
-            yield $constraintName => [
+            yield $constraintName => $referencesOptions + [
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
-                sprintf("'referencedSchema' => %s", $this->wrapWithQuotes($reference->getReferencedSchema())),
                 "'columns' => [" . join(',', array_unique($referenceColumns)) . "]",
                 "'referencedColumns' => [" . join(',', array_unique($referencedColumns)) . "]",
                 sprintf("'onUpdate' => '%s'", $reference->getOnUpdate()),
