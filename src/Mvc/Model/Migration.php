@@ -168,7 +168,7 @@ class Migration
      *
      * @param ItemInterface $version
      * @param string $exportData
-     * @param array $exportDataFromTables
+     * @param array $exportTables
      * @param bool $skipRefSchema
      * @return array
      * @throws UnknownColumnTypeException
@@ -176,14 +176,14 @@ class Migration
     public static function generateAll(
         ItemInterface $version,
         string $exportData = null,
-        array $exportDataFromTables = [],
+        array $exportTables = [],
         bool $skipRefSchema = false
     ): array {
         $classDefinition = [];
         $schema = Utils::resolveDbSchema(self::$databaseConfig);
 
         foreach (self::$connection->listTables($schema) as $table) {
-            $classDefinition[$table] = self::generate($version, $table, $exportData, $exportDataFromTables, $skipRefSchema);
+            $classDefinition[$table] = self::generate($version, $table, $exportData, $exportTables, $skipRefSchema);
         }
 
         return $classDefinition;
@@ -195,7 +195,7 @@ class Migration
      * @param ItemInterface $version
      * @param string $table
      * @param mixed $exportData
-     * @param array $exportDataFromTables
+     * @param array $exportTables
      * @param bool $skipRefSchema
      * @return string
      * @throws UnknownColumnTypeException
@@ -204,7 +204,7 @@ class Migration
         ItemInterface $version,
         string $table,
         $exportData = null,
-        array $exportDataFromTables = [],
+        array $exportTables = [],
         bool $skipRefSchema = false
     ): string {
         $snippet = new Snippet();
@@ -270,7 +270,7 @@ class Migration
         // up()
         $classData .= $snippet->getMigrationUp();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
             $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -279,14 +279,14 @@ class Migration
         // down()
         $classData .= $snippet->getMigrationDown();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
             $classData .= $snippet->getMigrationBatchDelete($table);
         }
 
         $classData .= "\n    }\n";
 
         // afterCreateTable()
-        if ($exportData == 'oncreate' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+        if ($exportData == 'oncreate' || self::shouldExportDataFromTable($table, $exportTables)) {
             $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -298,7 +298,7 @@ class Migration
         if (
             $exportData == 'always' ||
             $exportData == 'oncreate' ||
-            self::shouldExportDataFromTable($table, $exportDataFromTables)
+            self::shouldExportDataFromTable($table, $exportTables)
         ) {
             $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
             $cursor = self::$connection->query('SELECT * FROM ' . self::$connection->escapeIdentifier($table));
@@ -330,9 +330,9 @@ class Migration
         return $classData;
     }
 
-    public static function shouldExportDataFromTable(string $table, array $exportDataFromTables): bool
+    public static function shouldExportDataFromTable(string $table, array $exportTables): bool
     {
-        return in_array($table, $exportDataFromTables);
+        return in_array($table, $exportTables);
     }
 
     /**
