@@ -15,6 +15,7 @@ namespace Phalcon\Migrations\Tests\Unit\Migration\Action;
 
 use IntegrationTester;
 use Phalcon\Db\Column;
+use Phalcon\Db\Reference;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Migration\Action\Generate;
 
@@ -38,6 +39,140 @@ final class GenerateCest
         $I->assertIsArray($class->getOptions(false));
         $I->assertIsArray($class->getNumericColumns());
         $I->assertNull($class->getPrimaryColumnName());
+    }
+
+    public function getReferences(IntegrationTester $I): void
+    {
+        $I->wantToTest('Migration\Action\Generate - getReferences()');
+
+        $references = [
+            'fk_accessToken_client_1' => new Reference(
+                'fk_accessToken_client_1',
+                [
+                    'referencedTable' => 'client',
+                    'referencedSchema' => 'public',
+                    'columns' => ['clientId'],
+                    'referencedColumns' => ['id'],
+                    'onUpdate' => 'NO ACTION',
+                    'onDelete' => 'NO ACTION',
+                ]
+            ),
+        ];
+
+        $class = new Generate('mysql', [], [], $references);
+        $generatedReferences = [];
+        foreach ($class->getReferences() as $name => $reference) {
+            $generatedReferences[$name] = $reference;
+        }
+
+        $I->assertSame(count($references), count($generatedReferences));
+        $I->assertNotFalse(array_search("'referencedSchema' => 'public'", current($generatedReferences)));
+    }
+
+    public function getReferencesWithoutSchema(IntegrationTester $I): void
+    {
+        $I->wantToTest('Migration\Action\Generate - getReferences() without schema');
+
+        $references1 = [
+            'fk_accessToken_client_1' => new Reference(
+                'fk_accessToken_client_1',
+                [
+                    'referencedTable' => 'client',
+                    'columns' => ['clientId'],
+                    'referencedColumns' => ['id'],
+                    'onUpdate' => 'NO ACTION',
+                    'onDelete' => 'NO ACTION',
+                ]
+            ),
+        ];
+
+        $references2 = [
+            'fk_accessToken_client_1' => new Reference(
+                'fk_accessToken_client_1',
+                [
+                    'referencedSchema' => 'public',
+                    'referencedTable' => 'client',
+                    'columns' => ['clientId'],
+                    'referencedColumns' => ['id'],
+                    'onUpdate' => 'NO ACTION',
+                    'onDelete' => 'NO ACTION',
+                ]
+            ),
+        ];
+
+        /**
+         * Case 1 - when 'referencedSchema' wasn't specified
+         */
+        $schemaFound1 = false;
+        $generatedReferences = [];
+        $class = new Generate('mysql', [], [], $references1);
+        foreach ($class->getReferences() as $name => $reference) {
+            $generatedReferences[$name] = $reference;
+
+            foreach ($reference as $option) {
+                if (strpos($option, 'referencedSchema') !== false) {
+                    $schemaFound1 = true;
+                    break;
+                }
+            }
+        }
+
+        /**
+         * Case 2 - when option 'skip-ref-schema' was provided
+         */
+        $schemaFound2 = false;
+        $generatedReferences = [];
+        $class = new Generate('mysql', [], [], $references1);
+        foreach ($class->getReferences(true) as $name => $reference) {
+            $generatedReferences[$name] = $reference;
+
+            foreach ($reference as $option) {
+                if (strpos($option, 'referencedSchema') !== false) {
+                    $schemaFound2 = true;
+                    break;
+                }
+            }
+        }
+
+        $I->assertSame(count($references1), count($generatedReferences));
+        $I->assertFalse($schemaFound1);
+        $I->assertSame(count($references2), count($generatedReferences));
+        $I->assertFalse($schemaFound2);
+    }
+
+    public function getReferencesWithSchema(IntegrationTester $I): void
+    {
+        $I->wantToTest('Migration\Action\Generate - getReferences() with schema');
+
+        $references = [
+            'fk_accessToken_client_1' => new Reference(
+                'fk_accessToken_client_1',
+                [
+                    'referencedTable' => 'client',
+                    'columns' => ['clientId'],
+                    'referencedColumns' => ['id'],
+                    'onUpdate' => 'NO ACTION',
+                    'onDelete' => 'NO ACTION',
+                ]
+            ),
+        ];
+
+        $schemaFound = false;
+        $generatedReferences = [];
+        $class = new Generate('mysql', [], [], $references);
+        foreach ($class->getReferences() as $name => $reference) {
+            $generatedReferences[$name] = $reference;
+
+            foreach ($reference as $option) {
+                if (strpos($option, 'referencedSchema') !== false) {
+                    $schemaFound = true;
+                    break;
+                }
+            }
+        }
+
+        $I->assertSame(count($references), count($generatedReferences));
+        $I->assertFalse($schemaFound);
     }
 
     /**

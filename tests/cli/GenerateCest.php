@@ -15,9 +15,17 @@ namespace Phalcon\Migrations\Tests\Cli;
 
 use CliTester;
 use Phalcon\Db\Column;
+use Phalcon\Db\Reference;
 
 final class GenerateCest
 {
+    /**
+     * Path to migrations config
+     *
+     * @var string
+     */
+    private $configPath = 'tests/_data/cli/migrations.php';
+
     /**
      * @param CliTester $I
      */
@@ -36,9 +44,7 @@ final class GenerateCest
      */
     public function generateEmptyDb(CliTester $I): void
     {
-        $configPath = 'tests/_data/cli/migrations.php';
-
-        $I->runShellCommand('php phalcon-migrations generate --config=' . $configPath);
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
         $I->seeInShellOutput('Info: Nothing to generate. You should create tables first.');
         $I->seeResultCodeIs(0);
     }
@@ -58,10 +64,94 @@ final class GenerateCest
             ],
         ]);
 
-        $configPath = 'tests/_data/cli/migrations.php';
-
-        $I->runShellCommand('php phalcon-migrations generate --config=' . $configPath);
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
         $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
         $I->seeResultCodeIs(0);
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    public function generateWithSkipRefSchema(CliTester $I): void
+    {
+        $I->wantToTest('generate with --skip-ref-schema option');
+
+        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+
+        $this->createFKTables($I);
+
+        $I->runShellCommand('php phalcon-migrations generate --skip-ref-schema --config=' . $this->configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
+        $I->seeResultCodeIs(0);
+
+        $content = file_get_contents(codecept_output_dir('1.0.0/cli-skip-ref-schema.php'));
+
+        $I->assertFalse(strpos($content, "'referencedSchema' => '$schema',"));
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    public function generateWithRefSchema(CliTester $I): void
+    {
+        $I->wantToTest('generate with referencedSchema');
+
+        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+
+        $this->createFKTables($I);
+
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
+        $I->seeResultCodeIs(0);
+
+        $content = file_get_contents(codecept_output_dir('1.0.0/cli-skip-ref-schema.php'));
+
+        $I->assertNotFalse(strpos($content, "'referencedSchema' => '$schema',"));
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    protected function createFKTables(CliTester $I): void
+    {
+        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+        $I->getPhalconDb()->createTable('client', $schema, [
+            'columns' => [
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 11,
+                    'notNull' => true,
+                    'primary' => true,
+                ]),
+            ],
+        ]);
+
+        $I->getPhalconDb()->createTable('cli-skip-ref-schema', $schema, [
+            'columns' => [
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'notNull' => true,
+                ]),
+                new Column('clientId', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 11,
+                    'notNull' => true,
+                ]),
+            ],
+            'references' => [
+                new Reference(
+                    'fk_client_1',
+                    [
+                        'referencedSchema' => $schema,
+                        'referencedTable' => 'client',
+                        'columns' => ['clientId'],
+                        'referencedColumns' => ['id'],
+                        'onUpdate' => 'NO ACTION',
+                        'onDelete' => 'NO ACTION',
+                    ]
+                ),
+            ],
+        ]);
     }
 }

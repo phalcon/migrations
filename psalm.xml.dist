@@ -27,10 +27,6 @@
         <DeprecatedInterface errorLevel="info" />
         <DeprecatedTrait errorLevel="info" />
 
-        <InternalMethod errorLevel="info" />
-        <InternalProperty errorLevel="info" />
-        <InternalClass errorLevel="info" />
-
         <MissingClosureReturnType errorLevel="info" />
         <MissingReturnType errorLevel="info" />
         <MissingPropertyType errorLevel="info" />
@@ -38,20 +34,14 @@
         <MisplacedRequiredParam errorLevel="info" />
 
         <PropertyNotSetInConstructor errorLevel="info" />
-        <MissingConstructor errorLevel="info" />
         <MissingClosureParamType errorLevel="info" />
         <MissingParamType errorLevel="info" />
 
         <RedundantCondition errorLevel="info" />
 
         <DocblockTypeContradiction errorLevel="info" />
-        <RedundantConditionGivenDocblockType errorLevel="info" />
 
         <UnresolvableInclude errorLevel="info" />
-
-        <RawObjectIteration errorLevel="info" />
-
-        <InvalidStringClass errorLevel="info" />
 
         <!-- level 4 issues - points to possible deficiencies in logic, higher false-positives -->
 
@@ -59,44 +49,11 @@
         <LessSpecificReturnStatement errorLevel="info" />
         <TypeCoercion errorLevel="info" />
 
-        <PossiblyFalseArgument errorLevel="info" />
-        <PossiblyFalseIterator errorLevel="info" />
-        <PossiblyFalseOperand errorLevel="info" />
-        <PossiblyFalsePropertyAssignmentValue errorLevel="info" />
-        <PossiblyFalseReference errorLevel="info" />
-        <PossiblyInvalidArgument errorLevel="info" />
-        <PossiblyInvalidArrayAccess errorLevel="info" />
-        <PossiblyInvalidArrayAssignment errorLevel="info" />
-        <PossiblyInvalidArrayOffset errorLevel="info" />
-        <PossiblyInvalidCast errorLevel="info" />
-        <PossiblyInvalidFunctionCall errorLevel="info" />
-        <PossiblyInvalidIterator errorLevel="info" />
-        <PossiblyInvalidMethodCall errorLevel="info" />
-        <PossiblyInvalidOperand errorLevel="info" />
-        <PossiblyInvalidPropertyAssignment errorLevel="info" />
         <PossiblyInvalidPropertyAssignmentValue errorLevel="info" />
-        <PossiblyInvalidPropertyFetch errorLevel="info" />
         <PossiblyNullArgument errorLevel="info" />
-        <PossiblyNullArrayAccess errorLevel="info" />
-        <PossiblyNullArrayAssignment errorLevel="info" />
         <PossiblyNullArrayOffset errorLevel="info" />
-        <PossiblyNullFunctionCall errorLevel="info" />
-        <PossiblyNullIterator errorLevel="info" />
-        <PossiblyNullOperand errorLevel="info" />
-        <PossiblyNullPropertyAssignment errorLevel="info" />
         <PossiblyNullPropertyAssignmentValue errorLevel="info" />
-        <PossiblyNullPropertyFetch errorLevel="info" />
         <PossiblyNullReference errorLevel="info" />
-        <PossiblyUndefinedGlobalVariable errorLevel="info" />
-        <PossiblyUndefinedVariable errorLevel="info" />
-        <PossiblyUndefinedArrayOffset errorLevel="info" />
-        <PossiblyUndefinedMethod errorLevel="info" />
-        <PossibleRawObjectIteration errorLevel="info" />
-
-        <!-- level 6 issues - really bad things -->
-
-        <InvalidReturnStatement errorLevel="info" />
-        <UndefinedInterfaceMethod errorLevel="info" />
 
         <!-- level 8 issues - some fatal errors in PHP -->
 

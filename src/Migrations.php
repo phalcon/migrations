@@ -70,6 +70,7 @@ class Migrations
         $optionStack->setDefaultOption('descr', null);
         $optionStack->setDefaultOption('noAutoIncrement', null);
         $optionStack->setDefaultOption('verbose', false);
+        $optionStack->setDefaultOption('skip-ref-schema', false);
 
         $migrationsDirs = $optionStack->getOption('migrationsDir');
         if (is_array($migrationsDirs)) {
@@ -129,7 +130,8 @@ class Migrations
             $migrations = ModelMigration::generateAll(
                 $versionItem,
                 $optionStack->getOption('exportData'),
-                $optionStack->getOption('exportDataFromTables') ?: []
+                $optionStack->getOption('exportDataFromTables') ?: [],
+                $optionStack->getOption('skip-ref-schema')
             );
 
             if (!$optionStack->getOption('verbose')) {
@@ -161,7 +163,8 @@ class Migrations
                     $versionItem,
                     $table,
                     $optionStack->getOption('exportData'),
-                    $optionStack->getOption('exportDataFromTables') ?: []
+                    $optionStack->getOption('exportDataFromTables') ?: [],
+                    $optionStack->getOption('skip-ref-schema')
                 );
                 if (!$optionStack->getOption('verbose')) {
                     $tableFile = $migrationPath . DIRECTORY_SEPARATOR . $table . '.php';

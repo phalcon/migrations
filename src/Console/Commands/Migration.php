@@ -130,17 +130,18 @@ class Migration implements CommandsInterface
         switch ($action) {
             case 'generate':
                 Migrations::generate([
-                    'directory'       => $path,
-                    'tableName'       => $tableName,
-                    'exportData'      => $this->parser->get('data'),
-                    'exportDataFromTables'      => $this->exportFromTables($config),
-                    'migrationsDir'   => $migrationsDir,
-                    'version'         => $this->parser->get('version'),
-                    'force'           => $this->parser->has('force'),
-                    'noAutoIncrement' => $this->parser->has('no-auto-increment'),
-                    'config'          => $config,
-                    'descr'           => $descr,
-                    'verbose'         => $this->parser->has('dry'),
+                    'directory'             => $path,
+                    'tableName'             => $tableName,
+                    'exportData'            => $this->parser->get('data'),
+                    'exportDataFromTables'  => $this->exportFromTables($config),
+                    'migrationsDir'         => $migrationsDir,
+                    'version'               => $this->parser->get('version'),
+                    'force'                 => $this->parser->has('force'),
+                    'noAutoIncrement'       => $this->parser->has('no-auto-increment'),
+                    'config'                => $config,
+                    'descr'                 => $descr,
+                    'verbose'               => $this->parser->has('dry'),
+                    'skip-ref-schema'       => $this->parser->has('skip-ref-schema'),
                 ]);
                 break;
             case 'run':
