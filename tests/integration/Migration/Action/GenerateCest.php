@@ -41,6 +41,9 @@ final class GenerateCest
         $I->assertNull($class->getPrimaryColumnName());
     }
 
+    /**
+     * @param IntegrationTester $I
+     */
     public function getReferences(IntegrationTester $I): void
     {
         $I->wantToTest('Migration\Action\Generate - getReferences()');
@@ -69,6 +72,9 @@ final class GenerateCest
         $I->assertNotFalse(array_search("'referencedSchema' => 'public'", current($generatedReferences)));
     }
 
+    /**
+     * @param IntegrationTester $I
+     */
     public function getReferencesWithoutSchema(IntegrationTester $I): void
     {
         $I->wantToTest('Migration\Action\Generate - getReferences() without schema');
@@ -140,6 +146,9 @@ final class GenerateCest
         $I->assertFalse($schemaFound2);
     }
 
+    /**
+     * @param IntegrationTester $I
+     */
     public function getReferencesWithSchema(IntegrationTester $I): void
     {
         $I->wantToTest('Migration\Action\Generate - getReferences() with schema');
