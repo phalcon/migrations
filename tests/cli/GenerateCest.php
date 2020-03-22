@@ -87,6 +87,7 @@ final class GenerateCest
         $content = file_get_contents(codecept_output_dir('1.0.0/cli-skip-ref-schema.php'));
 
         $I->assertFalse(strpos($content, "'referencedSchema' => '$schema',"));
+        $I->assertNotFalse(strpos($content, "'referencedTable' => 'client',"));
     }
 
     /**
@@ -107,6 +108,7 @@ final class GenerateCest
         $content = file_get_contents(codecept_output_dir('1.0.0/cli-skip-ref-schema.php'));
 
         $I->assertNotFalse(strpos($content, "'referencedSchema' => '$schema',"));
+        $I->assertNotFalse(strpos($content, "'referencedTable' => 'client',"));
     }
 
     /**
