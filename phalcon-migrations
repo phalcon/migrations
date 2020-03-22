@@ -35,16 +35,16 @@ try {
         $command = new Migration($parser);
         $command->run();
     } catch (CommandsException $commandsException) {
-        echo Color::error($commandsException->getMessage());
+        echo Color::error($commandsException->getMessage(), 'Exception Error: ');
         exit(1);
     } catch (RuntimeException $runtimeException) {
-        echo Color::error($runtimeException->getMessage());
+        echo Color::error($runtimeException->getMessage(), 'Runtime Error: ');
         exit(1);
     } catch (DbException $dbException) {
-        echo Color::error($dbException->getMessage());
+        echo Color::error($dbException->getMessage(), 'DB Error: ');
         exit(1);
     }
 } catch (Throwable $e) {
-    fwrite(STDERR, 'FATAL ERROR: ' . $e->getMessage() . PHP_EOL);
+    echo Color::fatal($e->getMessage());
     exit(1);
 }

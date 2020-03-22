@@ -328,18 +328,24 @@ class Migration
      * @param string $tableName
      * @param ItemInterface|null $fromVersion
      * @param ItemInterface|null $toVersion
+     * @param bool $skipForeignChecks
      * @throws Exception
      */
     public static function migrate(
         string $tableName,
         ItemInterface $fromVersion = null,
-        ItemInterface $toVersion = null
+        ItemInterface $toVersion = null,
+        bool $skipForeignChecks = false
     ): void {
         $fromVersion = $fromVersion ?: VersionCollection::createItem($fromVersion);
         $toVersion = $toVersion ?: VersionCollection::createItem($toVersion);
 
         if ($fromVersion->getStamp() == $toVersion->getStamp()) {
             return; // nothing to do
+        }
+
+        if ($skipForeignChecks === true) {
+            self::$connection->execute('SET FOREIGN_KEY_CHECKS=0');
         }
 
         if ($fromVersion->getStamp() < $toVersion->getStamp()) {
@@ -377,6 +383,10 @@ class Migration
             if ($toMigration !== null && method_exists($toMigration, 'morph')) {
                 $toMigration->morph();
             }
+        }
+
+        if ($skipForeignChecks === true) {
+            self::$connection->execute('SET FOREIGN_KEY_CHECKS=1');
         }
     }
 

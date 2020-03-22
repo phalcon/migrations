@@ -135,8 +135,8 @@ class IncrementalItem implements ItemInterface
         foreach ($versions as $version) {
             /** @var ItemInterface $version */
             if (
-                ($version->getStamp() >= $initialVersion->getStamp())
-                && ($version->getStamp() <= $finalVersion->getStamp())
+                $version->getStamp() >= $initialVersion->getStamp() &&
+                $version->getStamp() <= $finalVersion->getStamp()
             ) {
                 $betweenVersions[] = $version;
             }
@@ -149,7 +149,7 @@ class IncrementalItem implements ItemInterface
      * @param ItemInterface[] $versions
      * @return array ItemInterface[]
      */
-    public static function sortAsc($versions)
+    public static function sortAsc(array $versions): array
     {
         $sortData = [];
         foreach ($versions as $version) {

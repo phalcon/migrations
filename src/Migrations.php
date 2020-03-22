@@ -28,6 +28,7 @@ use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\TimestampedItem;
+use SplFileInfo;
 
 class Migrations
 {
@@ -191,6 +192,7 @@ class Migrations
      * @param array $options
      * @throws DbException
      * @throws RuntimeException
+     * @throws Exception
      */
     public static function run(array $options)
     {
@@ -198,6 +200,7 @@ class Migrations
         $listTables = new ListTablesIterator();
         $optionStack->setOptions($options);
         $optionStack->setDefaultOption('verbose', false);
+        $optionStack->setDefaultOption('skip-foreign-checks', false);
 
         // Define versioning type to be used
         if (!empty($options['tsBased']) || $optionStack->getOption('tsBased')) {
@@ -355,12 +358,18 @@ class Migrations
             $migrationStartTime = date('Y-m-d H:i:s');
 
             if ($optionStack->getOption('tableName') === '@') {
+                /** @var SplFileInfo $fileInfo */
                 foreach ($iterator as $fileInfo) {
                     if (!$fileInfo->isFile() || 0 !== strcasecmp($fileInfo->getExtension(), 'php')) {
                         continue;
                     }
 
-                    ModelMigration::migrate($fileInfo->getBasename('.php'), $initialVersion, $versionItem);
+                    ModelMigration::migrate(
+                        $fileInfo->getBasename('.php'),
+                        $initialVersion,
+                        $versionItem,
+                        $optionStack->getOption('skip-foreign-checks')
+                    );
                 }
             } else {
                 if (!empty($prefix)) {
@@ -369,7 +378,12 @@ class Migrations
 
                 $tables = explode(',', $optionStack->getOption('tableName'));
                 foreach ($tables as $tableName) {
-                    ModelMigration::migrate($tableName, $initialVersion, $versionItem);
+                    ModelMigration::migrate(
+                        $tableName,
+                        $initialVersion,
+                        $versionItem,
+                        $optionStack->getOption('skip-foreign-checks')
+                    );
                 }
             }
 

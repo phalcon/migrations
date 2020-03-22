@@ -311,13 +311,13 @@ class Generate
                 );
             }
             
-            yield $constraintName => $referencesOptions + [
+            yield $constraintName => array_merge($referencesOptions, [
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
                 "'columns' => [" . join(',', array_unique($referenceColumns)) . "]",
                 "'referencedColumns' => [" . join(',', array_unique($referencedColumns)) . "]",
                 sprintf("'onUpdate' => '%s'", $reference->getOnUpdate()),
                 sprintf("'onDelete' => '%s'", $reference->getOnDelete()),
-            ];
+            ]);
         }
     }
 

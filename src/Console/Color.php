@@ -174,15 +174,35 @@ final class Color
      *
      * @static
      * @param string $msg
+     * @param string $prefix
      * @return string
      */
-    public static function error(string $msg): string
+    public static function error(string $msg, string $prefix = 'Error: '): string
     {
-        $msg = 'Error: ' . $msg;
+        $msg = $prefix . $msg;
         $space = self::tabSpaces($msg);
         $out  = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
         $out .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
         $out .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+
+        return $out;
+    }
+
+    /**
+     * Color style for fatal error messages.
+     *
+     * @static
+     * @param string $msg
+     * @param string $prefix
+     * @return string
+     */
+    public static function fatal(string $msg, string $prefix = 'Fatal Error: '): string
+    {
+        $msg = $prefix . $msg;
+        $space = self::tabSpaces($msg);
+        $out  = static::colorize(str_pad(' ', $space), Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out .= static::colorize('  ' . $msg . '  ', Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out .= static::colorize(str_pad(' ', $space), Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
 
         return $out;
     }
