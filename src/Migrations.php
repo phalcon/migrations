@@ -508,7 +508,7 @@ class Migrations
             self::$storage = new $adapter($configArray);
 
             if ($database->adapter === 'Mysql') {
-                //self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
+                self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
             }
 
             if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {

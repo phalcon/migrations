@@ -69,7 +69,7 @@ final class RunCest
         $table1 = 'client';
         $table2 = 'x-skip-foreign-keys';
 
-        $this->createTablesWithForeignKey($I);
+        $this->createTablesWithForeignKey($I, $table1, $table2);
 
         $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
         $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
@@ -91,17 +91,17 @@ final class RunCest
      */
     public function expectForeignKeyDbError(CliTester $I): void
     {
-        $table1 = 'client';
-        $table2 = 'x-skip-foreign-keys';
+        $table1 = 'z-client';
+        $table2 = 'skip-foreign-keys';
 
-        $this->createTablesWithForeignKey($I);
+        $this->createTablesWithForeignKey($I, $table1, $table2);
 
         $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
         $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
         $I->seeResultCodeIs(0);
 
         $migrationContent = file_get_contents(codecept_output_dir('1.0.0/' . $table2 . '.php'));
-        $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => 'client',"));
+        $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
 
         $I->getPhalconDb()->dropTable($table2);
         $I->getPhalconDb()->dropTable($table1);
@@ -115,12 +115,12 @@ final class RunCest
      * DRY!
      *
      * @param CliTester $I
+     * @param string $table1
+     * @param string $table2
      */
-    protected function createTablesWithForeignKey(CliTester $I): void
+    protected function createTablesWithForeignKey(CliTester $I, string $table1, string $table2): void
     {
         $schema = getenv('MYSQL_TEST_DB_DATABASE');
-        $table1 = 'client';
-        $table2 = 'x-skip-foreign-keys';
 
         $I->getPhalconDb()->createTable($table1, $schema, [
             'columns' => [
