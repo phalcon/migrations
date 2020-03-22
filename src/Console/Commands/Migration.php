@@ -14,14 +14,12 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Console\Commands;
 
 use Phalcon\Config;
-use Phalcon\Cop\Parser;
-use Phalcon\Migrations\Console\Color;
-use Phalcon\Migrations\Migrations;
-use Phalcon\Migrations\Script\ScriptException;
-use Phalcon\Mvc\Model\Exception;
 use Phalcon\Config\Adapter\Ini as IniConfig;
 use Phalcon\Config\Adapter\Json as JsonConfig;
 use Phalcon\Config\Adapter\Yaml as YamlConfig;
+use Phalcon\Cop\Parser;
+use Phalcon\Migrations\Console\Color;
+use Phalcon\Migrations\Migrations;
 
 /**
  * Migration Command
@@ -69,8 +67,8 @@ class Migration implements CommandsInterface
 
     /**
      * @throws CommandsException
-     * @throws ScriptException
-     * @throws Exception
+     * @throws \Phalcon\Db\Exception
+     * @throws \Exception
      */
     public function run(): void
     {
@@ -146,15 +144,16 @@ class Migration implements CommandsInterface
                 break;
             case 'run':
                 Migrations::run([
-                    'directory'      => $path,
-                    'tableName'      => $tableName,
-                    'migrationsDir'  => $migrationsDir,
-                    'force'          => $this->parser->has('force'),
-                    'tsBased'        => $migrationsTsBased,
-                    'config'         => $config,
-                    'version'        => $this->parser->get('version'),
-                    'migrationsInDb' => $migrationsInDb,
-                    'verbose'        => $this->parser->has('verbose'),
+                    'directory'             => $path,
+                    'tableName'             => $tableName,
+                    'migrationsDir'         => $migrationsDir,
+                    'force'                 => $this->parser->has('force'),
+                    'tsBased'               => $migrationsTsBased,
+                    'config'                => $config,
+                    'version'               => $this->parser->get('version'),
+                    'migrationsInDb'        => $migrationsInDb,
+                    'verbose'               => $this->parser->has('verbose'),
+                    'skip-foreign-checks'   => $this->parser->has('skip-foreign-checks'),
                 ]);
                 break;
             case 'list':

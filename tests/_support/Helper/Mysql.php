@@ -31,16 +31,22 @@ class Mysql extends Module
 
     public function _before(TestInterface $test)
     {
+        $this->setForeignKeys();
         foreach ($this->getPhalconDb()->listTables() as $table) {
             $this->getPhalconDb()->dropTable($table);
         }
+
+        $this->setForeignKeys(true);
     }
 
     public function _after(TestInterface $test)
     {
+        $this->setForeignKeys();
         foreach ($this->getPhalconDb()->listTables() as $table) {
             $this->getPhalconDb()->dropTable($table);
         }
+
+        $this->setForeignKeys(true);
 
         /**
          * Reset filename or DB connection
@@ -122,5 +128,15 @@ class Mysql extends Module
         );
 
         $this->getPhalconDb()->execute($query);
+    }
+
+    /**
+     * Executes 'SET FOREIGN_KEY_CHECKS' query
+     *
+     * @param bool $enabled
+     */
+    protected function setForeignKeys(bool $enabled = false): void
+    {
+        $this->getPhalconDb()->execute('SET FOREIGN_KEY_CHECKS=' . intval($enabled));
     }
 }
