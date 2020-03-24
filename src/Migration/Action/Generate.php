@@ -89,7 +89,6 @@ class Generate
 
         Column::TYPE_FLOAT,
         Column::TYPE_DOUBLE,
-        Column::TYPE_DECIMAL,
 
         Column::TYPE_TINYTEXT,
         Column::TYPE_TEXT,
