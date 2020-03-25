@@ -95,7 +95,6 @@ class Migration implements CommandsInterface
             $migrationsDir = explode(',', $config['application']['migrationsDir']);
         }
 
-
         if (!empty($migrationsDir)) {
             foreach ($migrationsDir as $id => $dir) {
                 if (!$this->isAbsolutePath($dir)) {
@@ -122,6 +121,10 @@ class Migration implements CommandsInterface
          */
         $migrationsTsBased = $config['application']['migrationsTsBased'] ?? $this->parser->has('ts-based');
 
+        $noAutoIncrement = $config['application']['no-auto-increment'] ?? $this->parser->has('no-auto-increment');
+        $skipRefSchema = $config['application']['skip-ref-schema'] ?? $this->parser->has('skip-ref-schema');
+        $skipForeignChecks = $config['application']['skip-foreign-checks'] ?? $this->parser->has('skip-foreign-checks');
+
         $descr = $config['application']['descr'] ?? $this->parser->get('descr');
         $tableName = $this->parser->get('table', '@');
 
@@ -135,11 +138,11 @@ class Migration implements CommandsInterface
                     'migrationsDir'         => $migrationsDir,
                     'version'               => $this->parser->get('version'),
                     'force'                 => $this->parser->has('force'),
-                    'noAutoIncrement'       => $this->parser->has('no-auto-increment'),
+                    'noAutoIncrement'       => $noAutoIncrement,
                     'config'                => $config,
                     'descr'                 => $descr,
                     'verbose'               => $this->parser->has('dry'),
-                    'skip-ref-schema'       => $this->parser->has('skip-ref-schema'),
+                    'skip-ref-schema'       => $skipRefSchema,
                 ]);
                 break;
             case 'run':
@@ -153,7 +156,7 @@ class Migration implements CommandsInterface
                     'version'               => $this->parser->get('version'),
                     'migrationsInDb'        => $migrationsInDb,
                     'verbose'               => $this->parser->has('verbose'),
-                    'skip-foreign-checks'   => $this->parser->has('skip-foreign-checks'),
+                    'skip-foreign-checks'   => $skipForeignChecks,
                 ]);
                 break;
             case 'list':
