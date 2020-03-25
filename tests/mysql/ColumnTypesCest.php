@@ -89,6 +89,16 @@ final class ColumnTypesCest
                     'notNull' => true,
                 ],
                 ['Y', 'N', 'D', ''],
+            ],
+            [
+                'column_decimal',
+                [
+                    'type' => Column::TYPE_DECIMAL,
+                    'size' => 10,
+                    'scale' => 2,
+                    'notNull' => true,
+                ],
+                [0, 1, 2.3, 4.56, 12345678.12],
             ]
         ];
     }
