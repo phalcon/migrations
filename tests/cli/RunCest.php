@@ -93,12 +93,6 @@ final class RunCest
     {
         $dbName = getenv('MYSQL_TEST_DB_DATABASE');
 
-        $I->getPhalconDb()->execute('SET FOREIGN_KEY_CHECKS=1');
-        $I->getPhalconDb()->execute('SET GLOBAL FOREIGN_KEY_CHECKS=1');
-        $I->getPhalconDb()->execute('DROP DATABASE `' . $dbName . '`');
-        $I->getPhalconDb()->execute('CREATE DATABASE `' . $dbName . '`');
-        $I->getPhalconDb()->execute('USE `' . $dbName . '`');
-
         $table1 = 'z-client';
         $table2 = 'skip-foreign-keys';
 
@@ -111,8 +105,11 @@ final class RunCest
         $migrationContent = file_get_contents(codecept_output_dir('1.0.0/' . $table2 . '.php'));
         $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
 
-        $I->getPhalconDb()->dropTable($table2);
-        $I->getPhalconDb()->dropTable($table1);
+        $I->getPhalconDb()->execute('SET FOREIGN_KEY_CHECKS=1');
+        $I->getPhalconDb()->execute('SET GLOBAL FOREIGN_KEY_CHECKS=1');
+        $I->getPhalconDb()->execute('DROP DATABASE `' . $dbName . '`');
+        $I->getPhalconDb()->execute('CREATE DATABASE `' . $dbName . '`');
+        $I->getPhalconDb()->execute('USE `' . $dbName . '`');
 
         $I->runShellCommand('php phalcon-migrations run --config=' . $this->configPath, false);
         $I->seeInShellOutput('Fatal Error: SQLSTATE[HY000]: General error: 1215 Cannot add foreign key constraint');
