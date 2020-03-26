@@ -53,6 +53,9 @@ return new Config([
     ],
     'application' => [
         'logInDb' => true,
+        'no-auto-increment' => true,
+        'skip-ref-schema' => true,
+        'skip-foreign-checks' => true,
         'migrationsDir' => 'db/migrations',
         'migrationsTsBased' => true, // true - Use TIMESTAMP as version name, false - use versions
         'exportDataFromTables' => [
