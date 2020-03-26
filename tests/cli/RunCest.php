@@ -64,31 +64,6 @@ final class RunCest
     /**
      * @param CliTester $I
      */
-    public function skipForeignKeys(CliTester $I): void
-    {
-        $table1 = 'client';
-        $table2 = 'x-skip-foreign-keys';
-
-        $this->createTablesWithForeignKey($I, $table1, $table2);
-
-        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
-        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
-        $I->seeResultCodeIs(0);
-
-        $migrationContent = file_get_contents(codecept_output_dir('1.0.0/' . $table2 . '.php'));
-        $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => 'client',"));
-
-        $I->getPhalconDb()->dropTable($table2);
-        $I->getPhalconDb()->dropTable($table1);
-
-        $I->runShellCommand('php phalcon-migrations run --skip-foreign-checks --config=' . $this->configPath);
-        $I->seeInShellOutput('Success: Version 1.0.0 was successfully migrated');
-        $I->seeResultCodeIs(0);
-    }
-
-    /**
-     * @param CliTester $I
-     */
     public function expectForeignKeyDbError(CliTester $I): void
     {
         $dbName = getenv('MYSQL_TEST_DB_DATABASE');
@@ -114,6 +89,31 @@ final class RunCest
         $I->runShellCommand('php phalcon-migrations run --config=' . $this->configPath, false);
         $I->seeInShellOutput('Fatal Error: SQLSTATE[HY000]: General error: 1215 Cannot add foreign key constraint');
         $I->seeResultCodeIs(1);
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    public function skipForeignKeys(CliTester $I): void
+    {
+        $table1 = 'client';
+        $table2 = 'x-skip-foreign-keys';
+
+        $this->createTablesWithForeignKey($I, $table1, $table2);
+
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
+        $I->seeResultCodeIs(0);
+
+        $migrationContent = file_get_contents(codecept_output_dir('1.0.0/' . $table2 . '.php'));
+        $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => 'client',"));
+
+        $I->getPhalconDb()->dropTable($table2);
+        $I->getPhalconDb()->dropTable($table1);
+
+        $I->runShellCommand('php phalcon-migrations run --skip-foreign-checks --config=' . $this->configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully migrated');
+        $I->seeResultCodeIs(0);
     }
 
     /**
