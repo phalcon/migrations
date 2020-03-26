@@ -71,7 +71,7 @@ jobs:
 
       - name: Run MySQL Queries
         run: |
-          mysql -uroot -hmysql -proot -e 'SET GLOBAL FOREIGN_KEY_CHECKS=1;'
+          mysql -uroot -h127.0.0.1 --port ${{ job.services.mysql.ports['3306'] }} -proot -e 'SET GLOBAL FOREIGN_KEY_CHECKS=1;'
 
       - name: Run test suites
         env:
