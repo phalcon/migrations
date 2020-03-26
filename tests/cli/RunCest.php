@@ -91,8 +91,13 @@ final class RunCest
      */
     public function expectForeignKeyDbError(CliTester $I): void
     {
+        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
+
         $I->getPhalconDb()->execute('SET FOREIGN_KEY_CHECKS=1');
         $I->getPhalconDb()->execute('SET GLOBAL FOREIGN_KEY_CHECKS=1');
+        $I->getPhalconDb()->execute('DROP DATABASE `' . $dbName . '`');
+        $I->getPhalconDb()->execute('CREATE DATABASE `' . $dbName . '`');
+        $I->getPhalconDb()->execute('USE `' . $dbName . '`');
 
         $table1 = 'z-client';
         $table2 = 'skip-foreign-keys';
