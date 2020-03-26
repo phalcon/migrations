@@ -357,6 +357,8 @@ class Migrations
 
             $migrationStartTime = date('Y-m-d H:i:s');
 
+            dd($optionStack->getOption('skip-foreign-checks'));
+
             if ($optionStack->getOption('tableName') === '@') {
                 /** @var SplFileInfo $fileInfo */
                 foreach ($iterator as $fileInfo) {
