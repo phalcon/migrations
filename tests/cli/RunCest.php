@@ -106,6 +106,7 @@ final class RunCest
         $I->getPhalconDb()->dropTable($table2);
         $I->getPhalconDb()->dropTable($table1);
 
+        $I->getPhalconDb()->execute('SET FOREIGN_KEY_CHECKS=1');
         $I->getPhalconDb()->execute('SET GLOBAL FOREIGN_KEY_CHECKS=1');
         $I->runShellCommand('php phalcon-migrations run --config=' . $this->configPath, false);
         $I->seeInShellOutput('Fatal Error: SQLSTATE[HY000]: General error: 1215 Cannot add foreign key constraint');
