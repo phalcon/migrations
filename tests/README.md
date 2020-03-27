@@ -11,6 +11,11 @@ vendor/bin/codecept build
 vendor/bin/codecept run
 ```
 
+## Getting Started
+
+* Copy .env.example file: `cp -p tests/.env.example tests/.env`
+* Edit credentials to the databases
+* Create manually databases (if needed)
 
 ## Help
 
