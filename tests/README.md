@@ -13,6 +13,8 @@ vendor/bin/codecept run
 
 ## Getting Started
 
+Currently, you will need configured MySQL and PostgreSQL databases.
+
 * Copy .env.example file: `cp -p tests/.env.example tests/.env`
 * Edit credentials to the databases
 * Create manually databases (if needed)
