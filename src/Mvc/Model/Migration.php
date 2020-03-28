@@ -710,23 +710,29 @@ class Migration
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
-            return; // nothing to do
+            return;
         }
 
         self::$connection->begin();
-        self::$connection->delete($tableName);
 
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
                 function ($value) {
-                    return null === $value ? null : stripslashes($value);
+                    if (null === $value) {
+                        return null;
+                    }
+
+                    if ($value === 'NULL') {
+                        return null;
+                    }
+
+                    return stripslashes($value);
                 },
                 $line
             );
 
-            $nullify = new Nullify();
-            self::$connection->insert($tableName, $nullify($values), $fields);
+            self::$connection->insert($tableName, $values, $fields);
             unset($line);
         }
 

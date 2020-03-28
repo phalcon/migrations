@@ -118,8 +118,7 @@ class Mysql extends Module
             $str .= sprintf('(%s),', implode(',', $values));
         }
 
-        $str = rtrim($str, ',');
-        $str .= ';';
+        $str = rtrim($str, ',') . ';';
         $query = sprintf(
             "INSERT INTO `%s` (%s) VALUES %s",
             $table,
