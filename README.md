@@ -11,13 +11,13 @@ Main idea of Phalcon migrations is to automatically detect changes and morphing 
 
 ## Full documentation
 
-https://docs.phalcon.io/latest/en/db-migrations
+[Phalcon Documentation - Database Migrations](https://docs.phalcon.io/latest/en/db-migrations)
 
 ## Requirements
 
-* PHP >= 7.2
-* Phalcon >= 4.0.5
-* PHP ext-posix (Linux)
+*  PHP >= 7.2
+*  Phalcon >= 4.0.5
+*  PHP ext-posix (Linux)
 
 ## Installing via Composer
 
@@ -29,9 +29,9 @@ composer require --dev phalcon/migrations
 
 What you need for quick start:
 
-* Configuration file in root of your project (you can also pass them as parameters inside CLI environment)
-* Create database tables structure
-* Execute command to generate migrations
+*  Configuration file in root of your project (you can also pass them as parameters inside CLI environment)
+*  Create database tables structure
+*  Execute command to generate migrations
 
 After that you can execute that migrations (run) in another environment to create same DB structure.
 
@@ -68,18 +68,18 @@ return new Config([
 
 ### Generate migrations
 
-```
+```bash
 vendor/bin/phalcon-migrations generate
 ```
 
 ### Run migrations
 
-```
+```bash
 vendor/bin/phalcon-migrations run
 ```
 
 ### List existing migrations
 
-```
+```bash
 vendor/bin/phalcon-migrations list
 ```
