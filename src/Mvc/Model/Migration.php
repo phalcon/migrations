@@ -715,25 +715,38 @@ class Migration
 
         self::$connection->begin();
 
+        $str = '';
+        $pointer = 1;
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
                 function ($value) {
-                    if (null === $value) {
-                        return null;
+                    if (null === $value || $value === 'NULL') {
+                        return 'NULL';
                     }
 
-                    if ($value === 'NULL') {
-                        return null;
-                    }
-
-                    return stripslashes($value);
+                    return self::$connection->escapeString(stripslashes($value));
                 },
                 $line
             );
 
-            self::$connection->insert($tableName, $values, $fields);
-            unset($line);
+            $str .= sprintf('(%s),', implode(',', $values));
+            if ($pointer === $size) {
+                $this->executeMultiInsert($tableName, $fields, $str);
+
+                unset($str);
+                $str = '';
+                $pointer = 1;
+            } else {
+                $pointer++;
+            }
+
+            unset($line, $values);
+        }
+
+        if (!empty($str)) {
+            $this->executeMultiInsert($tableName, $fields, $str);
+            unset($str);
         }
 
         fclose($batchHandler);
@@ -780,5 +793,25 @@ class Migration
     public function getConnection()
     {
         return self::$connection;
+    }
+
+    /**
+     * Execute Multi Insert
+     *
+     * @param string $table
+     * @param array $columns
+     * @param string $values
+     */
+    protected function executeMultiInsert(string $table, array $columns, string $values): void
+    {
+        $query = sprintf(
+            "INSERT INTO `%s` (%s) VALUES %s",
+            $table,
+            sprintf('`%s`', implode('`,`', $columns)),
+            rtrim($values, ',') . ';'
+        );
+
+        self::$connection->execute($query);
+        unset($query);
     }
 }
