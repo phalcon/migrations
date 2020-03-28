@@ -293,13 +293,13 @@ class Migration
                 $data = [];
                 foreach ($row as $key => $value) {
                     if (isset($numericColumns[$key])) {
-                        if ($value === '' || is_null($value)) {
+                        if ($value === '' || $value === null) {
                             $data[] = 'NULL';
                         } else {
-                            $data[] = addslashes($value);
+                            $data[] = $value;
                         }
                     } else {
-                        $data[] = is_null($value) ? 'NULL' : addslashes($value);
+                        $data[] = $value === null ? 'NULL' : addslashes($value);
                     }
 
                     unset($value);
@@ -805,9 +805,9 @@ class Migration
     protected function executeMultiInsert(string $table, array $columns, string $values): void
     {
         $query = sprintf(
-            "INSERT INTO `%s` (%s) VALUES %s",
+            "INSERT INTO %s (%s) VALUES %s",
             $table,
-            sprintf('`%s`', implode('`,`', $columns)),
+            sprintf('%s', implode(',', $columns)),
             rtrim($values, ',') . ';'
         );
 

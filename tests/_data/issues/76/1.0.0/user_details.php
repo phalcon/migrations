@@ -74,7 +74,7 @@ class UserDetailsMigration_100 extends Migration
                 new Column(
                     'status',
                     [
-                        'type' => Column::TYPE_TINYINTEGER,
+                        'type' => Column::TYPE_INTEGER,
                         'notNull' => false,
                         'size' => 10,
                         'after' => 'password'
