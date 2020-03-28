@@ -30,7 +30,6 @@ use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils;
-use Phalcon\Migrations\Utils\Nullify;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Text;
