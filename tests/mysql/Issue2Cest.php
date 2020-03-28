@@ -14,16 +14,19 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Tests\Mysql;
 
 use MysqlTester;
+use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
 
 use function codecept_data_dir;
 
+/**
+ * @see https://github.com/phalcon/migrations/issues/2
+ */
 class Issue2Cest
 {
     /**
      * @param MysqlTester $I
-     * @throws \Phalcon\Migrations\Script\ScriptException
-     * @throws \Phalcon\Mvc\Model\Exception
+     * @throws Exception
      */
     public function testDisableEnableForeignKeyChecks(MysqlTester $I): void
     {
