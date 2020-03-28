@@ -257,7 +257,7 @@ class Migration
         // up()
         $classData .= $snippet->getMigrationUp();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
+        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
             $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -273,7 +273,7 @@ class Migration
         $classData .= "\n    }\n";
 
         // afterCreateTable()
-        if ($exportData == 'oncreate' || self::shouldExportDataFromTable($table, $exportTables)) {
+        if ($exportData === 'oncreate') {
             $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -705,8 +705,9 @@ class Migration
      *
      * @param string $tableName
      * @param mixed $fields
+     * @param int $size Insert batch size
      */
-    public function batchInsert(string $tableName, $fields)
+    public function batchInsert(string $tableName, $fields, int $size = 1024): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
