@@ -1,5 +1,6 @@
 ---
 exclude_paths:
+  - 'CHANGELOG.md'
   - '.github/**'
   - 'tests/_data/**'
   - 'tests/_support/**'
