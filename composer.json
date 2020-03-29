@@ -58,7 +58,10 @@
         "exclude": [
             "/.github",
             "/tests",
+            ".codacy.yml",
             ".codecov.yml",
+            "CHANGELOG.md",
+            "codeception.yml",
             "phpcs.xml.dist",
             "phpstan.neon.dist",
             "phpunit.xml.dist",
