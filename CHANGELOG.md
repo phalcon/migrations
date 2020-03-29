@@ -1,3 +1,11 @@
+# [2.1.2](https://github.com/phalcon/migrations/releases/tag/v2.1.2) (2020-03-30)
+Supported PHP versions: 7.2, 7.3, 7.4
+
+- Added separate changelog document `CHANGELOG.md` ([#85](https://github.com/phalcon/migrations/issues/85))
+- Fixed long execution of data insertion during migration run ([#76](https://github.com/phalcon/migrations/issues/76))
+- Added `README.md` inside tests folder ([#78](https://github.com/phalcon/migrations/issues/78))
+
+
 # [2.1.1](https://github.com/phalcon/migrations/releases/tag/v2.1.1) (2020-03-26)
 Supported PHP versions: 7.2, 7.3, 7.4
 
