@@ -140,10 +140,11 @@ class Migrations
                     if ($tableName === self::MIGRATION_LOG_TABLE) {
                         continue;
                     }
+
                     $tableFile = $migrationPath . DIRECTORY_SEPARATOR . $tableName . '.php';
                     $wasMigrated = file_put_contents(
                         $tableFile,
-                        '<?php ' . PHP_EOL . PHP_EOL . $migration
+                        '<?php' . PHP_EOL . PHP_EOL . $migration
                     ) || $wasMigrated;
                 }
             }
@@ -171,7 +172,7 @@ class Migrations
                     $tableFile = $migrationPath . DIRECTORY_SEPARATOR . $table . '.php';
                     $wasMigrated = file_put_contents(
                         $tableFile,
-                        '<?php ' . PHP_EOL . PHP_EOL . $migration
+                        '<?php' . PHP_EOL . PHP_EOL . $migration
                     );
                 }
             }

@@ -20,28 +20,30 @@ use Phalcon\Migrations\Migrations;
 use function codecept_data_dir;
 
 /**
- * @see https://github.com/phalcon/migrations/issues/2
+ * @see https://github.com/phalcon/migrations/issues/76
  */
-class Issue2Cest
+class Issue76Cest
 {
     /**
      * @param MysqlTester $I
      * @throws Exception
      */
-    public function testDisableEnableForeignKeyChecks(MysqlTester $I): void
+    public function normalRun(MysqlTester $I): void
     {
-        $I->wantToTest('Issue #2 - Foreign Key is created during alter table');
+        $I->wantToTest('Issue #76 - Normal run with data insert');
 
         ob_start();
         Migrations::run([
-            'migrationsDir' => codecept_data_dir('issues/2'),
+            'migrationsDir' => codecept_data_dir('issues/76'),
             'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $I->assertTrue($I->getPhalconDb()->tableExists('accessToken'));
-        $I->assertTrue($I->getPhalconDb()->tableExists('client'));
-        $I->assertArrayHasKey('fk_accessToken_client_1', $I->getPhalconDb()->describeReferences('accessToken'));
+        $query1 = 'SELECT COUNT(*) cnt FROM user_details WHERE user_id = 62 AND last_name IS NULL';
+
+        $I->assertTrue($I->getPhalconDb()->tableExists('user_details'));
+        $I->canSeeNumRecords(2363, 'user_details');
+        $I->assertEquals(1, $I->getPhalconDb()->fetchOne($query1)['cnt']);
     }
 }

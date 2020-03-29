@@ -30,7 +30,6 @@ use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils;
-use Phalcon\Migrations\Utils\Nullify;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Text;
@@ -257,7 +256,7 @@ class Migration
         // up()
         $classData .= $snippet->getMigrationUp();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
+        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
             $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -273,7 +272,7 @@ class Migration
         $classData .= "\n    }\n";
 
         // afterCreateTable()
-        if ($exportData == 'oncreate' || self::shouldExportDataFromTable($table, $exportTables)) {
+        if ($exportData === 'oncreate') {
             $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -294,13 +293,13 @@ class Migration
                 $data = [];
                 foreach ($row as $key => $value) {
                     if (isset($numericColumns[$key])) {
-                        if ($value === '' || is_null($value)) {
+                        if ($value === '' || $value === null) {
                             $data[] = 'NULL';
                         } else {
-                            $data[] = addslashes($value);
+                            $data[] = $value;
                         }
                     } else {
-                        $data[] = is_null($value) ? 'NULL' : addslashes($value);
+                        $data[] = $value === null ? 'NULL' : addslashes($value);
                     }
 
                     unset($value);
@@ -705,29 +704,49 @@ class Migration
      *
      * @param string $tableName
      * @param mixed $fields
+     * @param int $size Insert batch size
      */
-    public function batchInsert(string $tableName, $fields)
+    public function batchInsert(string $tableName, $fields, int $size = 1024): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
-            return; // nothing to do
+            return;
         }
 
         self::$connection->begin();
-        self::$connection->delete($tableName);
 
+        $str = '';
+        $pointer = 1;
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
                 function ($value) {
-                    return null === $value ? null : stripslashes($value);
+                    if (null === $value || $value === 'NULL') {
+                        return 'NULL';
+                    }
+
+                    return self::$connection->escapeString(stripslashes($value));
                 },
                 $line
             );
 
-            $nullify = new Nullify();
-            self::$connection->insert($tableName, $nullify($values), $fields);
-            unset($line);
+            $str .= sprintf('(%s),', implode(',', $values));
+            if ($pointer === $size) {
+                $this->executeMultiInsert($tableName, $fields, $str);
+
+                unset($str);
+                $str = '';
+                $pointer = 1;
+            } else {
+                $pointer++;
+            }
+
+            unset($line, $values);
+        }
+
+        if (!empty($str)) {
+            $this->executeMultiInsert($tableName, $fields, $str);
+            unset($str);
         }
 
         fclose($batchHandler);
@@ -774,5 +793,25 @@ class Migration
     public function getConnection()
     {
         return self::$connection;
+    }
+
+    /**
+     * Execute Multi Insert
+     *
+     * @param string $table
+     * @param array $columns
+     * @param string $values
+     */
+    protected function executeMultiInsert(string $table, array $columns, string $values): void
+    {
+        $query = sprintf(
+            "INSERT INTO %s (%s) VALUES %s",
+            $table,
+            sprintf('%s', implode(',', $columns)),
+            rtrim($values, ',') . ';'
+        );
+
+        self::$connection->execute($query);
+        unset($query);
     }
 }

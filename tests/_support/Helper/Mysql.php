@@ -100,7 +100,7 @@ class Mysql extends Module
      * @param array $rows
      * @return void
      */
-    public function batchInsert(string $table, array $columns, array $rows)
+    public function batchInsert(string $table, array $columns, array $rows): void
     {
         $str = '';
         foreach ($rows as $values) {
@@ -118,8 +118,7 @@ class Mysql extends Module
             $str .= sprintf('(%s),', implode(',', $values));
         }
 
-        $str = rtrim($str, ',');
-        $str .= ';';
+        $str = rtrim($str, ',') . ';';
         $query = sprintf(
             "INSERT INTO `%s` (%s) VALUES %s",
             $table,

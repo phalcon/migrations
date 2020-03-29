@@ -360,6 +360,55 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     * @throws Exception
+     */
+    public function generateWithExportOnCreate(MysqlTester $I): void
+    {
+        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName = 'on_create';
+        $migrationsDir = codecept_output_dir(__FUNCTION__);
+
+        $I->getPhalconDb()->createTable($tableName, $dbName, [
+            'columns' => [
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'unsigned' => true,
+                    'notNull' => true,
+                    'first' => true,
+                    'primary' => true,
+                    'autoIncrement' => true,
+                ]),
+            ],
+        ]);
+
+        $I->batchInsert($tableName, ['id'], [
+            [1],
+            [2],
+            [3],
+        ]);
+
+        ob_start();
+        Migrations::generate([
+            'migrationsDir' => $migrationsDir,
+            'config' => $I->getMigrationsConfig(),
+            'tableName' => '@',
+            'noAutoIncrement' => true,
+            'exportData' => 'oncreate',
+        ]);
+        ob_clean();
+
+        $migrationContents = file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php');
+
+        $I->assertSame(1, substr_count($migrationContents, 'this->batchInsert'));
+        $I->assertContains(
+            '3',
+            file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.dat')
+        );
+    }
+
+    /**
+     * @param MysqlTester $I
      * @throws \Phalcon\Db\Exception
      */
     protected function runIssue66Migrations(MysqlTester $I): void
