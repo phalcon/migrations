@@ -29,7 +29,6 @@ use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
-use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Text;
@@ -48,6 +47,10 @@ class Migration
 {
     public const DIRECTION_FORWARD = 1;
     public const DIRECTION_BACK = -1;
+
+    public const DB_ADAPTER_MYSQL = 'mysql';
+    public const DB_ADAPTER_POSTGRESQL = 'postgresql';
+    public const DB_ADAPTER_SQLITE = 'sqlite';
 
     /**
      * Migration database connection
@@ -166,7 +169,7 @@ class Migration
         bool $skipRefSchema = false
     ): array {
         $classDefinition = [];
-        $schema = Utils::resolveDbSchema(self::$databaseConfig);
+        $schema = self::resolveDbSchema(self::$databaseConfig);
 
         foreach (self::$connection->listTables($schema) as $table) {
             $classDefinition[$table] = self::generate($version, $table, $exportData, $exportTables, $skipRefSchema);
@@ -195,7 +198,7 @@ class Migration
     ): string {
         $snippet = new Snippet();
         $adapter = (string)self::$databaseConfig->path('adapter');
-        $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
+        $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
         $description = self::$connection->describeColumns($table, $defaultSchema);
         $indexes = self::$connection->describeIndexes($table, $defaultSchema);
         $references = self::$connection->describeReferences($table, $defaultSchema);
@@ -480,7 +483,7 @@ class Migration
      */
     public function morphTable(string $tableName, array $definition): void
     {
-        $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
+        $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
         $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
         $tableSchema = $defaultSchema;
 
@@ -813,5 +816,35 @@ class Migration
 
         self::$connection->execute($query);
         unset($query);
+    }
+
+    /**
+     * Resolves the DB Schema
+     *
+     * @param Config $config
+     * @return null|string
+     */
+    public static function resolveDbSchema(Config $config): ?string
+    {
+        if ($config->offsetExists('schema')) {
+            return $config->get('schema');
+        }
+
+        $adapter = strtolower($config->get('adapter'));
+        if (self::DB_ADAPTER_POSTGRESQL == $adapter) {
+            return 'public';
+        }
+
+        if (self::DB_ADAPTER_SQLITE == $adapter) {
+            // SQLite only supports the current database, unless one is
+            // attached. This is not the case, so don't return a schema.
+            return null;
+        }
+
+        if ($config->offsetExists('dbname')) {
+            return $config->get('dbname');
+        }
+
+        return null;
     }
 }
