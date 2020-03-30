@@ -224,7 +224,7 @@ final class GenerateCest
     {
         $I->wantToTest('Migration\Action\Generate - getColumns() throw UnknownColumnTypeException');
 
-        $I->expectThrowable(UnknownColumnTypeException::class, function() {
+        $I->expectThrowable(UnknownColumnTypeException::class, function () {
             $columns = [
                 new Column('unknown', [
                     'type' => 9000,
