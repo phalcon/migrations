@@ -216,4 +216,29 @@ final class GenerateCest
         $I->assertSame("'column1'", $class->getQuoteWrappedColumns()[0]);
         $I->assertSame("'column2'", $class->getQuoteWrappedColumns()[1]);
     }
+
+    /**
+     * @param IntegrationTester $I
+     */
+    public function throwUnknownColumnTypeException(IntegrationTester $I): void
+    {
+        $I->wantToTest('Migration\Action\Generate - getColumns() throw UnknownColumnTypeException');
+
+        $I->expectThrowable(UnknownColumnTypeException::class, function() {
+            $columns = [
+                new Column('unknown', [
+                    'type' => 9000,
+                    'size' => 10,
+                    'notNull' => true,
+                ]),
+            ];
+
+            $data = [];
+            $class = new Generate('mysql', $columns);
+            foreach ($class->getColumns() as $column) {
+                // Wait error
+                $data[] = $column;
+            }
+        });
+    }
 }
