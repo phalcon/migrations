@@ -14,52 +14,9 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Generator;
 
 use Phalcon\Db\ColumnInterface;
-use Phalcon\Migrations\Options\OptionsAware as ModelOption;
 
 class Snippet
 {
-    /**
-     * @param string $namespace
-     * @param string $useDefinition
-     * @param string $classDoc
-     * @param string $abstract
-     * @param ModelOption|null $modelOptions
-     * @param string $extends
-     * @param string $content
-     * @param string $license
-     * @return string
-     */
-    public function getClass(
-        $namespace,
-        $useDefinition,
-        $classDoc = '',
-        $abstract = '',
-        ModelOption $modelOptions = null,
-        $extends = '',
-        $content = '',
-        $license = ''
-    ): string {
-        $templateCode = <<<EOD
-<?php
-
-%s%s%s%s%sclass %s extends %s
-{
-%s
-}
-EOD;
-        return sprintf(
-            $templateCode,
-            $license,
-            $namespace,
-            $useDefinition,
-            $classDoc,
-            $abstract,
-            $modelOptions->getOption('className'),
-            $extends,
-            $content
-        ) . PHP_EOL;
-    }
-
     public function getAttributes(
         $type,
         $visibility,
