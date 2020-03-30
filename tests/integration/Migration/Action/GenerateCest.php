@@ -241,4 +241,43 @@ final class GenerateCest
             }
         });
     }
+
+    /**
+     * @param IntegrationTester $I
+     * @throws UnknownColumnTypeException
+     */
+    public function columnHasDefault(IntegrationTester $I): void
+    {
+        $I->wantToTest('Migration\Action\Generate - getColumns() has default');
+
+        $expected = "'default' => \"0\"";
+        $columnsWithDefault = [
+            new Column('column_default', [
+                'type' => Column::TYPE_INTEGER,
+                'size' => 10,
+                'notNull' => true,
+                'default' => 0,
+            ]),
+        ];
+
+        $columnsWithDefaultAndAI = [
+            new Column('column_ai', [
+                'type' => Column::TYPE_INTEGER,
+                'size' => 10,
+                'notNull' => true,
+                'autoIncrement' => true,
+                'first' => true,
+                'primary' => true,
+                'default' => 0,
+            ]),
+        ];
+
+        $class1 = new Generate('mysql', $columnsWithDefault);
+        $class2 = new Generate('mysql', $columnsWithDefaultAndAI);
+        $array1 = current(iterator_to_array($class1->getColumns()));
+        $array2 = current(iterator_to_array($class2->getColumns()));
+
+        $I->assertSame($expected, $array1[1]);
+        $I->assertFalse(in_array($expected, $array2));
+    }
 }
