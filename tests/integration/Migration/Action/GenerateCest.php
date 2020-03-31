@@ -274,10 +274,17 @@ final class GenerateCest
 
         $class1 = new Generate('mysql', $columnsWithDefault);
         $class2 = new Generate('mysql', $columnsWithDefaultAndAI);
+        $class3 = new Generate('postgres', $columnsWithDefault);
+        $class4 = new Generate('postgres', $columnsWithDefaultAndAI);
+
         $array1 = current(iterator_to_array($class1->getColumns()));
         $array2 = current(iterator_to_array($class2->getColumns()));
+        $array3 = current(iterator_to_array($class3->getColumns()));
+        $array4 = current(iterator_to_array($class4->getColumns()));
 
         $I->assertSame($expected, $array1[1]);
         $I->assertFalse(in_array($expected, $array2));
+        $I->assertSame($expected, $array3[1]);
+        $I->assertFalse(in_array($expected, $array4));
     }
 }
