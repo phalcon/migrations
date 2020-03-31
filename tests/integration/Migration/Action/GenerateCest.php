@@ -18,6 +18,7 @@ use Phalcon\Db\Column;
 use Phalcon\Db\Reference;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Migration\Action\Generate;
+use Phalcon\Migrations\Mvc\Model\Migration;
 
 final class GenerateCest
 {
@@ -272,19 +273,25 @@ final class GenerateCest
             ]),
         ];
 
-        $class1 = new Generate('mysql', $columnsWithDefault);
-        $class2 = new Generate('mysql', $columnsWithDefaultAndAI);
-        $class3 = new Generate('postgres', $columnsWithDefault);
-        $class4 = new Generate('postgres', $columnsWithDefaultAndAI);
+        $class1 = new Generate(Migration::DB_ADAPTER_MYSQL, $columnsWithDefault);
+        $class2 = new Generate(Migration::DB_ADAPTER_MYSQL, $columnsWithDefaultAndAI);
+        $class3 = new Generate(Migration::DB_ADAPTER_POSTGRESQL, $columnsWithDefault);
+        $class4 = new Generate(Migration::DB_ADAPTER_POSTGRESQL, $columnsWithDefaultAndAI);
+        $class5 = new Generate(Migration::DB_ADAPTER_SQLITE, $columnsWithDefault);
+        $class6 = new Generate(Migration::DB_ADAPTER_SQLITE, $columnsWithDefaultAndAI);
 
         $array1 = current(iterator_to_array($class1->getColumns()));
         $array2 = current(iterator_to_array($class2->getColumns()));
         $array3 = current(iterator_to_array($class3->getColumns()));
         $array4 = current(iterator_to_array($class4->getColumns()));
+        $array5 = current(iterator_to_array($class5->getColumns()));
+        $array6 = current(iterator_to_array($class6->getColumns()));
 
         $I->assertSame($expected, $array1[1]);
         $I->assertFalse(in_array($expected, $array2));
         $I->assertSame($expected, $array3[1]);
         $I->assertFalse(in_array($expected, $array4));
+        $I->assertSame($expected, $array5[1]);
+        $I->assertFalse(in_array($expected, $array6));
     }
 }
