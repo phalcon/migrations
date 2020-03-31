@@ -20,7 +20,7 @@ use Phalcon\Db\Index;
 use Phalcon\Db\IndexInterface;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
-use Phalcon\Migrations\Utils;
+use Phalcon\Migrations\Mvc\Model\Migration;
 
 /**
  * Action class to generate migration file contents
@@ -219,7 +219,7 @@ class Generate
                 $definition[] = sprintf("'default' => \"%s\"", $column->getDefault());
             }
 
-            if ($column->isPrimary() && $this->adapter == Utils::DB_ADAPTER_POSTGRESQL) {
+            if ($column->isPrimary() && $this->adapter == Migration::DB_ADAPTER_POSTGRESQL) {
                 $definition[] = "'primary' => true";
                 $this->primaryColumnName = $column->getName();
             }
@@ -273,7 +273,7 @@ class Generate
             $definition = [];
             foreach ($index->getColumns() as $column) {
                 // [PostgreSQL] Skip primary key column
-                if ($this->adapter !== Utils::DB_ADAPTER_POSTGRESQL && $column !== $this->getPrimaryColumnName()) {
+                if ($this->adapter !== Migration::DB_ADAPTER_POSTGRESQL && $column !== $this->getPrimaryColumnName()) {
                     $definition[] = $this->wrapWithQuotes($column);
                 }
             }
@@ -399,7 +399,7 @@ class Generate
          * Check Postgres
          */
         $noSizePostgres = $this->noSizeColumnTypesPostgreSQL;
-        if ($this->adapter === Utils::DB_ADAPTER_POSTGRESQL && in_array($columnType, $noSizePostgres)) {
+        if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && in_array($columnType, $noSizePostgres)) {
             return null;
         }
 

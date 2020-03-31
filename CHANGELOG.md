@@ -1,3 +1,7 @@
+# [x.x.x] (xxxx-xx-xx)
+- Improved tests codebase ([#86](https://github.com/phalcon/migrations/issues/86))
+
+
 # [2.1.2](https://github.com/phalcon/migrations/releases/tag/v2.1.2) (2020-03-30)
 Supported PHP versions: 7.2, 7.3, 7.4
 
