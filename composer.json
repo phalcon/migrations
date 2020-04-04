@@ -17,12 +17,12 @@
         },
         {
             "name": "Contributors",
-            "homepage": "https://github.com/phalcon/phalcon-devtools/graphs/contributors"
+            "homepage": "https://github.com/phalcon/migrations/graphs/contributors"
         }
     ],
     "support": {
-        "issues": "https://github.com/phalcon/phalcon-devtools/issues",
-        "source": "https://github.com/phalcon/phalcon-devtools",
+        "issues": "https://github.com/phalcon/migrations/issues",
+        "source": "https://github.com/phalcon/migrations",
         "forum": "https://forum.phalcon.io"
     },
     "require": {
