@@ -407,6 +407,53 @@ final class MigrationsCest
         );
     }
 
+    public function nullableTimestamp(MysqlTester $I): void
+    {
+        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName = 'nullable_timestamp';
+        $migrationsDir = codecept_output_dir(__FUNCTION__);
+
+        $I->getPhalconDb()->createTable($tableName, $dbName, [
+            'columns' => [
+                new Column(
+                    'created_at',
+                    [
+                        'type' => Column::TYPE_TIMESTAMP,
+                        'default' => "CURRENT_TIMESTAMP",
+                        'notNull' => true,
+                    ]
+                ),
+                new Column(
+                    'deleted_at',
+                    [
+                        'type' => Column::TYPE_TIMESTAMP,
+                        'default' => 'NULL',
+                        'notNull' => false,
+                        'after' => 'created_at',
+                    ]
+                ),
+            ],
+        ]);
+
+        ob_start();
+        Migrations::generate([
+            'migrationsDir' => [
+                $migrationsDir,
+            ],
+            'config' => $I->getMigrationsConfig(),
+            'tableName' => '@',
+        ]);
+        $I->getPhalconDb()->dropTable($tableName);
+        Migrations::run([
+            'migrationsDir' => $migrationsDir,
+            'config' => $I->getMigrationsConfig(),
+            'migrationsInDb' => true,
+        ]);
+        ob_clean();
+
+        $I->seeNumRecords(0, $tableName);
+    }
+
     /**
      * @param MysqlTester $I
      * @throws \Phalcon\Db\Exception
