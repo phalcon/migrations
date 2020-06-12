@@ -302,7 +302,11 @@ class Migration
                             $data[] = $value;
                         }
                     } else {
-                        $data[] = $value === null ? 'NULL' : addslashes($value);
+                        if (is_string($value)) {
+                            $data[] = addslashes($value);
+                        } else {
+                            $data[] = $value === null ? 'NULL' : $value;
+                        }
                     }
 
                     unset($value);
