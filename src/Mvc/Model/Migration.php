@@ -31,6 +31,7 @@ use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Proxy;
 use Phalcon\Migrations\Utils;
 use Phalcon\Migrations\Utils\Nullify;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
@@ -55,7 +56,7 @@ class Migration
     /**
      * Migration database connection
      *
-     * @var AbstractAdapter
+     * @var AbstractAdapter|Proxy
      */
     protected static $connection;
 
@@ -92,10 +93,11 @@ class Migration
      *
      * @param Config $database Database config
      * @param bool $verbose array with settings
+     * @param bool $dryRun array with settings
      * @throws DbException
      * @since 3.2.1 Using Postgresql::describeReferences and DialectPostgresql dialect class
      */
-    public static function setup(Config $database, bool $verbose = false): void
+    public static function setup(Config $database, bool $verbose = false, bool $dryRun = false): void
     {
         if (!isset($database->adapter)) {
             throw new DbException('Unspecified database Adapter in your configuration!');
@@ -120,18 +122,20 @@ class Migration
 
         $configArray = $database->toArray();
         unset($configArray['adapter']);
-        self::$connection = new $adapter($configArray);
+        $connection = new $adapter($configArray);
         self::$databaseConfig = $database;
 
         // Connection custom dialect Dialect/DialectMysql
         if ($database->adapter == 'Mysql') {
-            self::$connection->setDialect(new DialectMysql());
+            $connection->setDialect(new DialectMysql());
         }
 
         // Connection custom dialect Dialect/DialectPostgresql
         if ($database->adapter == 'Postgresql') {
-            self::$connection->setDialect(new DialectPostgresql());
+            $connection->setDialect(new DialectPostgresql());
         }
+
+        self::$connection = new Proxy($connection, $dryRun);
 
         if (!Migrations::isConsole() || !$verbose) {
             return;
@@ -140,7 +144,7 @@ class Migration
         $eventsManager = new EventsManager();
         $eventsManager->attach('db', new DbProfilerListener());
 
-        self::$connection->setEventsManager($eventsManager);
+        $connection->setEventsManager($eventsManager);
     }
 
     /**
@@ -772,6 +776,9 @@ class Migration
      */
     public function getConnection()
     {
-        return self::$connection;
+        if (self::$connection instanceof AbstractAdapter) {
+            return self::$connection;
+        }
+        return self::$connection->getTarget();
     }
 }
