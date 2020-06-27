@@ -52,10 +52,10 @@ class Proxy
 
     public function __call($name, $arguments)
     {
-        if ($this->dry && in_array($name,[
-                'addColumn','addForeignKey','addIndex','addPrimaryKey',
-                'createTable','createView','dropColumn','dropForeignKey',
-                'dropIndex','dropPrimaryKey','dropTable','dropView','modifyColumn'
+        if ($this->dry && in_array($name, [
+                'addColumn', 'addForeignKey', 'addIndex', 'addPrimaryKey',
+                'createTable', 'createView', 'dropColumn', 'dropForeignKey',
+                'dropIndex', 'dropPrimaryKey', 'dropTable', 'dropView', 'modifyColumn'
             ])) {
             $dialect = $this->target->getDialect();
             if (method_exists($dialect, $name)) {

@@ -266,7 +266,11 @@ class Migrations
             $finalVersion = VersionCollection::maximum($versionItems);
         }
 
-        ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'), $optionStack->getOption('dry'));
+        ModelMigration::setup(
+            $optionStack->getOption('config')->database, 
+            $optionStack->getOption('verbose'), 
+            $optionStack->getOption('dry')
+        );
         self::connectionSetup($optionStack->getOptions());
 
         /**
@@ -373,7 +377,7 @@ class Migrations
                 }
             }
 
-            if ($optionStack->getOption('dry')){
+            if ($optionStack->getOption('dry')) {
                 return;
             }
             if (ModelMigration::DIRECTION_FORWARD == $direction) {
