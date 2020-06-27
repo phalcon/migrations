@@ -66,6 +66,9 @@ class Proxy
                 return true;
             }
         }
+        if (method_exists($this, $name)) {
+            return call_user_func_array(array($this, $name), $arguments);
+        }
         return call_user_func_array(array($this->target, $name), $arguments);
     }
 }
