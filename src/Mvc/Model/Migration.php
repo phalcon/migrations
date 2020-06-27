@@ -776,6 +776,9 @@ class Migration
      */
     public function getConnection()
     {
+        if (self::$connection instanceof AbstractAdapter) {
+            return self::$connection;
+        }
         return self::$connection->getTarget();
     }
 }
