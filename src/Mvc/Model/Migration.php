@@ -56,7 +56,7 @@ class Migration
     /**
      * Migration database connection
      *
-     * @var AbstractAdapter
+     * @var AbstractAdapter|Proxy
      */
     protected static $connection;
 
@@ -144,7 +144,7 @@ class Migration
         $eventsManager = new EventsManager();
         $eventsManager->attach('db', new DbProfilerListener());
 
-        self::$connection->setEventsManager($eventsManager);
+        $connection->setEventsManager($eventsManager);
     }
 
     /**
