@@ -32,7 +32,7 @@ class Proxy
         echo "[" . $line . "]\r\n";
     }
 
-    protected function getTarget()
+    public function getTarget()
     {
         return $this->target;
     }
