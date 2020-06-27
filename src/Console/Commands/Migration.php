@@ -154,6 +154,7 @@ class Migration implements CommandsInterface
                     'version'        => $this->parser->get('version'),
                     'migrationsInDb' => $migrationsInDb,
                     'verbose'        => $this->parser->has('verbose'),
+                    'dry'            => $this->parser->has('dry'),
                 ]);
                 break;
             case 'list':

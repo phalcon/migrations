@@ -197,6 +197,7 @@ class Migrations
         $listTables = new ListTablesIterator();
         $optionStack->setOptions($options);
         $optionStack->setDefaultOption('verbose', false);
+        $optionStack->setDefaultOption('dry', false);
 
         // Define versioning type to be used
         if (!empty($options['tsBased']) || $optionStack->getOption('tsBased')) {
@@ -265,7 +266,7 @@ class Migrations
             $finalVersion = VersionCollection::maximum($versionItems);
         }
 
-        ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
+        ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'), $optionStack->getOption('dry'));
         self::connectionSetup($optionStack->getOptions());
 
         /**
@@ -372,6 +373,9 @@ class Migrations
                 }
             }
 
+            if ($optionStack->getOption('dry')){
+                return;
+            }
             if (ModelMigration::DIRECTION_FORWARD == $direction) {
                 self::addCurrentVersion($optionStack->getOptions(), (string)$versionItem, $migrationStartTime);
                 print Color::success('Version ' . $versionItem . ' was successfully migrated');
