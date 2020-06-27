@@ -31,10 +31,12 @@ class Proxy
     {
         echo "[" . $line . "]\r\n";
     }
+
     protected function getTarget()
     {
         return $this->target;
     }
+
     public function __set($name, $value)
     {
         $this->target->$name = $value;
@@ -52,11 +54,12 @@ class Proxy
 
     public function __call($name, $arguments)
     {
-        if ($this->dry && in_array($name, [
-                'addColumn', 'addForeignKey', 'addIndex', 'addPrimaryKey',
-                'createTable', 'createView', 'dropColumn', 'dropForeignKey',
-                'dropIndex', 'dropPrimaryKey', 'dropTable', 'dropView', 'modifyColumn'
-            ])) {
+        $dialectArray = [
+            'addColumn', 'addForeignKey', 'addIndex', 'addPrimaryKey',
+            'createTable', 'createView', 'dropColumn', 'dropForeignKey',
+            'dropIndex', 'dropPrimaryKey', 'dropTable', 'dropView', 'modifyColumn'
+        ];
+        if ($this->dry && in_array($name, $dialectArray)) {
             $dialect = $this->target->getDialect();
             if (method_exists($dialect, $name)) {
                 $this->log(call_user_func_array(array($dialect, $name), $arguments));

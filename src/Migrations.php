@@ -267,8 +267,8 @@ class Migrations
         }
 
         ModelMigration::setup(
-            $optionStack->getOption('config')->database, 
-            $optionStack->getOption('verbose'), 
+            $optionStack->getOption('config')->database,
+            $optionStack->getOption('verbose'),
             $optionStack->getOption('dry')
         );
         self::connectionSetup($optionStack->getOptions());
