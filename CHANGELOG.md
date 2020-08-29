@@ -1,5 +1,7 @@
-# [x.x.x] (xxxx-xx-xx)
+# [2.1.3](https://github.com/phalcon/migrations/releases/tag/v2.1.3) (2020-08-29)
 - Improved tests codebase ([#86](https://github.com/phalcon/migrations/issues/86))
+- Fixed `.phar` compilation ([#91](https://github.com/phalcon/migrations/issues/85))
+- Added filter for column default value ([65735c1](https://github.com/phalcon/migrations/commit/65735c1e894549ccb5d7dc56749bf6a929c8351f))
 
 
 # [2.1.2](https://github.com/phalcon/migrations/releases/tag/v2.1.2) (2020-03-30)
