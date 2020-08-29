@@ -419,7 +419,7 @@ final class MigrationsCest
                     'created_at',
                     [
                         'type' => Column::TYPE_TIMESTAMP,
-                        'default' => "CURRENT_TIMESTAMP",
+                        'default' => 'CURRENT_TIMESTAMP',
                         'notNull' => true,
                     ]
                 ),
@@ -427,7 +427,7 @@ final class MigrationsCest
                     'deleted_at',
                     [
                         'type' => Column::TYPE_TIMESTAMP,
-                        'default' => 'NULL',
+                        'default' => null,
                         'notNull' => false,
                         'after' => 'created_at',
                     ]
@@ -451,6 +451,10 @@ final class MigrationsCest
         ]);
         ob_clean();
 
+        $columns = $I->getPhalconDb()->describeColumns($tableName);
+
+        $I->assertFalse($columns[1]->isNotNull());
+        $I->assertNull($columns[1]->getDefault());
         $I->seeNumRecords(0, $tableName);
     }
 
