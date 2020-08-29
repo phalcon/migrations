@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Unit\Migration\Action;
+namespace Phalcon\Migrations\Tests\Integration\Migration\Action;
 
 use IntegrationTester;
 use Phalcon\Db\Column;

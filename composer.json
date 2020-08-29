@@ -49,6 +49,15 @@
             "Phalcon\\Migrations\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Phalcon\\Migrations\\Tests\\Cli\\": "tests/cli/",
+            "Phalcon\\Migrations\\Tests\\Integration\\": "tests/integration/",
+            "Phalcon\\Migrations\\Tests\\Mysql\\": "tests/mysql/",
+            "Phalcon\\Migrations\\Tests\\PostgreSQL\\": "tests/postgresql/",
+            "Phalcon\\Migrations\\Tests\\Unit\\": "tests/unit/"
+        }
+    },
     "suggest": {
         "robmorgan/phinx": "Phinx makes it ridiculously easy to manage the database migrations for your PHP app."
     },

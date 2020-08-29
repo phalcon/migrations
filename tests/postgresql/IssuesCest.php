@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Phalcon\Migrations\Tests\Postgresql;
+namespace Phalcon\Migrations\Tests\PostgreSQL;
 
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
