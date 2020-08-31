@@ -85,9 +85,9 @@ class UserDetailsMigration_100 extends Migration
                 new Index('PRIMARY', ['user_id'], 'PRIMARY')
             ],
             'options' => [
-                'table_type' => 'BASE TABLE',
-                'engine' => 'InnoDB',
-                'table_collation' => 'latin1_swedish_ci'
+                'TABLE_TYPE' => 'BASE TABLE',
+                'ENGINE' => 'InnoDB',
+                'TABLE_COLLATION' => 'latin1_swedish_ci'
             ],
         ]);
     }
