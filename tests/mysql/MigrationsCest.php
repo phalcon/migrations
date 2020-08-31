@@ -274,7 +274,7 @@ final class MigrationsCest
 
         $I->assertEquals(4, $autoIncrement);
         $I->assertContains(
-            "'auto_increment' => '4'",
+            "'AUTO_INCREMENT' => '4'",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
     }
@@ -323,7 +323,7 @@ final class MigrationsCest
 
         $I->assertEquals(4, $autoIncrement);
         $I->assertContains(
-            "'auto_increment' => ''",
+            "'AUTO_INCREMENT' => ''",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
     }
