@@ -29,13 +29,15 @@ composer require --dev phalcon/migrations
 
 What you need for quick start:
 
-*  Configuration file in root of your project (you can also pass them as parameters inside CLI environment)
+*  Configuration file (ex: `migrations.php`) in root of your project (you can also pass them as parameters inside CLI environment)
 *  Create database tables structure
 *  Execute command to generate migrations
 
 After that you can execute that migrations (run) in another environment to create same DB structure.
 
 ### Create configuration file
+
+Configuration filename can be whatever you want.
 
 ```php
 <?php
@@ -72,10 +74,20 @@ return new Config([
 vendor/bin/phalcon-migrations generate
 ```
 
+Or if you have ready to use configuration file.
+```bash
+vendor/bin/phalcon-migrations generate --config=migrations.php
+```
+
 ### Run migrations
 
 ```bash
 vendor/bin/phalcon-migrations run
+```
+
+Or if you have ready to use configuration file.
+```bash
+vendor/bin/phalcon-migrations run --config=migrations.php
 ```
 
 ### List existing migrations
