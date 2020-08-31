@@ -328,7 +328,11 @@ class Generate
     {
         $options = [];
         foreach ($this->options as $name => $value) {
-            if ($skipAI && strtoupper($name) == 'AUTO_INCREMENT') {
+            /**
+             * All options keys must be UPPERCASE!
+             */
+            $name = strtoupper($name);
+            if ($skipAI && $name == 'AUTO_INCREMENT') {
                 $value = '';
             }
 
