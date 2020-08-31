@@ -1,3 +1,6 @@
+# [2.1.4](https://github.com/phalcon/migrations/releases/tag/v2.1.4) (2020-08-31)
+- Fixed 'options' table definition ([#94](https://github.com/phalcon/migrations/issues/94))
+
 # [2.1.3](https://github.com/phalcon/migrations/releases/tag/v2.1.3) (2020-08-29)
 - Improved tests codebase ([#86](https://github.com/phalcon/migrations/issues/86))
 - Fixed `.phar` compilation ([#91](https://github.com/phalcon/migrations/issues/85))
