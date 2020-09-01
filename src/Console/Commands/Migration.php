@@ -307,7 +307,7 @@ class Migration implements CommandsInterface
      *
      * @param array $parameters
      */
-    protected function printParameters($parameters): void
+    protected function printParameters(array $parameters): void
     {
         $length = 0;
         foreach ($parameters as $parameter => $description) {
