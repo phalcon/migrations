@@ -71,9 +71,9 @@ class Migration
     /**
      * Path where to save the migration
      *
-     * @var string|null
+     * @var string
      */
-    private static $migrationPath = null;
+    private static $migrationPath = '';
 
     /**
      * Skip auto increment
