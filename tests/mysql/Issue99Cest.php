@@ -29,7 +29,7 @@ final class Issue99Cest
             'there can be only one auto column and it must be defined as a key'
         );
 
-        $I->expectThrowable($throwable, function() use ($I) {
+        $I->expectThrowable($throwable, function () use ($I) {
             $I->silentRun('issues/99');
         });
     }

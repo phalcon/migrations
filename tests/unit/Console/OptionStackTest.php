@@ -25,7 +25,7 @@ final class OptionStackTest extends Unit
      * @var OptionStack
      */
     public $options;
-    
+
     public function setUp(): void
     {
         $this->options = new OptionStack();
@@ -59,9 +59,9 @@ final class OptionStackTest extends Unit
             'test' => 'foo',
             'test2' => 'bar',
         ];
-        
+
         $this->options->setOptions($options);
-        
+
         $this->assertSame($options, $this->options->getOptions());
     }
 

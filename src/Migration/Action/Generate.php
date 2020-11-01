@@ -309,7 +309,7 @@ class Generate
                     $this->wrapWithQuotes($referencedSchema)
                 );
             }
-            
+
             yield $constraintName => array_merge($referencesOptions, [
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
                 "'columns' => [" . join(',', array_unique($referenceColumns)) . "]",
@@ -338,7 +338,7 @@ class Generate
 
             $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
         }
-        
+
         return $options;
     }
 
