@@ -28,7 +28,8 @@
     "require": {
         "php": ">=7.2",
         "ext-phalcon": "^4.0.5",
-        "phalcon/cli-options-parser": "^1.2"
+        "phalcon/cli-options-parser": "^1.2",
+        "nette/php-generator": "^3.3"
     },
     "require-dev": {
         "ext-pdo": "*",
