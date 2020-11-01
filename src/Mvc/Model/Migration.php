@@ -25,6 +25,7 @@ use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
+use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
@@ -550,7 +551,19 @@ class Migration
                     }
                 }
             } else {
-                self::$connection->createTable($tableName, $defaultSchema, $definition);
+                try {
+                    self::$connection->createTable($tableName, $defaultSchema, $definition);
+                } catch (\Throwable $exception) {
+                    throw new RuntimeException(
+                        sprintf(
+                            "Failed to create table %s. In '%s' migration. DB error: %s",
+                            $tableName,
+                            \get_called_class(),
+                            $exception->getMessage()
+                        )
+                    );
+                }
+
                 if (method_exists($this, 'afterCreateTable')) {
                     $this->afterCreateTable();
                 }
