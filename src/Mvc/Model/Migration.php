@@ -439,7 +439,7 @@ class Migration
      * @throws Exception
      * @internal param ItemInterface $version
      */
-    private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, $tableName): ?Migration
+    private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, string $tableName): ?Migration
     {
         $prevVersions = [];
         $versions = self::scanForVersions(self::$migrationPath);
