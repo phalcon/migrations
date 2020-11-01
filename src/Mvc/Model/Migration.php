@@ -500,6 +500,9 @@ class Migration
             $fields = [];
             /** @var ColumnInterface $tableColumn */
             foreach ($definition['columns'] as $tableColumn) {
+                /**
+                 * TODO: Remove this message, as it will throw same during createTable() execution.
+                 */
                 if (!is_object($tableColumn)) {
                     throw new DbException('Table must have at least one column');
                 }
