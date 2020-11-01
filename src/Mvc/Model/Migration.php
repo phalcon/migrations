@@ -71,7 +71,7 @@ class Migration
     /**
      * Path where to save the migration
      *
-     * @var string
+     * @var string|null
      */
     private static $migrationPath = null;
 
@@ -85,7 +85,7 @@ class Migration
     /**
      * Version of the migration file
      *
-     * @var string
+     * @var string|null
      */
     protected $version = null;
 
@@ -121,6 +121,8 @@ class Migration
 
         $configArray = $database->toArray();
         unset($configArray['adapter']);
+
+        /** @var AbstractAdapter connection */
         self::$connection = new $adapter($configArray);
         self::$databaseConfig = $database;
 
@@ -420,8 +422,9 @@ class Migration
             throw new Exception('Migration class cannot be found ' . $className . ' at ' . $fileName);
         }
 
+        /** @var Migration $migration */
         $migration = new $className($version);
-        $migration->version = $version;
+        $migration->version = $version->__toString();
 
         return $migration;
     }
@@ -491,7 +494,7 @@ class Migration
     {
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
         $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
-        $tableSchema = $defaultSchema;
+        $tableSchema = (string)$defaultSchema;
 
         if (isset($definition['columns'])) {
             if (count($definition['columns']) == 0) {
@@ -596,7 +599,7 @@ class Migration
                 }
             } else {
                 try {
-                    self::$connection->createTable($tableName, $defaultSchema, $definition);
+                    self::$connection->createTable($tableName, $tableSchema, $definition);
                 } catch (\Throwable $exception) {
                     throw new RuntimeException(
                         sprintf(
