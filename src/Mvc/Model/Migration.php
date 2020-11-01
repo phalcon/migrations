@@ -529,7 +529,7 @@ class Migration
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to add column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $column,
+                                    $column->getName(),
                                     $tableName,
                                     \get_called_class(),
                                     $exception->getMessage()
@@ -564,7 +564,7 @@ class Migration
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to modify column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $column,
+                                    $column->getName(),
                                     $tableName,
                                     \get_called_class(),
                                     $exception->getMessage()
@@ -751,7 +751,7 @@ class Migration
                         throw new RuntimeException(
                             sprintf(
                                 "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
-                                $referenceName->getName(),
+                                $referenceName,
                                 $tableName,
                                 \get_called_class(),
                                 $exception->getMessage()
@@ -1027,7 +1027,7 @@ class Migration
             throw new RuntimeException(
                 sprintf(
                     "Failed to add index '%s' in '%s'. In '%s' migration. DB error: %s",
-                    $indexName,
+                    $indexName->getName(),
                     $tableName,
                     \get_called_class(),
                     $exception->getMessage()
