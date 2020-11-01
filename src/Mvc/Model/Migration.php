@@ -15,13 +15,17 @@ namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
 use Exception;
+use Nette\PhpGenerator\PhpFile;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
+use Phalcon\Db\Column;
 use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
+use Phalcon\Db\Index;
+use Phalcon\Db\Reference;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
@@ -196,6 +200,13 @@ class Migration
         array $exportTables = [],
         bool $skipRefSchema = false
     ): string {
+        $file = new PhpFile();
+        $file->addUse(Column::class);
+        $file->addUse(Index::class);
+        $file->addUse(Reference::class);
+        $file->addUse(Migration::class);
+        $file->setStrictTypes();
+
         $snippet = new Snippet();
         $adapter = (string)self::$databaseConfig->path('adapter');
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
@@ -238,6 +249,26 @@ class Migration
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
         $className = Text::camelize($table) . 'Migration_' . $classVersion;
+
+        $class = $file->addClass($className);
+        $class
+            ->setFinal()
+            ->setExtends(Migration::class);
+
+        $morphMethod = $class
+            ->addMethod('morph')
+            ->addComment('Define the table structure')
+            ->setVisibility('public')
+            ->addBody('$this->morphTable(\'?\', [
+            ?', [
+                $table,
+                $snippet->getMigrationDefinition('columns', $tableDefinition),
+            ]);
+
+        if (count($indexesDefinition) > 0) {
+            $morphMethod->addBody($snippet->getMigrationDefinition('indexes', $indexesDefinition));
+        }
+
 
         // morph()
         $classData = $snippet->getMigrationMorph($className, $table, $tableDefinition);
