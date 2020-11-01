@@ -15,31 +15,22 @@ namespace Phalcon\Migrations\Tests\Mysql;
 
 use MysqlTester;
 use Phalcon\Migrations\Exception\RuntimeException;
-use Phalcon\Migrations\Migrations;
 
 final class Issue99Cest
 {
     public function failToCreateTableDuringMorph(MysqlTester $I): void
     {
-        $I->wantToTest('Issue #99 - Exception during table morph');
-
-        $I->getPhalconDb()->createTable('empty', '', []);
+        $I->wantToTest('Issue #99 - Exception during morph: create table');
 
         $throwable = new RuntimeException(
-            'Failed to create table invalid_table. ' .
+            'Failed to create table \'invalid_table\'. ' .
             'In \'InvalidTableMigration_100\' migration. ' .
             'DB error: SQLSTATE[42000]: Syntax error or access violation: 1075 Incorrect table definition; ' .
             'there can be only one auto column and it must be defined as a key'
         );
 
         $I->expectThrowable($throwable, function() use ($I) {
-            ob_start();
-            Migrations::run([
-                'migrationsDir' => codecept_data_dir('issues/99'),
-                'config' => $I->getMigrationsConfig(),
-                'migrationsInDb' => true,
-            ]);
-            ob_clean();
+            $I->silentRun('issues/99');
         });
     }
 }
