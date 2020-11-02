@@ -270,6 +270,11 @@ class Migrations
             $finalVersion = VersionCollection::maximum($versionItems);
         }
 
+        if ($finalVersion === null) {
+            echo Color::info('No versions were found');
+            return;
+        }
+
         ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
         self::connectionSetup($optionStack->getOptions());
 
@@ -581,8 +586,9 @@ class Migrations
         } else {
             // Get and clean migration
             $version = file_exists(self::$storage) ? file_get_contents(self::$storage) : null;
+            $version = $version ? trim($version) : null;
 
-            if ($version = trim($version) ?: null) {
+            if ($version !== null) {
                 $version = preg_split('/\r\n|\r|\n/', $version, -1, PREG_SPLIT_NO_EMPTY);
                 natsort($version);
                 $version = array_pop($version);

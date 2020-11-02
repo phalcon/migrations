@@ -67,16 +67,16 @@ trait OptionParserTrait
             if (is_array($migrationsDirList)) {
                 foreach ($migrationsDirList as $migrationsDir) {
                     $migrationsSubDirList = ModelMigration::scanForVersions($migrationsDir);
-                    if (is_array($migrationsSubDirList)) {
-                        foreach ($migrationsSubDirList as $item) {
-                            if ($item->getVersion() != $versionItem->getVersion()) {
-                                continue;
-                            }
-                            if (!$this->options['force']) {
-                                throw new \LogicException('Version ' . $item->getVersion() . ' already exists');
-                            } else {
-                                rmdir(rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion());
-                            }
+
+                    foreach ($migrationsSubDirList as $item) {
+                        if ($item->getVersion() != $versionItem->getVersion()) {
+                            continue;
+                        }
+
+                        if (!$this->options['force']) {
+                            throw new \LogicException('Version ' . $item->getVersion() . ' already exists');
+                        } else {
+                            rmdir(rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion());
                         }
                     }
                 }

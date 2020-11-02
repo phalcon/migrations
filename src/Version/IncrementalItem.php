@@ -241,7 +241,7 @@ class IncrementalItem implements ItemInterface
             $n -= 1;
         }
 
-        $this->versionStamp = $versionStamp;
+        $this->versionStamp = (int)$versionStamp;
 
         return $this;
     }

@@ -10,6 +10,7 @@ use PDO;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\PdoFactory;
+use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
 
 class Mysql extends Module
@@ -127,6 +128,21 @@ class Mysql extends Module
         );
 
         $this->getPhalconDb()->execute($query);
+    }
+
+    /**
+     * @param string $directory
+     * @throws Exception
+     */
+    public function silentRun(string $directory): void
+    {
+        ob_start();
+        Migrations::run([
+            'migrationsDir' => codecept_data_dir($directory),
+            'config' => $this->getMigrationsConfig(),
+            'migrationsInDb' => true,
+        ]);
+        ob_clean();
     }
 
     /**
