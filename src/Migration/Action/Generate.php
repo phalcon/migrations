@@ -252,6 +252,10 @@ class Generate
                 $definition[] = "'scale' => " . $column->getScale();
             }
 
+            if (method_exists($column, 'getComment') && $column->getComment()) {
+                $definition[] = sprintf("'comment' => \"%s\"", $column->getComment());
+            }
+
             $this->quoteWrappedColumns[] = $this->wrapWithQuotes($column->getName());
 
             /**
