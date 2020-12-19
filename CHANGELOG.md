@@ -1,3 +1,6 @@
+# [2.1.5](https://github.com/phalcon/migrations/releases/tag/v2.1.4) (2020-11-03)
+- Enhanced error output during failed table morph ([#99](https://github.com/phalcon/migrations/issues/94))
+
 # [2.1.4](https://github.com/phalcon/migrations/releases/tag/v2.1.4) (2020-08-31)
 - Fixed 'options' table definition ([#94](https://github.com/phalcon/migrations/issues/94))
 
