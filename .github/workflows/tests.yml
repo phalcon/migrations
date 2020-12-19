@@ -7,7 +7,7 @@ jobs:
     name: PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
     env:
-      extensions: mbstring, intl, json, phalcon-4.0.6, mysql, pgsql, xdebug
+      extensions: mbstring, intl, json, phalcon-4.0.6, mysql, pgsql
       key: cache-v2.2~17.05.2020
     services:
       mysql:
@@ -34,6 +34,7 @@ jobs:
         id: cache-env
         uses: shivammathur/cache-extensions@v1
         with:
+          coverage: xdebug
           php-version: ${{ matrix.php-versions }}
           extensions: ${{ env.extensions }}
           key: ${{ env.key }}
