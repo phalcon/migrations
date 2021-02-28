@@ -123,7 +123,8 @@ class Migration
         unset($configArray['adapter']);
 
         /** @var AbstractAdapter $connection */
-        self::$connection = new $adapter($configArray);
+        $connection = new $adapter($configArray);
+        self::$connection = $connection;
         self::$databaseConfig = $database;
 
         if (!Migrations::isConsole() || !$verbose) {
@@ -160,7 +161,7 @@ class Migration
      * Generates all the class migration definitions for certain database setup
      *
      * @param ItemInterface $version
-     * @param string $exportData
+     * @param string|null $exportData
      * @param array $exportTables
      * @param bool $skipRefSchema
      * @return array
