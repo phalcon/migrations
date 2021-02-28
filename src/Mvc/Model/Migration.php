@@ -122,7 +122,7 @@ class Migration
         $configArray = $database->toArray();
         unset($configArray['adapter']);
 
-        /** @var AbstractAdapter connection */
+        /** @var AbstractAdapter $connection */
         self::$connection = new $adapter($configArray);
         self::$databaseConfig = $database;
 
