@@ -354,8 +354,13 @@ class Migration
             return; // nothing to do
         }
 
+        $dialect = self::$connection->getDialectType();
         if ($skipForeignChecks === true) {
-            self::$connection->execute('SET FOREIGN_KEY_CHECKS=0');
+            if ($dialect === self::DB_ADAPTER_MYSQL) {
+                self::$connection->execute('SET FOREIGN_KEY_CHECKS=0');
+            } elseif ($dialect === self::DB_ADAPTER_POSTGRESQL) {
+                self::$connection->execute("SET session_replication_role = 'replica'");
+            }
         }
 
         if ($fromVersion->getStamp() < $toVersion->getStamp()) {
@@ -396,7 +401,11 @@ class Migration
         }
 
         if ($skipForeignChecks === true) {
-            self::$connection->execute('SET FOREIGN_KEY_CHECKS=1');
+            if ($dialect === self::DB_ADAPTER_MYSQL) {
+                self::$connection->execute('SET FOREIGN_KEY_CHECKS=1');
+            } elseif ($dialect === self::DB_ADAPTER_POSTGRESQL) {
+                self::$connection->execute("SET session_replication_role = 'origin'");
+            }
         }
     }
 
