@@ -435,27 +435,15 @@ final class MigrationsCest
         ]);
         ob_clean();
 
-
-        $updatedColumn = new Column('id', [
-            'type' => Column::TYPE_INTEGER,
-            'size' => 10,
-            'unsigned' => true,
-            'notNull' => true,
-            'first' => true,
-            'primary' => true,
-            'autoIncrement' => true,
-        ]);
-
         ob_start();
         Migrations::run([
             'migrationsDir' => codecept_data_dir('issues/109'),
             'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
-
         ob_clean();
 
-        $columns = $I->getPhalconDb()->describeColumns($tableName);;
+        $columns = $I->getPhalconDb()->describeColumns($tableName);
 
         $I->asserttrue($columns[0]->isUnsigned());
     }
