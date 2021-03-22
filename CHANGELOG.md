@@ -1,8 +1,15 @@
-# [2.1.5](https://github.com/phalcon/migrations/releases/tag/v2.1.4) (2020-11-03)
+# [2.1.6](https://github.com/phalcon/migrations/releases/tag/v2.1.5) (2021-03-22)
+- Fixed duplicated table `phalcon_migrations` in PostgreSQL ([#104](https://github.com/phalcon/migrations/issues/104))
+- Fixed morphing when column attribute `unsiged` is changed ([#109](https://github.com/phalcon/migrations/issues/109))
+
+
+# [2.1.5](https://github.com/phalcon/migrations/releases/tag/v2.1.5) (2020-11-03)
 - Enhanced error output during failed table morph ([#99](https://github.com/phalcon/migrations/issues/94))
+
 
 # [2.1.4](https://github.com/phalcon/migrations/releases/tag/v2.1.4) (2020-08-31)
 - Fixed 'options' table definition ([#94](https://github.com/phalcon/migrations/issues/94))
+
 
 # [2.1.3](https://github.com/phalcon/migrations/releases/tag/v2.1.3) (2020-08-29)
 - Improved tests codebase ([#86](https://github.com/phalcon/migrations/issues/86))
