@@ -407,6 +407,47 @@ final class MigrationsCest
         );
     }
 
+    public function updateColumnUnsigned(MysqlTester $mysqlTester): void
+    {
+        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName = 'update_unsigned_column';
+        $migrationsDir = codecept_output_dir(__FUNCTION__);
+
+        $mysqlTester->getPhalconDb()->createTable($tableName, $dbName, [
+            'columns' => [
+                new Column('id', [
+                  'type' => Column::TYPE_INTEGER,
+                  'size' => 10,
+                  'unsigned' => false,
+                  'notNull' => true,
+                  'first' => true,
+                  'primary' => true,
+                  'autoIncrement' => true,
+                ]),
+            ],
+        ]);
+
+        ob_start();
+        Migrations::generate([
+          'migrationsDir' => $migrationsDir,
+          'config' => $mysqlTester->getMigrationsConfig(),
+          'tableName' => '@',
+        ]);
+        ob_clean();
+
+        ob_start();
+        Migrations::run([
+          'migrationsDir' => codecept_data_dir('issues/109'),
+          'config' => $mysqlTester->getMigrationsConfig(),
+          'migrationsInDb' => true,
+        ]);
+        ob_clean();
+
+        $columns = $mysqlTester->getPhalconDb()->describeColumns($tableName);
+
+        $mysqlTester->asserttrue($columns[0]->isUnsigned());
+    }
+
     public function nullableTimestamp(MysqlTester $I): void
     {
         $dbName = getenv('MYSQL_TEST_DB_DATABASE');
