@@ -429,17 +429,17 @@ final class MigrationsCest
 
         ob_start();
         Migrations::generate([
-            'migrationsDir' => $migrationsDir,
-            'config' => $mysqlTester->getMigrationsConfig(),
-            'tableName' => '@',
+          'migrationsDir' => $migrationsDir,
+          'config' => $mysqlTester->getMigrationsConfig(),
+          'tableName' => '@',
         ]);
         ob_clean();
 
         ob_start();
         Migrations::run([
-            'migrationsDir' => codecept_data_dir('issues/109'),
-            'config' => $mysqlTester->getMigrationsConfig(),
-            'migrationsInDb' => true,
+          'migrationsDir' => codecept_data_dir('issues/109'),
+          'config' => $mysqlTester->getMigrationsConfig(),
+          'migrationsInDb' => true,
         ]);
         ob_clean();
 
