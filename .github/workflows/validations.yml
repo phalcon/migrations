@@ -61,7 +61,6 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          coverage: none
           php-version: ${{ matrix.php-versions }}
           extensions: ${{ env.extensions }}
           tools: pecl
