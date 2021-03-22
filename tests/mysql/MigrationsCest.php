@@ -416,13 +416,13 @@ final class MigrationsCest
         $mysqlTester->getPhalconDb()->createTable($tableName, $dbName, [
             'columns' => [
                 new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => false,
-                    'notNull' => true,
-                    'first' => true,
-                    'primary' => true,
-                    'autoIncrement' => true,
+                  'type' => Column::TYPE_INTEGER,
+                  'size' => 10,
+                  'unsigned' => false,
+                  'notNull' => true,
+                  'first' => true,
+                  'primary' => true,
+                  'autoIncrement' => true,
                 ]),
             ],
         ]);
