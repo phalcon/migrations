@@ -1,4 +1,4 @@
-# [2.1.6](https://github.com/phalcon/migrations/releases/tag/v2.1.5) (2021-03-22)
+# [2.1.6](https://github.com/phalcon/migrations/releases/tag/v2.1.6) (2021-03-22)
 - Fixed duplicated table `phalcon_migrations` in PostgreSQL ([#104](https://github.com/phalcon/migrations/issues/104))
 - Fixed morphing when column attribute `unsiged` is changed ([#109](https://github.com/phalcon/migrations/issues/109))
 
