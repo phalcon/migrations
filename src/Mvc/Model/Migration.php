@@ -570,6 +570,10 @@ class Migration
                         $changed = true;
                     }
 
+                    if ($localFields[$fieldName]->isUnsigned() != $column->isUnsigned()) {
+                        $changed = true;
+                    }
+
                     if ($changed === true) {
                         try {
                             self::$connection->modifyColumn($tableName, $tableSchema, $column, $column);
