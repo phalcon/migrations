@@ -24,7 +24,7 @@ class ListTablesDb implements ListTablesInterface
      * Get table names with prefix for running migration
      *
      * @param string $tablePrefix
-     * @param DirectoryIterator $iterator
+     * @param DirectoryIterator|null $iterator
      * @return string
      * @throws DbException
      */
@@ -34,17 +34,14 @@ class ListTablesDb implements ListTablesInterface
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
         }
 
-        $modelMigration = new ModelMigration();
-        $connection = $modelMigration->getConnection();
-
-        $tablesList = $connection->listTables();
+        $tablesList = (new ModelMigration())->getConnection()->listTables();
         if (empty($tablesList)) {
             return '';
         }
 
-        $strlen = strlen($tablePrefix);
+        $length = strlen($tablePrefix);
         foreach ($tablesList as $key => $value) {
-            if (substr($value, 0, $strlen) != $tablePrefix) {
+            if (substr($value, 0, $length) !== $tablePrefix) {
                 unset($tablesList[$key]);
             }
         }

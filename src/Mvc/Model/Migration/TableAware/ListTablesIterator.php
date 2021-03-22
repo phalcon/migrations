@@ -22,26 +22,24 @@ class ListTablesIterator implements ListTablesInterface
      * Get table names with prefix for running migration
      *
      * @param string $tablePrefix
-     * @param DirectoryIterator $iterator
+     * @param DirectoryIterator|null $iterator
      * @return string
      */
     public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
     {
-        if (empty($tablePrefix) || empty($iterator)) {
+        if (empty($tablePrefix) || $iterator === null) {
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
         }
 
-        $strlen = strlen($tablePrefix);
         $fileNames = [];
+        $length = strlen($tablePrefix);
         foreach ($iterator as $fileInfo) {
-            if (substr($fileInfo->getFilename(), 0, $strlen) == $tablePrefix) {
+            if (substr($fileInfo->getFilename(), 0, $length) === $tablePrefix) {
                 $file = explode('.', $fileInfo->getFilename());
                 $fileNames[] = $file[0];
             }
         }
 
-        $fileNames = array_unique($fileNames);
-
-        return implode(',', $fileNames);
+        return implode(',', array_unique($fileNames));
     }
 }

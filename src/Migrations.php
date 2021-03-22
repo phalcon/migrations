@@ -338,7 +338,7 @@ class Migrations
                 continue;
             }
 
-            //Directory depends on Forward or Back Migration
+            // Directory depends on Forward or Back Migration
             if (ModelMigration::DIRECTION_BACK === $direction) {
                 $migrationsDir = $initialVersion->getPath();
                 $directoryIterator = $migrationsDir . DIRECTORY_SEPARATOR . $initialVersion->getVersion();
@@ -566,7 +566,7 @@ class Migrations
      * @param array $options Applications options
      * @return IncrementalItem|TimestampedItem
      */
-    public static function getCurrentVersion($options)
+    public static function getCurrentVersion(array $options)
     {
         self::connectionSetup($options);
 
@@ -603,10 +603,9 @@ class Migrations
      *
      * @param array $options Applications options
      * @param string $version Migration version to store
-     * @param string $startTime Migration start timestamp
-     * @throws DbException
+     * @param string|null $startTime Migration start timestamp
      */
-    public static function addCurrentVersion(array $options, string $version, string $startTime = null): void
+    public static function addCurrentVersion(array $options, string $version, ?string $startTime = null): void
     {
         self::connectionSetup($options);
 
@@ -638,7 +637,6 @@ class Migrations
      *
      * @param array $options Applications options
      * @param string $version Migration version to remove
-     * @throws DbException
      */
     public static function removeCurrentVersion(array $options, string $version): void
     {

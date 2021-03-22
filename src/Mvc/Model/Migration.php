@@ -34,6 +34,9 @@ use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Text;
+use Throwable;
+
+use function get_called_class;
 
 /**
  * Migrations of DML y DDL over databases
@@ -538,13 +541,13 @@ class Migration
                     if (!isset($localFields[$fieldName])) {
                         try {
                             self::$connection->addColumn($tableName, $tableSchema, $column);
-                        } catch (\Throwable $exception) {
+                        } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to add column '%s' in table '%s'. In '%s' migration. DB error: %s",
                                     $column->getName(),
                                     $tableName,
-                                    \get_called_class(),
+                                    get_called_class(),
                                     $exception->getMessage()
                                 )
                             );
@@ -577,13 +580,13 @@ class Migration
                     if ($changed === true) {
                         try {
                             self::$connection->modifyColumn($tableName, $tableSchema, $column, $column);
-                        } catch (\Throwable $exception) {
+                        } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to modify column '%s' in table '%s'. In '%s' migration. DB error: %s",
                                     $column->getName(),
                                     $tableName,
-                                    \get_called_class(),
+                                    get_called_class(),
                                     $exception->getMessage()
                                 )
                             );
@@ -598,13 +601,13 @@ class Migration
                              * TODO: Check, why schemaName is empty string.
                              */
                             self::$connection->dropColumn($tableName, '', $fieldName);
-                        } catch (\Throwable $exception) {
+                        } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to drop column '%s' in table '%s'. In '%s' migration. DB error: %s",
                                     $fieldName,
                                     $tableName,
-                                    \get_called_class(),
+                                    get_called_class(),
                                     $exception->getMessage()
                                 )
                             );
@@ -614,12 +617,12 @@ class Migration
             } else {
                 try {
                     self::$connection->createTable($tableName, $tableSchema, $definition);
-                } catch (\Throwable $exception) {
+                } catch (Throwable $exception) {
                     throw new RuntimeException(
                         sprintf(
                             "Failed to create table '%s'. In '%s' migration. DB error: %s",
                             $tableName,
-                            \get_called_class(),
+                            get_called_class(),
                             $exception->getMessage()
                         )
                     );
@@ -659,13 +662,13 @@ class Migration
                             $schemaName,
                             $tableReference
                         );
-                    } catch (\Throwable $exception) {
+                    } catch (Throwable $exception) {
                         throw new RuntimeException(
                             sprintf(
                                 "Failed to add foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
                                 $tableReference->getName(),
                                 $tableName,
-                                \get_called_class(),
+                                get_called_class(),
                                 $exception->getMessage()
                             )
                         );
@@ -725,13 +728,13 @@ class Migration
                             $schemaName,
                             $tableReference->getName()
                         );
-                    } catch (\Throwable $exception) {
+                    } catch (Throwable $exception) {
                         throw new RuntimeException(
                             sprintf(
                                 "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
                                 $tableReference->getName(),
                                 $tableName,
-                                \get_called_class(),
+                                get_called_class(),
                                 $exception->getMessage()
                             )
                         );
@@ -743,13 +746,13 @@ class Migration
                             $schemaName,
                             $tableReference
                         );
-                    } catch (\Throwable $exception) {
+                    } catch (Throwable $exception) {
                         throw new RuntimeException(
                             sprintf(
                                 "Failed to add foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
                                 $tableReference->getName(),
                                 $tableName,
-                                \get_called_class(),
+                                get_called_class(),
                                 $exception->getMessage()
                             )
                         );
@@ -764,13 +767,13 @@ class Migration
                          * TODO: Check, why schemaName is empty string.
                          */
                         self::$connection->dropForeignKey($tableName, '', $referenceName);
-                    } catch (\Throwable $exception) {
+                    } catch (Throwable $exception) {
                         throw new RuntimeException(
                             sprintf(
                                 "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
                                 $referenceName,
                                 $tableName,
-                                \get_called_class(),
+                                get_called_class(),
                                 $exception->getMessage()
                             )
                         );
@@ -996,13 +999,13 @@ class Migration
     {
         try {
             self::$connection->addPrimaryKey($tableName, $schemaName, $index);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException(
                 sprintf(
                     "Failed to add primary key '%s' in '%s'. In '%s' migration. DB error: %s",
                     $index->getName(),
                     $tableName,
-                    \get_called_class(),
+                    get_called_class(),
                     $exception->getMessage()
                 )
             );
@@ -1018,12 +1021,12 @@ class Migration
     {
         try {
             self::$connection->dropPrimaryKey($tableName, $schemaName);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException(
                 sprintf(
                     "Failed to drop primary key in '%s'. In '%s' migration. DB error: %s",
                     $tableName,
-                    \get_called_class(),
+                    get_called_class(),
                     $exception->getMessage()
                 )
             );
@@ -1040,13 +1043,13 @@ class Migration
     {
         try {
             self::$connection->addIndex($tableName, $schemaName, $indexName);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException(
                 sprintf(
                     "Failed to add index '%s' in '%s'. In '%s' migration. DB error: %s",
                     $indexName->getName(),
                     $tableName,
-                    \get_called_class(),
+                    get_called_class(),
                     $exception->getMessage()
                 )
             );
@@ -1063,13 +1066,13 @@ class Migration
     {
         try {
             self::$connection->dropIndex($tableName, $schemaName, $indexName);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException(
                 sprintf(
                     "Failed to drop index '%s' in '%s'. In '%s' migration. DB error: %s",
                     $indexName,
                     $tableName,
-                    \get_called_class(),
+                    get_called_class(),
                     $exception->getMessage()
                 )
             );
