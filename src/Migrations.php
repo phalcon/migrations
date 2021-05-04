@@ -100,7 +100,9 @@ class Migrations
 
         // Migrations directory
         if ($migrationsDir && !file_exists($migrationsDir)) {
-            mkdir($migrationsDir, 0755, true);
+            if (!mkdir($migrationsDir, 0755, true) && !is_dir($migrationsDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $migrationsDir));
+            }
         }
 
         $versionItem = $optionStack->getVersionNameGeneratingMigration();
@@ -109,7 +111,9 @@ class Migrations
         $migrationPath = rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion();
         if (!file_exists($migrationPath)) {
             if (is_writable(dirname($migrationPath)) && !$optionStack->getOption('verbose')) {
-                mkdir($migrationPath);
+                if (!mkdir($migrationPath) && !is_dir($migrationPath)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $migrationPath));
+                }
             } elseif (!is_writable(dirname($migrationPath))) {
                 throw new RuntimeException("Unable to write '{$migrationPath}' directory. Permission denied");
             }
@@ -152,7 +156,7 @@ class Migrations
                 $optionStack->setOption('tableName', $listTables->listTablesForPrefix($prefix));
             }
 
-            if ($optionStack->getOption('tableName') == '') {
+            if ($optionStack->getOption('tableName') === '') {
                 print Color::info('No one table is created. You should create tables first.') . PHP_EOL;
                 return;
             }
@@ -175,10 +179,12 @@ class Migrations
             }
         }
 
-        if (self::isConsole() && $wasMigrated) {
-            print Color::success('Version ' . $versionItem->getVersion() . ' was successfully generated') . PHP_EOL;
-        } elseif (self::isConsole() && !$optionStack->getOption('verbose')) {
-            print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
+        if (self::isConsole()) {
+            if ($wasMigrated) {
+                print Color::success('Version ' . $versionItem->getVersion() . ' was successfully generated') . PHP_EOL;
+            } elseif (!$optionStack->getOption('verbose')) {
+                print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
+            }
         }
 
         return true;
@@ -304,30 +310,30 @@ class Migrations
 
         /** @var IncrementalItem $versionItem */
         foreach ($versionsBetween as $versionItem) {
-            if ($initialVersion->getVersion() == $versionItem->getVersion()) {
+            if ($initialVersion->getVersion() === $versionItem->getVersion()) {
                 $initialVersion->setPath($versionItem->getPath());
             }
 
             // If we are rolling back, we skip migrating when initialVersion is the same as current
             if (
-                $initialVersion->getVersion() === $versionItem->getVersion() &&
                 ModelMigration::DIRECTION_BACK === $direction
+                && $initialVersion->getVersion() === $versionItem->getVersion()
             ) {
                 continue;
             }
-
-            if ((ModelMigration::DIRECTION_FORWARD === $direction) && isset($completedVersions[(string)$versionItem])) {
+            if ((ModelMigration::DIRECTION_FORWARD === $direction)
+                && isset($completedVersions[(string)$versionItem])
+            ) {
                 print Color::info('Version ' . (string)$versionItem . ' was already applied');
                 continue;
-            } elseif (
-                (ModelMigration::DIRECTION_BACK === $direction) &&
-                !isset($completedVersions[(string)$initialVersion])
+            }
+            if ((ModelMigration::DIRECTION_BACK === $direction)
+                && !isset($completedVersions[(string)$initialVersion])
             ) {
                 print Color::info('Version ' . (string)$initialVersion . ' was already rolled back');
                 $initialVersion = $versionItem;
                 continue;
             }
-
             //Directory depends on Forward or Back Migration
             if (ModelMigration::DIRECTION_BACK === $direction) {
                 $migrationsDir = $initialVersion->getPath();
@@ -345,8 +351,8 @@ class Migrations
 
             $iterator = new DirectoryIterator($directoryIterator);
             if (
-                $initialVersion->getVersion() === $finalVersion->getVersion() &&
                 ModelMigration::DIRECTION_BACK === $direction
+                && $initialVersion->getVersion() === $finalVersion->getVersion()
             ) {
                 break;
             }
@@ -372,7 +378,7 @@ class Migrations
                 }
             }
 
-            if (ModelMigration::DIRECTION_FORWARD == $direction) {
+            if (ModelMigration::DIRECTION_FORWARD === $direction) {
                 self::addCurrentVersion($optionStack->getOptions(), (string)$versionItem, $migrationStartTime);
                 print Color::success('Version ' . $versionItem . ' was successfully migrated');
             } else {
@@ -492,12 +498,13 @@ class Migrations
             unset($configArray['adapter']);
             self::$storage = new $adapter($configArray);
 
-            if ($database->adapter === 'Mysql') {
+            $dbAdapter = strtolower((string) $database->adapter);
+            if ($dbAdapter === Utils::DB_ADAPTER_MYSQL) {
                 self::$storage->setDialect(new DialectMysql());
                 self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
             }
 
-            if ($database->adapter == 'Postgresql') {
+            if ($dbAdapter === Utils::DB_ADAPTER_POSTGRESQL) {
                 self::$storage->setDialect(new DialectPostgresql());
             }
 
@@ -525,10 +532,14 @@ class Migrations
 
             if (is_file($path)) {
                 unlink($path);
-                mkdir($path);
+                if (!mkdir($path) && !is_dir($path)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
+                }
                 chmod($path, 0775);
             } elseif (!is_dir($path)) {
-                mkdir($path);
+                if (!mkdir($path) && !is_dir($path)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
+                }
                 chmod($path, 0775);
             }
 
@@ -562,23 +573,20 @@ class Migrations
 
             if (0 == $lastGoodMigration->numRows()) {
                 return VersionCollection::createItem(null);
-            } else {
-                $lastGoodMigration = $lastGoodMigration->fetchArray();
-
-                return VersionCollection::createItem($lastGoodMigration['version']);
             }
-        } else {
-            // Get and clean migration
-            $version = file_exists(self::$storage) ? file_get_contents(self::$storage) : null;
+            $lastGoodMigration = $lastGoodMigration->fetchArray();
 
-            if ($version = trim($version) ?: null) {
-                $version = preg_split('/\r\n|\r|\n/', $version, -1, PREG_SPLIT_NO_EMPTY);
-                natsort($version);
-                $version = array_pop($version);
-            }
-
-            return VersionCollection::createItem($version);
+            return VersionCollection::createItem($lastGoodMigration['version']);
         }
+        // Get and clean migration
+        $version = file_exists(self::$storage) ? file_get_contents(self::$storage) : null;
+        if ($version = trim($version) ?: null) {
+            $version = preg_split('/\r\n|\r|\n/', $version, -1, PREG_SPLIT_NO_EMPTY);
+            natsort($version);
+            $version = array_pop($version);
+        }
+
+        return VersionCollection::createItem($version);
     }
 
     /**

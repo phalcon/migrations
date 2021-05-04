@@ -57,4 +57,24 @@ class DialectPostgresql extends Postgresql
 
         return $sql;
     }
+    public function describeIndexes(string $table, string $schema = null): string
+    {
+        return "
+            SELECT 
+                t.relname as table_name, 
+                NOT ix.indisunique AS non_unique, 
+                i.relname as key_name, 
+                ix.indisprimary AS is_primary, 
+                a.attname as column_name 
+            FROM pg_class t, pg_class i, pg_index ix, pg_attribute a 
+            WHERE 
+                t.oid = ix.indrelid 
+                AND i.oid = ix.indexrelid 
+                AND a.attrelid = t.oid 
+                AND a.attnum = ANY(ix.indkey) 
+                AND t.relkind = 'r' 
+                AND t.relname = '" . $table . "' 
+            ORDER BY t.relname, i.relname;
+        ";
+    }
 }
