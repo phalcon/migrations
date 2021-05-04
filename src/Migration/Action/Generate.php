@@ -207,7 +207,7 @@ class Generate
                 throw new UnknownColumnTypeException($column);
             }
 
-            if (in_array($columnType, $this->numericColumnTypes)) {
+            if (in_array($columnType, $this->numericColumnTypes, true)) {
                 $this->numericColumns[$column->getName()] = true;
             }
 
@@ -219,7 +219,7 @@ class Generate
                 $definition[] = sprintf("'default' => \"%s\"", $column->getDefault());
             }
 
-            if ($column->isPrimary() && $this->adapter == Migration::DB_ADAPTER_POSTGRESQL) {
+            if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && $column->isPrimary()) {
                 $definition[] = "'primary' => true";
                 $this->primaryColumnName = $column->getName();
             }
@@ -277,7 +277,7 @@ class Generate
             $definition = [];
             foreach ($index->getColumns() as $column) {
                 // [PostgreSQL] Skip primary key column
-                if ($this->adapter !== Migration::DB_ADAPTER_POSTGRESQL && $column !== $this->getPrimaryColumnName()) {
+                if ($column !== $this->getPrimaryColumnName()) {
                     $definition[] = $this->wrapWithQuotes($column);
                 }
             }
@@ -336,7 +336,7 @@ class Generate
              * All options keys must be UPPERCASE!
              */
             $name = strtoupper($name);
-            if ($skipAI && $name == 'AUTO_INCREMENT') {
+            if ($skipAI && $name === 'AUTO_INCREMENT') {
                 $value = '';
             }
 
