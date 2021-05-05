@@ -321,13 +321,15 @@ class Migrations
             ) {
                 continue;
             }
-            if ((ModelMigration::DIRECTION_FORWARD === $direction)
+            if (
+                ModelMigration::DIRECTION_FORWARD === $direction
                 && isset($completedVersions[(string)$versionItem])
             ) {
                 print Color::info('Version ' . (string)$versionItem . ' was already applied');
                 continue;
             }
-            if ((ModelMigration::DIRECTION_BACK === $direction)
+            if (
+                ModelMigration::DIRECTION_BACK === $direction
                 && !isset($completedVersions[(string)$initialVersion])
             ) {
                 print Color::info('Version ' . (string)$initialVersion . ' was already rolled back');

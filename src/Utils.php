@@ -38,8 +38,8 @@ class Utils
         }
 
         $delimiterArray = str_split($delimiter);
-        foreach ($delimiterArray as $_delimiter) {
-            $stringParts = explode($_delimiter, $string);
+        foreach ($delimiterArray as $subDelimiter) {
+            $stringParts = explode($subDelimiter, $string);
             $stringParts = array_map('ucfirst', $stringParts);
 
             $string = implode('', $stringParts);
@@ -74,8 +74,8 @@ class Utils
         if (!empty($delimiter)) {
             $delimiterArray = str_split($delimiter);
 
-            foreach ($delimiterArray as $_delimiter) {
-                $stringParts = explode($_delimiter, $string);
+            foreach ($delimiterArray as $subDelimiter) {
+                $stringParts = explode($subDelimiter, $string);
                 $stringParts = array_map('ucfirst', $stringParts);
 
                 $string = implode('', $stringParts);
@@ -108,7 +108,7 @@ class Utils
      */
     public static function resolveDbSchema(Config $config): ?string
     {
-        if ($config->offsetExists('schema')) {
+        if ($config->has('schema')) {
             return $config->get('schema');
         }
 
@@ -123,7 +123,7 @@ class Utils
             return null;
         }
 
-        if ($config->offsetExists('dbname')) {
+        if ($config->has('dbname')) {
             return $config->get('dbname');
         }
 

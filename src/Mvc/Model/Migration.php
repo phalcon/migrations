@@ -121,7 +121,10 @@ class Migration
 
         $configArray = $database->toArray();
         unset($configArray['adapter']);
-        self::$connection = new $adapter($configArray);
+
+        /** @var AbstractAdapter $connection */
+        $connection = new $adapter($configArray);
+        self::$connection = $connection;
         self::$databaseConfig = $database;
 
         // Connection custom dialect Dialect/DialectMysql
@@ -589,15 +592,17 @@ class Migration
                     $changed = true;
                 }
 
-                if (!$changed &&
-                    count($tableReference->getColumns()) !==
+                if (
+                    !$changed
+                    && count($tableReference->getColumns()) !==
                     count($localReferences[$tableReference->getName()]['columns'])
                 ) {
                     $changed = true;
                 }
 
-                if (!$changed &&
-                    count($tableReference->getReferencedColumns()) !==
+                if (
+                    !$changed
+                    && count($tableReference->getReferencedColumns()) !==
                     count($localReferences[$tableReference->getName()]['referencedColumns'])
                 ) {
                     $changed = true;
@@ -614,7 +619,8 @@ class Migration
 
                 if (!$changed) {
                     foreach ($tableReference->getReferencedColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['referencedColumns'], true)) {
+                        $referencedColumns = $localReferences[$tableReference->getName()]['referencedColumns'];
+                        if (!in_array($columnName, $referencedColumns, true)) {
                             $changed = true;
                             break;
                         }
@@ -657,9 +663,7 @@ class Migration
 
             foreach ($definition['indexes'] as $tableIndex) {
                 if (!isset($localIndexes[$tableIndex->getName()])) {
-                    if ($tableIndex->getName() === 'PRIMARY'
-                        || $tableIndex->getType() === 'PRIMARY KEY'
-                    ) {
+                    if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
                         self::$connection->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                     } else {
                         self::$connection->addIndex($tableName, $tableSchema, $tableIndex);
@@ -678,9 +682,7 @@ class Migration
                     }
 
                     if ($changed) {
-                        if ($tableIndex->getName() === 'PRIMARY'
-                            || $tableIndex->getType() === 'PRIMARY KEY'
-                        ) {
+                        if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
                             self::$connection->dropPrimaryKey($tableName, $tableSchema);
                             self::$connection->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                         } else {

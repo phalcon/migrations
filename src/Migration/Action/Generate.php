@@ -300,7 +300,7 @@ class Generate
             foreach ($reference->getReferencedColumns() as $referencedColumn) {
                 $referencedColumns[] = $this->wrapWithQuotes($referencedColumn);
             }
-            
+
             yield $constraintName => [
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
                 sprintf("'referencedSchema' => %s", $this->wrapWithQuotes($reference->getReferencedSchema())),
@@ -326,7 +326,7 @@ class Generate
 
             $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
         }
-        
+
         return $options;
     }
 
