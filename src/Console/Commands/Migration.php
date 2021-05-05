@@ -86,13 +86,14 @@ class Migration implements CommandsInterface
         } else {
             $config = $this->getConfig($path);
         }
+        $application = $config->get('application') ?? [];
 
         // Multiple dir
         $migrationsDir = [];
         if ($this->parser->has('migrations')) {
             $migrationsDir = explode(',', $this->parser->get('migrations'));
-        } elseif (isset($config['application']['migrationsDir'])) {
-            $migrationsDir = explode(',', $config['application']['migrationsDir']);
+        } elseif (isset($application['migrationsDir'])) {
+            $migrationsDir = explode(',', $application['migrationsDir']);
         }
 
         if (!empty($migrationsDir)) {
@@ -113,19 +114,20 @@ class Migration implements CommandsInterface
          * Keep migrations log in db either "log-in-db" option or "logInDb"
          * config variable from "application" block
          */
-        $migrationsInDb = $config['application']['logInDb'] ?? $this->parser->has('log-in-db');
+        $migrationsInDb = $application['logInDb'] ?? $this->parser->has('log-in-db');
 
         /**
          * Migrations naming is timestamp-based rather than traditional, dotted versions
          * either "ts-based" option or "migrationsTsBased" config variable from "application" block
          */
-        $migrationsTsBased = $config['application']['migrationsTsBased'] ?? $this->parser->has('ts-based');
+        $migrationsTsBased = $application['migrationsTsBased'] ?? $this->parser->has('ts-based');
 
-        $noAutoIncrement = $config['application']['no-auto-increment'] ?? $this->parser->has('no-auto-increment');
-        $skipRefSchema = $config['application']['skip-ref-schema'] ?? $this->parser->has('skip-ref-schema');
-        $skipForeignChecks = $config['application']['skip-foreign-checks'] ?? $this->parser->has('skip-foreign-checks');
 
-        $descr = $config['application']['descr'] ?? $this->parser->get('descr');
+        $noAutoIncrement = $application['no-auto-increment'] ?? $this->parser->has('no-auto-increment');
+        $skipRefSchema = $application['skip-ref-schema'] ?? $this->parser->has('skip-ref-schema');
+        $skipForeignChecks = $application['skip-foreign-checks'] ?? $this->parser->has('skip-foreign-checks');
+
+        $descr = $application['descr'] ?? $this->parser->get('descr');
         $tableName = $this->parser->get('table', '@');
 
         switch ($action) {
@@ -210,11 +212,12 @@ class Migration implements CommandsInterface
     protected function exportFromTables($config): array
     {
         $tables = [];
+        $application = $config->get('application') ?? [];
 
         if ($this->parser->has('exportDataFromTables')) {
             $tables = explode(',', $this->parser->get('exportDataFromTables'));
-        } elseif (isset($config['application']['exportDataFromTables'])) {
-            $configTables = $config['application']['exportDataFromTables'];
+        } elseif (isset($application['exportDataFromTables'])) {
+            $configTables = $application['exportDataFromTables'];
             if ($configTables instanceof Config) {
                 $tables = $configTables->toArray();
             } else {

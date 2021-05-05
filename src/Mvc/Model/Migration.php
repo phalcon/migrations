@@ -697,15 +697,17 @@ class Migration
                     $changed = true;
                 }
 
-                if (!$changed &&
-                    count($tableReference->getColumns()) !==
+                if (
+                    !$changed
+                    && count($tableReference->getColumns()) !==
                     count($localReferences[$tableReference->getName()]['columns'])
                 ) {
                     $changed = true;
                 }
 
-                if (!$changed &&
-                    count($tableReference->getReferencedColumns()) !==
+                if (
+                    !$changed
+                    && count($tableReference->getReferencedColumns()) !==
                     count($localReferences[$tableReference->getName()]['referencedColumns'])
                 ) {
                     $changed = true;
@@ -722,7 +724,8 @@ class Migration
 
                 if (!$changed) {
                     foreach ($tableReference->getReferencedColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['referencedColumns'], true)) {
+                        $referencedColumns = $localReferences[$tableReference->getName()]['referencedColumns'];
+                        if (!in_array($columnName, $referencedColumns, true)) {
                             $changed = true;
                             break;
                         }
