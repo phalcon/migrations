@@ -52,7 +52,7 @@ class Generate
 
         Column::TYPE_BOOLEAN => 'TYPE_BOOLEAN',
         Column::TYPE_FLOAT => 'TYPE_FLOAT',
-        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
+        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
         Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
 
         Column::TYPE_BLOB => 'TYPE_BLOB',
