@@ -29,7 +29,8 @@ class PdoPostgresql extends Postgresql
      * Lists table references
      *
      * @param string $table
-     * @param string $schema
+     * @param string|null $schema
+     *
      * @return ReferenceInterface[]
      */
     public function describeReferences(string $table, string $schema = null): array
@@ -86,6 +87,7 @@ class PdoPostgresql extends Postgresql
     /**
      * @param string $table
      * @param string|null $schema
+     *
      * @return IndexInterface[]
      */
     public function describeIndexes(string $table, string $schema = null): array
@@ -116,8 +118,8 @@ class PdoPostgresql extends Postgresql
         foreach ($indexes as $name => $index) {
             $indexObjects[$name] = new Index(
                 $name,
-                $index['columns'],
-                $index['type']
+                $index['columns'] ?? [],
+                $index['type'] ?? ''
             );
         }
 

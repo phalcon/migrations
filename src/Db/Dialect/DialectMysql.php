@@ -24,6 +24,7 @@ class DialectMysql extends Mysql
      * @param string $tableName
      * @param string $schemaName
      * @param ReferenceInterface $reference
+     *
      * @return string
      */
     public function addForeignKey(string $tableName, string $schemaName, ReferenceInterface $reference): string

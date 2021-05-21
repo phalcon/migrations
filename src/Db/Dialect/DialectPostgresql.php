@@ -21,7 +21,8 @@ class DialectPostgresql extends Postgresql
      * Generates SQL to query foreign keys on a table
      *
      * @param string $table
-     * @param string $schema
+     * @param string|null $schema
+     *
      * @return string
      */
     public function describeReferences(string $table, string $schema = null): string
@@ -57,6 +58,7 @@ class DialectPostgresql extends Postgresql
 
         return $sql;
     }
+
     public function describeIndexes(string $table, string $schema = null): string
     {
         return "

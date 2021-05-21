@@ -18,13 +18,13 @@ use Exception;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
-use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
 use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\IndexInterface;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
+use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
@@ -382,7 +382,7 @@ class Migration
         if ($fromVersion->getStamp() < $toVersion->getStamp()) {
             $toMigration = self::createClass($toVersion, $tableName);
 
-            if (null !== $toMigration && is_object($toMigration)) {
+            if (null !== $toMigration) {
                 // morph the table structure
                 if (method_exists($toMigration, 'morph')) {
                     $toMigration->morph();
@@ -401,7 +401,7 @@ class Migration
 
             // reset the data modifications
             $fromMigration = self::createClass($fromVersion, $tableName);
-            if (null !== $fromMigration && is_object($fromMigration) && method_exists($fromMigration, 'down')) {
+            if (null !== $fromMigration && method_exists($fromMigration, 'down')) {
                 $fromMigration->down();
 
                 if (method_exists($fromMigration, 'afterDown')) {

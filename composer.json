@@ -33,7 +33,6 @@
     "require-dev": {
         "ext-pdo": "*",
         "phalcon/ide-stubs": "^4.0.0",
-        "vimeo/psalm": "^4.1",
         "squizlabs/php_codesniffer": "^3.5",
         "fzaninotto/faker": "^1.9",
         "humbug/box": "^3.8",

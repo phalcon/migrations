@@ -61,6 +61,10 @@ final class GenerateCest
                     'size' => 10,
                     'notNull' => true,
                 ]),
+                new Column('num_point', [
+                    'type' => Column::TYPE_FLOAT,
+                    'notNull' => true,
+                ]),
             ],
         ]);
 
