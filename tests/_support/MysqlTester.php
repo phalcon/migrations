@@ -22,4 +22,14 @@ class MysqlTester extends \Codeception\Actor
    /**
     * Define custom actions here
     */
+    public function seeExceptionThrown($exception, $function): ?bool
+    {
+        try {
+            $function();
+
+            return false;
+        } catch (\Throwable $throwable) {
+            return get_class($throwable) === $exception;
+        }
+    }
 }
