@@ -42,6 +42,7 @@
         "codeception/module-cli": "^1.0",
         "codeception/module-phpbrowser": "^1.0.0",
         "codeception/module-db": "^1.0",
+        "vimeo/psalm": "^4.6",
         "vlucas/phpdotenv": "^4.1"
     },
     "autoload": {

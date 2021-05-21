@@ -15,11 +15,16 @@ namespace Phalcon\Migrations\Db\Adapter\Pdo;
 
 use Phalcon\Db\Adapter\Pdo\Postgresql;
 use Phalcon\Db\Enum;
+use Phalcon\Db\Index;
+use Phalcon\Db\IndexInterface;
 use Phalcon\Db\Reference;
 use Phalcon\Db\ReferenceInterface;
 
 class PdoPostgresql extends Postgresql
 {
+    public const INDEX_TYPE_PRIMARY = 'PRIMARY KEY';
+    public const INDEX_TYPE_UNIQUE = 'UNIQUE';
+
     /**
      * Lists table references
      *
@@ -76,5 +81,46 @@ class PdoPostgresql extends Postgresql
         }
 
         return $referenceObjects;
+    }
+
+    /**
+     * @param string $table
+     * @param string|null $schema
+     * @return IndexInterface[]
+     */
+    public function describeIndexes(string $table, string $schema = null): array
+    {
+        $indexes = [];
+        $indexObjects = [];
+
+        $_indexes = $this->fetchAll($this->dialect->describeIndexes($table, $schema));
+        foreach ($_indexes as $index) {
+            $keyName = $index['key_name'] ?? $index[2];
+            $nonUnique = $index['non_unique'] ?? true;
+            $isPrimary = $index['is_primary'] ?? false;
+
+            if ($isPrimary) {
+                $indexType = self::INDEX_TYPE_PRIMARY;
+            } elseif (!$nonUnique) {
+                $indexType = self::INDEX_TYPE_UNIQUE;
+            } else {
+                $indexType = '';
+            }
+
+            $columns = $indexes[$keyName]['columns'] ?? [];
+            $columns[] = $index['column_name'] ?? $index[4];
+            $indexes[$keyName]['columns'] = $columns;
+            $indexes[$keyName]['type'] = $indexType;
+        }
+
+        foreach ($indexes as $name => $index) {
+            $indexObjects[$name] = new Index(
+                $name,
+                $index['columns'],
+                $index['type']
+            );
+        }
+
+        return $indexObjects;
     }
 }

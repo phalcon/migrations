@@ -38,8 +38,8 @@ class Utils
         }
 
         $delimiterArray = str_split($delimiter);
-        foreach ($delimiterArray as $delimiter) {
-            $stringParts = explode($delimiter, $string);
+        foreach ($delimiterArray as $subDelimiter) {
+            $stringParts = explode($subDelimiter, $string);
             $stringParts = array_map('ucfirst', $stringParts);
 
             $string = implode('', $stringParts);
@@ -74,8 +74,8 @@ class Utils
         if (!empty($delimiter)) {
             $delimiterArray = str_split($delimiter);
 
-            foreach ($delimiterArray as $delimiter) {
-                $stringParts = explode($delimiter, $string);
+            foreach ($delimiterArray as $subDelimiter) {
+                $stringParts = explode($subDelimiter, $string);
                 $stringParts = array_map('ucfirst', $stringParts);
 
                 $string = implode('', $stringParts);
@@ -108,22 +108,22 @@ class Utils
      */
     public static function resolveDbSchema(Config $config): ?string
     {
-        if ($config->offsetExists('schema')) {
+        if ($config->has('schema')) {
             return $config->get('schema');
         }
 
         $adapter = strtolower($config->get('adapter'));
-        if (self::DB_ADAPTER_POSTGRESQL == $adapter) {
+        if (self::DB_ADAPTER_POSTGRESQL === $adapter) {
             return 'public';
         }
 
-        if (self::DB_ADAPTER_SQLITE == $adapter) {
+        if (self::DB_ADAPTER_SQLITE === $adapter) {
             // SQLite only supports the current database, unless one is
             // attached. This is not the case, so don't return a schema.
             return null;
         }
 
-        if ($config->offsetExists('dbname')) {
+        if ($config->has('dbname')) {
             return $config->get('dbname');
         }
 

@@ -52,7 +52,7 @@ class Generate
 
         Column::TYPE_BOOLEAN => 'TYPE_BOOLEAN',
         Column::TYPE_FLOAT => 'TYPE_FLOAT',
-        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
+        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
         Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
 
         Column::TYPE_BLOB => 'TYPE_BLOB',
@@ -208,7 +208,7 @@ class Generate
                 throw new UnknownColumnTypeException($column);
             }
 
-            if (in_array($columnType, $this->numericColumnTypes)) {
+            if (in_array($columnType, $this->numericColumnTypes, true)) {
                 $this->numericColumns[$column->getName()] = true;
             }
 
@@ -220,7 +220,7 @@ class Generate
                 $definition[] = sprintf("'default' => \"%s\"", $column->getDefault());
             }
 
-            if ($column->isPrimary() && $this->adapter == Utils::DB_ADAPTER_POSTGRESQL) {
+            if ($this->adapter === Utils::DB_ADAPTER_POSTGRESQL && $column->isPrimary()) {
                 $definition[] = "'primary' => true";
                 $this->primaryColumnName = $column->getName();
             }
@@ -274,7 +274,7 @@ class Generate
             $definition = [];
             foreach ($index->getColumns() as $column) {
                 // [PostgreSQL] Skip primary key column
-                if ($this->adapter !== Utils::DB_ADAPTER_POSTGRESQL && $column !== $this->getPrimaryColumnName()) {
+                if ($column !== $this->getPrimaryColumnName()) {
                     $definition[] = $this->wrapWithQuotes($column);
                 }
             }
@@ -300,7 +300,7 @@ class Generate
             foreach ($reference->getReferencedColumns() as $referencedColumn) {
                 $referencedColumns[] = $this->wrapWithQuotes($referencedColumn);
             }
-            
+
             yield $constraintName => [
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
                 sprintf("'referencedSchema' => %s", $this->wrapWithQuotes($reference->getReferencedSchema())),
@@ -326,7 +326,7 @@ class Generate
 
             $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
         }
-        
+
         return $options;
     }
 

@@ -23,11 +23,31 @@ final class GenerateCest
      * @param IntegrationTester $I
      * @throws UnknownColumnTypeException
      */
-    public function construct(IntegrationTester $I): void
+    public function constructMysql(IntegrationTester $I): void
     {
-        $I->wantToTest('Migration\Action\Generate - __construct()');
+        $I->wantToTest('Migration\Action\Generate - __construct(Mysql)');
 
         $adapter = 'mysql';
+        $class = new Generate($adapter);
+
+        $I->assertSame($adapter, $class->getAdapter());
+        $I->assertIsObject($class->getColumns());
+        $I->assertIsObject($class->getIndexes());
+        $I->assertIsObject($class->getReferences());
+        $I->assertIsArray($class->getOptions(false));
+        $I->assertIsArray($class->getNumericColumns());
+        $I->assertNull($class->getPrimaryColumnName());
+    }
+
+    /**
+     * @param IntegrationTester $I
+     * @throws UnknownColumnTypeException
+     */
+    public function constructPostgresql(IntegrationTester $I): void
+    {
+        $I->wantToTest('Migration\Action\Generate - __construct(Postgresql)');
+
+        $adapter = 'postgresql';
         $class = new Generate($adapter);
 
         $I->assertSame($adapter, $class->getAdapter());

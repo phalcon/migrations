@@ -106,9 +106,10 @@ class Migration
          *
          * @see: Phalcon\Db\Dialect\PdoMysql The extended and fixed dialect class for MySQL
          */
-        if ($database->adapter == 'Mysql') {
+        $dbAdapter = strtolower((string) $database->adapter);
+        if ($dbAdapter === Utils::DB_ADAPTER_MYSQL) {
             $adapter = PdoMysql::class;
-        } elseif ($database->adapter == 'Postgresql') {
+        } elseif ($dbAdapter === Utils::DB_ADAPTER_POSTGRESQL) {
             $adapter = PdoPostgresql::class;
         } else {
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
@@ -120,20 +121,23 @@ class Migration
 
         $configArray = $database->toArray();
         unset($configArray['adapter']);
-        self::$connection = new $adapter($configArray);
+
+        /** @var AbstractAdapter $connection */
+        $connection = new $adapter($configArray);
+        self::$connection = $connection;
         self::$databaseConfig = $database;
 
         // Connection custom dialect Dialect/DialectMysql
-        if ($database->adapter == 'Mysql') {
+        if ($dbAdapter === Utils::DB_ADAPTER_MYSQL) {
             self::$connection->setDialect(new DialectMysql());
         }
 
         // Connection custom dialect Dialect/DialectPostgresql
-        if ($database->adapter == 'Postgresql') {
+        if ($dbAdapter === Utils::DB_ADAPTER_POSTGRESQL) {
             self::$connection->setDialect(new DialectPostgresql());
         }
 
-        if (!Migrations::isConsole() || !$verbose) {
+        if (!$verbose || !Migrations::isConsole()) {
             return;
         }
 
@@ -167,10 +171,10 @@ class Migration
      * Generates all the class migration definitions for certain database setup
      *
      * @param ItemInterface $version
-     * @param string $exportData
+     * @param string|null $exportData
      * @param array $exportDataFromTables
      * @return array
-     * @throws DbException
+     * @throws UnknownColumnTypeException
      */
     public static function generateAll(
         ItemInterface $version,
@@ -204,7 +208,7 @@ class Migration
         array $exportDataFromTables = []
     ): string {
         $snippet = new Snippet();
-        $adapter = (string)self::$databaseConfig->path('adapter');
+        $adapter = strtolower((string) self::$databaseConfig->path('adapter'));
         $defaultSchema = Utils::resolveDbSchema(self::$databaseConfig);
         $description = self::$connection->describeColumns($table, $defaultSchema);
         $indexes = self::$connection->describeIndexes($table, $defaultSchema);
@@ -226,7 +230,7 @@ class Migration
          */
         $indexesDefinition = [];
         foreach ($generateAction->getIndexes() as $indexName => $indexDefinition) {
-            list($definition, $type) = $indexDefinition;
+            [$definition, $type] = $indexDefinition;
             $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $definition, $type);
         }
 
@@ -266,7 +270,7 @@ class Migration
         // up()
         $classData .= $snippet->getMigrationUp();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
             $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -275,14 +279,14 @@ class Migration
         // down()
         $classData .= $snippet->getMigrationDown();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
             $classData .= $snippet->getMigrationBatchDelete($table);
         }
 
         $classData .= "\n    }\n";
 
         // afterCreateTable()
-        if ($exportData == 'oncreate' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
+        if ($exportData === 'oncreate' || self::shouldExportDataFromTable($table, $exportDataFromTables)) {
             $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
         }
 
@@ -292,8 +296,8 @@ class Migration
         $numericColumns = $generateAction->getNumericColumns();
         // dump data
         if (
-            $exportData == 'always' ||
-            $exportData == 'oncreate' ||
+            $exportData === 'always' ||
+            $exportData === 'oncreate' ||
             self::shouldExportDataFromTable($table, $exportDataFromTables)
         ) {
             $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
@@ -316,8 +320,7 @@ class Migration
                 }
 
                 fputcsv($fileHandler, $data);
-                unset($row);
-                unset($data);
+                unset($row, $data);
             }
 
             fclose($fileHandler);
@@ -328,7 +331,7 @@ class Migration
 
     public static function shouldExportDataFromTable(string $table, array $exportDataFromTables): bool
     {
-        return in_array($table, $exportDataFromTables);
+        return in_array($table, $exportDataFromTables, true);
     }
 
     /**
@@ -347,14 +350,14 @@ class Migration
         $fromVersion = $fromVersion ?: VersionCollection::createItem($fromVersion);
         $toVersion = $toVersion ?: VersionCollection::createItem($toVersion);
 
-        if ($fromVersion->getStamp() == $toVersion->getStamp()) {
+        if ($fromVersion->getStamp() === $toVersion->getStamp()) {
             return; // nothing to do
         }
 
         if ($fromVersion->getStamp() < $toVersion->getStamp()) {
             $toMigration = self::createClass($toVersion, $tableName);
 
-            if (is_object($toMigration)) {
+            if (null !== $toMigration && is_object($toMigration)) {
                 // morph the table structure
                 if (method_exists($toMigration, 'morph')) {
                     $toMigration->morph();
@@ -373,7 +376,7 @@ class Migration
 
             // reset the data modifications
             $fromMigration = self::createClass($fromVersion, $tableName);
-            if (is_object($fromMigration) && method_exists($fromMigration, 'down')) {
+            if (null !== $fromMigration && is_object($fromMigration) && method_exists($fromMigration, 'down')) {
                 $fromMigration->down();
 
                 if (method_exists($fromMigration, 'afterDown')) {
@@ -485,7 +488,7 @@ class Migration
         $tableSchema = $defaultSchema;
 
         if (isset($definition['columns'])) {
-            if (count($definition['columns']) == 0) {
+            if (count($definition['columns']) === 0) {
                 throw new DbException('Table must have at least one column');
             }
 
@@ -515,19 +518,19 @@ class Migration
                     } else {
                         $changed = false;
 
-                        if ($localFields[$fieldName]->getType() != $column->getType()) {
+                        if ($localFields[$fieldName]->getType() !== $column->getType()) {
                             $changed = true;
                         }
 
-                        if ($localFields[$fieldName]->getSize() != $column->getSize()) {
+                        if ($localFields[$fieldName]->getSize() !== $column->getSize()) {
                             $changed = true;
                         }
 
-                        if ($column->isNotNull() != $localFields[$fieldName]->isNotNull()) {
+                        if ($column->isNotNull() !== $localFields[$fieldName]->isNotNull()) {
                             $changed = true;
                         }
 
-                        if ($column->getDefault() != $localFields[$fieldName]->getDefault()) {
+                        if ($column->getDefault() !== $localFields[$fieldName]->getDefault()) {
                             $changed = true;
                         }
 
@@ -583,33 +586,31 @@ class Migration
 
                 $changed = false;
                 if (
-                    $tableReference->getReferencedTable() !=
+                    $tableReference->getReferencedTable() !==
                     $localReferences[$tableReference->getName()]['referencedTable']
                 ) {
                     $changed = true;
                 }
 
-                if (!$changed) {
-                    if (
-                        count($tableReference->getColumns()) !=
-                        count($localReferences[$tableReference->getName()]['columns'])
-                    ) {
-                        $changed = true;
-                    }
+                if (
+                    !$changed
+                    && count($tableReference->getColumns()) !==
+                    count($localReferences[$tableReference->getName()]['columns'])
+                ) {
+                    $changed = true;
                 }
 
-                if (!$changed) {
-                    if (
-                        count($tableReference->getReferencedColumns()) !=
-                        count($localReferences[$tableReference->getName()]['referencedColumns'])
-                    ) {
-                        $changed = true;
-                    }
+                if (
+                    !$changed
+                    && count($tableReference->getReferencedColumns()) !==
+                    count($localReferences[$tableReference->getName()]['referencedColumns'])
+                ) {
+                    $changed = true;
                 }
 
                 if (!$changed) {
                     foreach ($tableReference->getColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'])) {
+                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'], true)) {
                             $changed = true;
                             break;
                         }
@@ -618,7 +619,8 @@ class Migration
 
                 if (!$changed) {
                     foreach ($tableReference->getReferencedColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['referencedColumns'])) {
+                        $referencedColumns = $localReferences[$tableReference->getName()]['referencedColumns'];
+                        if (!in_array($columnName, $referencedColumns, true)) {
                             $changed = true;
                             break;
                         }
@@ -661,18 +663,18 @@ class Migration
 
             foreach ($definition['indexes'] as $tableIndex) {
                 if (!isset($localIndexes[$tableIndex->getName()])) {
-                    if ($tableIndex->getName() == 'PRIMARY') {
+                    if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
                         self::$connection->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                     } else {
                         self::$connection->addIndex($tableName, $tableSchema, $tableIndex);
                     }
                 } else {
                     $changed = false;
-                    if (count($tableIndex->getColumns()) != count($localIndexes[$tableIndex->getName()])) {
+                    if (count($tableIndex->getColumns()) !== count($localIndexes[$tableIndex->getName()])) {
                         $changed = true;
                     } else {
                         foreach ($tableIndex->getColumns() as $columnName) {
-                            if (!in_array($columnName, $localIndexes[$tableIndex->getName()])) {
+                            if (!in_array($columnName, $localIndexes[$tableIndex->getName()], true)) {
                                 $changed = true;
                                 break;
                             }
@@ -680,7 +682,7 @@ class Migration
                     }
 
                     if ($changed) {
-                        if ($tableIndex->getName() == 'PRIMARY') {
+                        if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
                             self::$connection->dropPrimaryKey($tableName, $tableSchema);
                             self::$connection->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                         } else {

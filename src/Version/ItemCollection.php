@@ -98,7 +98,7 @@ class ItemCollection
         if (count($versions) == 0) {
             return null;
         }
-        
+
         $versions = self::sortDesc($versions);
 
         return $versions[0];

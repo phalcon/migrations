@@ -25,7 +25,7 @@ final class OptionStackTest extends Unit
      * @var OptionStack
      */
     public $options;
-    
+
     public function setUp(): void
     {
         $this->options = new OptionStack();
@@ -59,9 +59,7 @@ final class OptionStackTest extends Unit
             'test' => 'foo',
             'test2' => 'bar',
         ];
-        
         $this->options->setOptions($options);
-        
         $this->assertSame($options, $this->options->getOptions());
     }
 
@@ -76,7 +74,6 @@ final class OptionStackTest extends Unit
     {
         $key = 'set-test';
         $this->options->setOption($key, $option, $defaultValue);
-
         $this->assertSame($expected, $this->options->getOption($key));
     }
 
@@ -91,17 +88,14 @@ final class OptionStackTest extends Unit
     {
         $this->options->setOption('test', 'bar');
         $this->options->setDefaultOption($key, $defaultValue);
-
         $this->assertSame($expected, $this->options->getOption($key));
     }
 
     public function testCheckingReceivedOption(): void
     {
         $this->options->setOption('true-option', 'foo-bar');
-
         $option1 = $this->options->isReceivedOption('true-option');
         $option2 = $this->options->isReceivedOption('false-option');
-
         $this->assertTrue($option1);
         $this->assertFalse($option2);
     }
@@ -109,7 +103,6 @@ final class OptionStackTest extends Unit
     public function testReturnValidOptionOrSetDefault(): void
     {
         $this->options->setOptions(['test' => 'foo', 'test2' => 'bar']);
-
         $this->assertSame('foo', $this->options->getValidOption('test', 'bar'));
         $this->assertSame('bar', $this->options->getValidOption('false-option', 'bar'));
     }
@@ -117,7 +110,6 @@ final class OptionStackTest extends Unit
     public function testReturnPrefixFromOptionWithoutSetPrefix(): void
     {
         $this->options->setOptions(['test' => 'foo', 'test2' => 'bar']);
-
         $this->assertSame('foo', $this->options->getPrefixOption('foo*'));
         $this->assertSame('bar', $this->options->getPrefixOption('bar*'));
     }
@@ -125,7 +117,6 @@ final class OptionStackTest extends Unit
     public function testReturnPrefixFromOptionWithSetPrefix(): void
     {
         $this->options->setOptions(['test' => 'foo', 'test2' => 'bar']);
-
         $this->assertSame('foo', $this->getPrefixOption('foo^', '^'));
         $this->assertSame('bar', $this->getPrefixOption('bar?', '?'));
     }
