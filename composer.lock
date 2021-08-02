@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f9dac54671140af6c00b7f382c42850",
+    "content-hash": "f7e2e7fb0e1691e13570ed3bee0fb250",
     "packages": [
         {
             "name": "phalcon/cli-options-parser",
