@@ -1,3 +1,11 @@
+# [2.2.1](https://github.com/phalcon/migrations/releases/tag/v2.2.1) (2021-08-03)
+- Fixed types and indexes definition on pgsql adapter ([#111](https://github.com/phalcon/migrations/issues/111), [#112](https://github.com/phalcon/migrations/issues/112), [#118](https://github.com/phalcon/migrations/issues/118))
+
+# [2.2.0](https://github.com/phalcon/migrations/releases/tag/v2.2.0) (2021-08-03)
+Supported Versions: 7.3, 7.4, 8.0
+
+- This release provides initial PHP 8 support.
+
 # [2.1.6](https://github.com/phalcon/migrations/releases/tag/v2.1.6) (2021-03-22)
 - Fixed duplicated table `phalcon_migrations` in PostgreSQL ([#104](https://github.com/phalcon/migrations/issues/104))
 - Fixed morphing when column attribute `unsiged` is changed ([#109](https://github.com/phalcon/migrations/issues/109))
