@@ -12,4 +12,8 @@
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
+    <issueHandlers>
+        <MethodSignatureMismatch errorLevel="info" />
+        <InvalidArgument errorLevel="info" />
+    </issueHandlers>
 </psalm>

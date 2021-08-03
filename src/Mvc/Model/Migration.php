@@ -18,13 +18,15 @@ use Exception;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
-use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
 use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\IndexInterface;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Events\Manager as EventsManager;
+use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
+use Phalcon\Migrations\Db\Dialect\DialectMysql;
+use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
@@ -110,9 +112,10 @@ class Migration
          *
          * @see: Phalcon\Db\Dialect\PdoMysql The extended and fixed dialect class for MySQL
          */
-        if ($database->adapter == 'Mysql') {
+        $dbAdapter = strtolower((string) $database->adapter);
+        if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
             $adapter = PdoMysql::class;
-        } elseif ($database->adapter == 'Postgresql') {
+        } elseif ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
             $adapter = PdoPostgresql::class;
         } else {
             $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
@@ -130,7 +133,17 @@ class Migration
         self::$connection = $connection;
         self::$databaseConfig = $database;
 
-        if (!Migrations::isConsole() || !$verbose) {
+        // Connection custom dialect Dialect/DialectMysql
+        if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
+            self::$connection->setDialect(new DialectMysql());
+        }
+
+        // Connection custom dialect Dialect/DialectPostgresql
+        if ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
+            self::$connection->setDialect(new DialectPostgresql());
+        }
+
+        if (!$verbose || !Migrations::isConsole()) {
             return;
         }
 
@@ -205,7 +218,7 @@ class Migration
         bool $skipRefSchema = false
     ): string {
         $snippet = new Snippet();
-        $adapter = (string)self::$databaseConfig->path('adapter');
+        $adapter = strtolower((string)self::$databaseConfig->path('adapter'));
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
         $description = self::$connection->describeColumns($table, $defaultSchema);
         $indexes = self::$connection->describeIndexes($table, $defaultSchema);
@@ -227,7 +240,7 @@ class Migration
          */
         $indexesDefinition = [];
         foreach ($generateAction->getIndexes() as $indexName => $indexDefinition) {
-            list($definition, $type) = $indexDefinition;
+            [$definition, $type] = $indexDefinition;
             $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $definition, $type);
         }
 
@@ -276,7 +289,7 @@ class Migration
         // down()
         $classData .= $snippet->getMigrationDown();
 
-        if ($exportData == 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
+        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
             $classData .= $snippet->getMigrationBatchDelete($table);
         }
 
@@ -293,8 +306,8 @@ class Migration
         $numericColumns = $generateAction->getNumericColumns();
         // dump data
         if (
-            $exportData == 'always' ||
-            $exportData == 'oncreate' ||
+            $exportData === 'always' ||
+            $exportData === 'oncreate' ||
             self::shouldExportDataFromTable($table, $exportTables)
         ) {
             $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
@@ -321,8 +334,7 @@ class Migration
                 }
 
                 fputcsv($fileHandler, $data);
-                unset($row);
-                unset($data);
+                unset($row, $data);
             }
 
             fclose($fileHandler);
@@ -354,7 +366,7 @@ class Migration
         $fromVersion = $fromVersion ?: VersionCollection::createItem($fromVersion);
         $toVersion = $toVersion ?: VersionCollection::createItem($toVersion);
 
-        if ($fromVersion->getStamp() == $toVersion->getStamp()) {
+        if ($fromVersion->getStamp() === $toVersion->getStamp()) {
             return; // nothing to do
         }
 
@@ -370,7 +382,7 @@ class Migration
         if ($fromVersion->getStamp() < $toVersion->getStamp()) {
             $toMigration = self::createClass($toVersion, $tableName);
 
-            if (is_object($toMigration)) {
+            if (null !== $toMigration) {
                 // morph the table structure
                 if (method_exists($toMigration, 'morph')) {
                     $toMigration->morph();
@@ -389,7 +401,7 @@ class Migration
 
             // reset the data modifications
             $fromMigration = self::createClass($fromVersion, $tableName);
-            if (is_object($fromMigration) && method_exists($fromMigration, 'down')) {
+            if (null !== $fromMigration && method_exists($fromMigration, 'down')) {
                 $fromMigration->down();
 
                 if (method_exists($fromMigration, 'afterDown')) {
@@ -510,7 +522,7 @@ class Migration
         $tableSchema = (string)$defaultSchema;
 
         if (isset($definition['columns'])) {
-            if (count($definition['columns']) == 0) {
+            if (count($definition['columns']) === 0) {
                 throw new DbException('Table must have at least one column');
             }
 
@@ -557,23 +569,23 @@ class Migration
                     }
 
                     $changed = false;
-                    if ($localFields[$fieldName]->getType() != $column->getType()) {
+                    if ($localFields[$fieldName]->getType() !== $column->getType()) {
                         $changed = true;
                     }
 
-                    if ($localFields[$fieldName]->getSize() != $column->getSize()) {
+                    if ($localFields[$fieldName]->getSize() !== $column->getSize()) {
                         $changed = true;
                     }
 
-                    if ($localFields[$fieldName]->isNotNull() != $column->isNotNull()) {
+                    if ($localFields[$fieldName]->isNotNull() !== $column->isNotNull()) {
                         $changed = true;
                     }
 
-                    if ($localFields[$fieldName]->getDefault() != $column->getDefault()) {
+                    if ($localFields[$fieldName]->getDefault() !== $column->getDefault()) {
                         $changed = true;
                     }
 
-                    if ($localFields[$fieldName]->isUnsigned() != $column->isUnsigned()) {
+                    if ($localFields[$fieldName]->isUnsigned() !== $column->isUnsigned()) {
                         $changed = true;
                     }
 
@@ -679,33 +691,31 @@ class Migration
 
                 $changed = false;
                 if (
-                    $tableReference->getReferencedTable() !=
+                    $tableReference->getReferencedTable() !==
                     $localReferences[$tableReference->getName()]['referencedTable']
                 ) {
                     $changed = true;
                 }
 
-                if (!$changed) {
-                    if (
-                        count($tableReference->getColumns()) !=
-                        count($localReferences[$tableReference->getName()]['columns'])
-                    ) {
-                        $changed = true;
-                    }
+                if (
+                    !$changed
+                    && count($tableReference->getColumns()) !==
+                    count($localReferences[$tableReference->getName()]['columns'])
+                ) {
+                    $changed = true;
                 }
 
-                if (!$changed) {
-                    if (
-                        count($tableReference->getReferencedColumns()) !=
-                        count($localReferences[$tableReference->getName()]['referencedColumns'])
-                    ) {
-                        $changed = true;
-                    }
+                if (
+                    !$changed
+                    && count($tableReference->getReferencedColumns()) !==
+                    count($localReferences[$tableReference->getName()]['referencedColumns'])
+                ) {
+                    $changed = true;
                 }
 
                 if (!$changed) {
                     foreach ($tableReference->getColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'])) {
+                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'], true)) {
                             $changed = true;
                             break;
                         }
@@ -714,7 +724,8 @@ class Migration
 
                 if (!$changed) {
                     foreach ($tableReference->getReferencedColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['referencedColumns'])) {
+                        $referencedColumns = $localReferences[$tableReference->getName()]['referencedColumns'];
+                        if (!in_array($columnName, $referencedColumns, true)) {
                             $changed = true;
                             break;
                         }
@@ -797,18 +808,18 @@ class Migration
 
             foreach ($definition['indexes'] as $tableIndex) {
                 if (!isset($localIndexes[$tableIndex->getName()])) {
-                    if ($tableIndex->getName() == 'PRIMARY') {
+                    if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
                         $this->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                     } else {
                         $this->addIndex($tableName, $tableSchema, $tableIndex);
                     }
                 } else {
                     $changed = false;
-                    if (count($tableIndex->getColumns()) != count($localIndexes[$tableIndex->getName()])) {
+                    if (count($tableIndex->getColumns()) !== count($localIndexes[$tableIndex->getName()])) {
                         $changed = true;
                     } else {
                         foreach ($tableIndex->getColumns() as $columnName) {
-                            if (!in_array($columnName, $localIndexes[$tableIndex->getName()])) {
+                            if (!in_array($columnName, $localIndexes[$tableIndex->getName()], true)) {
                                 $changed = true;
                                 break;
                             }
@@ -816,7 +827,7 @@ class Migration
                     }
 
                     if ($changed) {
-                        if ($tableIndex->getName() == 'PRIMARY') {
+                        if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
                             $this->dropPrimaryKey($tableName, $tableSchema);
                             $this->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                         } else {

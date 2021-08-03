@@ -67,6 +67,20 @@ class Generate
     /**
      * @var array
      */
+    protected $supportedColumnTypesPgsql = [
+        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $supportedColumnTypesMysql = [
+        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
+    ];
+
+    /**
+     * @var array
+     */
     protected $numericColumnTypes = [
         Column::TYPE_INTEGER,
         Column::TYPE_MEDIUMINTEGER,
@@ -198,28 +212,35 @@ class Generate
     public function getColumns(): Generator
     {
         $currentColumnName = null;
+        if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL) {
+            $supportedColumnTypes = \array_replace($this->supportedColumnTypes, $this->supportedColumnTypesPgsql);
+        } elseif ($this->adapter === Migration::DB_ADAPTER_MYSQL) {
+            $supportedColumnTypes = \array_replace($this->supportedColumnTypes, $this->supportedColumnTypesMysql);
+        } else {
+            $supportedColumnTypes = $this->supportedColumnTypes;
+        }
 
         foreach ($this->columns as $column) {
             /** @var ColumnInterface $column */
 
             $columnType = $column->getType();
-            if (!isset($this->supportedColumnTypes[$columnType])) {
+            if (!isset($supportedColumnTypes[$columnType])) {
                 throw new UnknownColumnTypeException($column);
             }
 
-            if (in_array($columnType, $this->numericColumnTypes)) {
+            if (in_array($columnType, $this->numericColumnTypes, true)) {
                 $this->numericColumns[$column->getName()] = true;
             }
 
             $definition = [
-                "'type' => Column::" . $this->supportedColumnTypes[$columnType],
+                "'type' => Column::" . $supportedColumnTypes[$columnType],
             ];
 
             if ($column->hasDefault() && !$column->isAutoIncrement()) {
                 $definition[] = sprintf("'default' => \"%s\"", $column->getDefault());
             }
 
-            if ($column->isPrimary() && $this->adapter == Migration::DB_ADAPTER_POSTGRESQL) {
+            if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && $column->isPrimary()) {
                 $definition[] = "'primary' => true";
                 $this->primaryColumnName = $column->getName();
             }
@@ -277,7 +298,7 @@ class Generate
             $definition = [];
             foreach ($index->getColumns() as $column) {
                 // [PostgreSQL] Skip primary key column
-                if ($this->adapter !== Migration::DB_ADAPTER_POSTGRESQL && $column !== $this->getPrimaryColumnName()) {
+                if ($column !== $this->getPrimaryColumnName()) {
                     $definition[] = $this->wrapWithQuotes($column);
                 }
             }
@@ -336,7 +357,7 @@ class Generate
              * All options keys must be UPPERCASE!
              */
             $name = strtoupper($name);
-            if ($skipAI && $name == 'AUTO_INCREMENT') {
+            if ($skipAI && $name === 'AUTO_INCREMENT') {
                 $value = '';
             }
 

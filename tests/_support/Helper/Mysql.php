@@ -11,6 +11,8 @@ use Phalcon\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\PdoFactory;
 use Phalcon\Db\Exception;
+use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
+use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Migrations;
 
 class Mysql extends Module
@@ -23,11 +25,8 @@ class Mysql extends Module
     public function _initialize()
     {
         /** @var AbstractPdo $db */
-        self::$phalconDb = (new PdoFactory())
-            ->newInstance(
-                'mysql',
-                $this->getMigrationsConfig()->get('database')->toArray()
-            );
+        self::$phalconDb = new PdoMysql($this->getMigrationsConfig()->get('database')->toArray());
+        self::$phalconDb->setDialect(new DialectMysql());
     }
 
     public function _before(TestInterface $test)

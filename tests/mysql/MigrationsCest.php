@@ -273,7 +273,7 @@ final class MigrationsCest
         ob_clean();
 
         $I->assertEquals(4, $autoIncrement);
-        $I->assertContains(
+        $I->assertStringContainsString(
             "'AUTO_INCREMENT' => '4'",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
@@ -322,7 +322,7 @@ final class MigrationsCest
         ob_clean();
 
         $I->assertEquals(4, $autoIncrement);
-        $I->assertContains(
+        $I->assertStringContainsString(
             "'AUTO_INCREMENT' => ''",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
@@ -401,7 +401,7 @@ final class MigrationsCest
         $migrationContents = file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php');
 
         $I->assertSame(1, substr_count($migrationContents, 'this->batchInsert'));
-        $I->assertContains(
+        $I->assertStringContainsString(
             '3',
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.dat')
         );

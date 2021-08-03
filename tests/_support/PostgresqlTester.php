@@ -14,12 +14,22 @@
  * @method void pause()
  *
  * @SuppressWarnings(PHPMD)
-*/
+ */
 class PostgresqlTester extends \Codeception\Actor
 {
     use _generated\PostgresqlTesterActions;
 
-   /**
-    * Define custom actions here
-    */
+    /**
+     * Define custom actions here
+     */
+    public function seeExceptionThrown(string $exception, $function): ?bool
+    {
+        try {
+            $function();
+
+            return false;
+        } catch (\Throwable $throwable) {
+            return get_class($throwable) === $exception;
+        }
+    }
 }

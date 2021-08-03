@@ -8,7 +8,8 @@ use Codeception\Module;
 use Codeception\TestInterface;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phalcon\Db\Adapter\PdoFactory;
+use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
+use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Migrations;
 
 class Postgresql extends Module
@@ -33,11 +34,8 @@ class Postgresql extends Module
 
         self::$defaultSchema = getenv('POSTGRES_TEST_DB_SCHEMA');
         /** @var AbstractPdo $db */
-        self::$phalconDb = (new PdoFactory())
-            ->newInstance(
-                'postgresql',
-                $options
-            );
+        self::$phalconDb = new PdoPostgresql($options);
+        self::$phalconDb->setDialect(new DialectPostgresql());
     }
 
     public function _before(TestInterface $test)

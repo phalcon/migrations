@@ -3,7 +3,7 @@ name: "Tests"
 on: [push, pull_request]
 
 jobs:
-  run-tests:
+  run-tests-php7:
     name: PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
     env:
@@ -26,10 +26,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.2', '7.3', '7.4']
+        php-versions: ['7.3', '7.4']
     steps:
       - uses: actions/checkout@v1
-
       - name: Setup cache environment
         id: cache-env
         uses: shivammathur/cache-extensions@v1
@@ -82,3 +81,4 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./tests/_output/coverage-*.xml
+
