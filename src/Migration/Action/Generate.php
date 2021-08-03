@@ -52,7 +52,7 @@ class Generate
 
         Column::TYPE_BOOLEAN => 'TYPE_BOOLEAN',
         Column::TYPE_FLOAT => 'TYPE_FLOAT',
-        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
+        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
         Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
 
         Column::TYPE_BLOB => 'TYPE_BLOB',
@@ -62,6 +62,20 @@ class Generate
         Column::TYPE_JSON => 'TYPE_JSON',
         Column::TYPE_JSONB => 'TYPE_JSONB',
         Column::TYPE_ENUM => 'TYPE_ENUM',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $supportedColumnTypesPgsql = [
+        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $supportedColumnTypesMysql = [
+        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
     ];
 
     /**
@@ -198,12 +212,19 @@ class Generate
     public function getColumns(): Generator
     {
         $currentColumnName = null;
+        if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL) {
+            $supportedColumnTypes = \array_replace($this->supportedColumnTypes, $this->supportedColumnTypesPgsql);
+        } elseif ($this->adapter === Migration::DB_ADAPTER_MYSQL) {
+            $supportedColumnTypes = \array_replace($this->supportedColumnTypes, $this->supportedColumnTypesMysql);
+        } else {
+            $supportedColumnTypes = $this->supportedColumnTypes;
+        }
 
         foreach ($this->columns as $column) {
             /** @var ColumnInterface $column */
 
             $columnType = $column->getType();
-            if (!isset($this->supportedColumnTypes[$columnType])) {
+            if (!isset($supportedColumnTypes[$columnType])) {
                 throw new UnknownColumnTypeException($column);
             }
 
@@ -212,7 +233,7 @@ class Generate
             }
 
             $definition = [
-                "'type' => Column::" . $this->supportedColumnTypes[$columnType],
+                "'type' => Column::" . $supportedColumnTypes[$columnType],
             ];
 
             if ($column->hasDefault() && !$column->isAutoIncrement()) {
