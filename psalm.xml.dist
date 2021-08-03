@@ -14,5 +14,6 @@
     </projectFiles>
     <issueHandlers>
         <MethodSignatureMismatch errorLevel="info" />
+        <InvalidArgument errorLevel="info" />
     </issueHandlers>
 </psalm>
