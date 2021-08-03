@@ -267,7 +267,7 @@ final class MigrationsCest
         ]);
         ob_clean();
 
-        $I->assertContains(
+        $I->assertStringContainsString(
             "'auto_increment' => ''",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
