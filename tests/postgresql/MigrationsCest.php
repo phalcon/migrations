@@ -104,7 +104,7 @@ final class MigrationsCest
         $migrationContents = file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php');
 
         $I->assertSame(1, substr_count($migrationContents, 'this->batchInsert'));
-        $I->assertContains(
+        $I->assertStringContainsString(
             '3',
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.dat')
         );
