@@ -26,8 +26,8 @@
         "forum": "https://forum.phalcon.io"
     },
     "require": {
-        "php": ">=7.2",
-        "ext-phalcon": "^4.0.5",
+        "php": ">=7.3",
+        "ext-phalcon": ">=4.0.5",
         "phalcon/cli-options-parser": "^1.2"
     },
     "require-dev": {
