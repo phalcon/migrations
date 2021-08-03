@@ -86,7 +86,7 @@ jobs:
     name: PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
     env:
-      extensions: mbstring, intl, json, psr, phalcon-5.0.0alpha3, mysql, pgsql, xdebug
+      extensions: mbstring, intl, json, phalcon-5.0.0, mysql, pgsql, xdebug
       key: cache-v2.0~19.03.2020
     services:
       mysql:
