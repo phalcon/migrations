@@ -102,9 +102,7 @@ class Migrations
 
         // Migrations directory
         if ($migrationsDir && !file_exists($migrationsDir)) {
-            if (!mkdir($migrationsDir, 0755, true) && !is_dir($migrationsDir)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $migrationsDir));
-            }
+            mkdir($migrationsDir, 0755, true);
         }
 
         $versionItem = $optionStack->getVersionNameGeneratingMigration();
@@ -113,9 +111,7 @@ class Migrations
         $migrationPath = rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion();
         if (!file_exists($migrationPath)) {
             if (is_writable(dirname($migrationPath)) && !$optionStack->getOption('verbose')) {
-                if (!mkdir($migrationPath) && !is_dir($migrationPath)) {
-                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $migrationPath));
-                }
+                mkdir($migrationPath);
             } elseif (!is_writable(dirname($migrationPath))) {
                 throw new RuntimeException("Unable to write '{$migrationPath}' directory. Permission denied");
             }
