@@ -34,7 +34,7 @@
         "ext-pdo": "*",
         "phalcon/ide-stubs": "^4.0.0",
         "squizlabs/php_codesniffer": "3.5.1",
-        "fzaninotto/faker": "^1.9",
+        "fakerphp/faker": "^1.15",
         "humbug/box": "^3.8",
         "codeception/codeception": "^4.1",
         "codeception/module-asserts": "^1.0.0",
