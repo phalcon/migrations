@@ -15,6 +15,7 @@ namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
 use Exception;
+use Nette\PhpGenerator\PsrPrinter;
 use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
@@ -217,6 +218,7 @@ class Migration
         array $exportTables = [],
         bool $skipRefSchema = false
     ): string {
+        $printer = new PsrPrinter();
         $snippet = new Snippet();
         $adapter = strtolower((string)self::$databaseConfig->path('adapter'));
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
@@ -225,122 +227,27 @@ class Migration
         $references = self::$connection->describeReferences($table, $defaultSchema);
         $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
 
-        $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
-
-        /**
-         * Generate Columns
-         */
-        $tableDefinition = [];
-        foreach ($generateAction->getColumns() as $columnName => $columnDefinition) {
-            $tableDefinition[] = $snippet->getColumnDefinition($columnName, $columnDefinition);
-        }
-
-        /**
-         * Generate Indexes
-         */
-        $indexesDefinition = [];
-        foreach ($generateAction->getIndexes() as $indexName => $indexDefinition) {
-            [$definition, $type] = $indexDefinition;
-            $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $definition, $type);
-        }
-
-        /**
-         * Generate References
-         */
-        $referencesDefinition = [];
-        foreach ($generateAction->getReferences($skipRefSchema) as $constraintName => $referenceDefinition) {
-            $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, $referenceDefinition);
-        }
-
-        /**
-         * Generate Options
-         */
-        $optionsDefinition = $generateAction->getOptions(self::$skipAI);
-
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
         $className = Text::camelize($table) . 'Migration_' . $classVersion;
+        $shouldExportDataFromTable = self::shouldExportDataFromTable($table, $exportTables);
 
-        // morph()
-        $classData = $snippet->getMigrationMorph($className, $table, $tableDefinition);
+        $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
+        $generateAction->createEntity($className)
+            ->addMorph($snippet, $table, $skipRefSchema, self::$skipAI)
+            ->addUp($table, $exportData, $shouldExportDataFromTable)
+            ->addDown($table, $exportData, $shouldExportDataFromTable)
+            ->addAfterCreateTable($table, $exportData)
+            ->createDumpFiles(
+                $table,
+                self::$migrationPath,
+                self::$connection,
+                $version,
+                $exportData,
+                $shouldExportDataFromTable
+            );
 
-        if (count($indexesDefinition) > 0) {
-            $classData .= $snippet->getMigrationDefinition('indexes', $indexesDefinition);
-        }
 
-        if (count($referencesDefinition) > 0) {
-            $classData .= $snippet->getMigrationDefinition('references', $referencesDefinition);
-        }
-
-        if (count($optionsDefinition) > 0) {
-            $classData .= $snippet->getMigrationDefinition('options', $optionsDefinition);
-        }
-
-        $classData .= "            ]\n        );\n    }\n";
-
-        // up()
-        $classData .= $snippet->getMigrationUp();
-
-        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
-            $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
-        }
-
-        $classData .= "\n    }\n";
-
-        // down()
-        $classData .= $snippet->getMigrationDown();
-
-        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
-            $classData .= $snippet->getMigrationBatchDelete($table);
-        }
-
-        $classData .= "\n    }\n";
-
-        // afterCreateTable()
-        if ($exportData === 'oncreate') {
-            $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
-        }
-
-        // end of class
-        $classData .= "\n}\n";
-
-        $numericColumns = $generateAction->getNumericColumns();
-        // dump data
-        if (
-            $exportData === 'always' ||
-            $exportData === 'oncreate' ||
-            self::shouldExportDataFromTable($table, $exportTables)
-        ) {
-            $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
-            $cursor = self::$connection->query('SELECT * FROM ' . self::$connection->escapeIdentifier($table));
-            $cursor->setFetchMode(Enum::FETCH_ASSOC);
-            while ($row = $cursor->fetchArray()) {
-                $data = [];
-                foreach ($row as $key => $value) {
-                    if (isset($numericColumns[$key])) {
-                        if ($value === '' || $value === null) {
-                            $data[] = 'NULL';
-                        } else {
-                            $data[] = $value;
-                        }
-                    } else {
-                        if (is_string($value)) {
-                            $data[] = addslashes($value);
-                        } else {
-                            $data[] = $value === null ? 'NULL' : $value;
-                        }
-                    }
-
-                    unset($value);
-                }
-
-                fputcsv($fileHandler, $data);
-                unset($row, $data);
-            }
-
-            fclose($fileHandler);
-        }
-
-        return $classData;
+        return $printer->printFile($generateAction->getEntity());
     }
 
     public static function shouldExportDataFromTable(string $table, array $exportTables): bool
