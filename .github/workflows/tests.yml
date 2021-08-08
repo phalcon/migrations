@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   run-tests-php7:
-    name: PHP ${{ matrix.php-versions }}
+    name: PHP ${{ matrix.php-versions }} with Phalcon ${{ matrix.phalcon-versions }}
     runs-on: ubuntu-latest
     env:
       extensions: mbstring, intl, json, phalcon-${{ matrix.phalcon-versions }}, mysql, pgsql
