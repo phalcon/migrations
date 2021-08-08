@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['7.3', '7.4']
-        phalcon-versions: ['4.0.6', '4.1.0', '4.1.1', '4.1.2']
+        phalcon-versions: ['4.0.5', '4.0.6', '4.1.0', '4.1.1', '4.1.2']
     steps:
       - uses: actions/checkout@v1
       - name: Setup cache environment
