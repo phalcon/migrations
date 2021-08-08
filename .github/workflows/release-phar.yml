@@ -1,7 +1,7 @@
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - '*'
 
 name: Upload Phar to Release
 
