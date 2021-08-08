@@ -13,200 +13,53 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Generator;
 
-use Phalcon\Db\ColumnInterface;
-
 class Snippet
 {
-    public function getAttributes(
-        $type,
-        $visibility,
-        ColumnInterface $field,
-        $annotate = false,
-        $customFieldName = null
-    ): string {
-        $fieldName = $customFieldName ?: $field->getName();
+    public function getMorphTemplate(): string
+    {
+        return "\$this->morphTable('%s', [\n%s]);";
+    }
 
-        if ($annotate) {
-            $templateAttributes = <<<EOD
-    /**
-     *
-     * @var %s%s%s
-     * @Column(column="%s", type="%s"%s, nullable=%s)
-     */
-    %s \$%s;
-EOD;
+    public function getColumnTemplate(): string
+    {
+        return "new Column(
+            '%s',
+            [
+                %s
+            ]
+        )";
+    }
 
-            return PHP_EOL . sprintf(
-                $templateAttributes,
-                $type,
-                $field->isPrimary() ? PHP_EOL . '     * @Primary' : '',
-                $field->isAutoIncrement() ? PHP_EOL . '     * @Identity' : '',
-                $field->getName(),
-                $type,
-                $field->getSize() ? ', length=' . $field->getSize() : '',
-                $field->isNotNull() ? 'false' : 'true',
-                $visibility,
-                $fieldName
-            ) . PHP_EOL;
-        } else {
-            $templateAttributes = <<<EOD
-    /**
-     *
-     * @var %s
-     */
-    %s \$%s;
-EOD;
+    public function getIndexTemplate(): string
+    {
+        return "new Index('%s', [%s], %s)";
+    }
 
-            return PHP_EOL . sprintf($templateAttributes, $type, $visibility, $fieldName) . PHP_EOL;
+    public function getReferenceTemplate(): string
+    {
+        return "new Reference(
+            '%s',
+            [
+                %s
+            ]
+        )";
+    }
+
+    public function getOptionTemplate(): string
+    {
+        return "%s";
+    }
+
+    public function definitionToString(string $key, array $items): string
+    {
+        if (empty($items)) {
+            return '';
         }
-    }
 
-    public function getMigrationMorph($className, $table, $tableDefinition): string
-    {
-        $template = <<<EOD
-use Phalcon\Db\Column;
-use Phalcon\Db\Index;
-use Phalcon\Db\Reference;
-use Phalcon\Migrations\Mvc\Model\Migration;
+        $template = "    '%s' => [
+        %s,
+    ],\n";
 
-/**
- * Class %s
- */
-class %s extends Migration
-{
-    /**
-     * Define the table structure
-     *
-     * @return void
-     */
-    public function morph()
-    {
-        \$this->morphTable('%s', [
-%s
-EOD;
-        return sprintf(
-            $template,
-            $className,
-            $className,
-            $table,
-            $this->getMigrationDefinition('columns', $tableDefinition)
-        );
-    }
-
-    public function getMigrationUp(): string
-    {
-        return <<<EOD
-
-    /**
-     * Run the migrations
-     *
-     * @return void
-     */
-    public function up()
-    {
-
-EOD;
-    }
-
-    public function getMigrationDown(): string
-    {
-        return <<<EOD
-
-    /**
-     * Reverse the migrations
-     *
-     * @return void
-     */
-    public function down()
-    {
-
-EOD;
-    }
-
-    public function getMigrationBatchInsert($table, $allFields): string
-    {
-        $template = <<<EOD
-        \$this->batchInsert('%s', [
-                %s
-            ]
-        );
-EOD;
-        return sprintf($template, $table, join(",\n                ", $allFields));
-    }
-
-    public function getMigrationAfterCreateTable($table, $allFields): string
-    {
-        $template = <<<EOD
-
-    /**
-     * This method is called after the table was created
-     *
-     * @return void
-     */
-     public function afterCreateTable()
-     {
-        \$this->batchInsert('%s', [
-                %s
-            ]
-        );
-     }
-EOD;
-        return sprintf($template, $table, join(",\n                ", $allFields));
-    }
-
-    public function getMigrationBatchDelete($table): string
-    {
-        $template = <<<EOD
-        \$this->batchDelete('%s');
-EOD;
-        return sprintf($template, $table);
-    }
-
-    public function getMigrationDefinition($name, $definition): string
-    {
-        $template = <<<EOD
-                '%s' => [
-                    %s
-                ],
-
-EOD;
-        return sprintf($template, $name, join(",\n                    ", $definition));
-    }
-
-    public function getColumnDefinition($field, $fieldDefinition): string
-    {
-        $template = <<<EOD
-new Column(
-                        '%s',
-                        [
-                            %s
-                        ]
-                    )
-EOD;
-
-        return sprintf($template, $field, join(",\n                            ", $fieldDefinition));
-    }
-
-    public function getIndexDefinition($indexName, $indexDefinition, $indexType = null): string
-    {
-        $template = <<<EOD
-new Index('%s', [%s], %s)
-EOD;
-
-        return sprintf($template, $indexName, join(", ", $indexDefinition), $indexType ? "'$indexType'" : "''");
-    }
-
-    public function getReferenceDefinition($constraintName, $referenceDefinition): string
-    {
-        $template = <<<EOD
-new Reference(
-                        '%s',
-                        [
-                            %s
-                        ]
-                    )
-EOD;
-
-        return sprintf($template, $constraintName, join(",\n                            ", $referenceDefinition));
+        return sprintf($template, $key, implode(",\n        ", $items));
     }
 }

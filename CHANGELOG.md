@@ -1,3 +1,6 @@
+# [2.2.2](https://github.com/phalcon/migrations/releases/tag/v2.2.2) (2021-08-08)
+- Integrated nette/php-generator, changed algorithm of migrations generation ([#90](https://github.com/phalcon/migrations/issues/90))
+
 # [2.2.1](https://github.com/phalcon/migrations/releases/tag/v2.2.1) (2021-08-03)
 - Fixed types and indexes definition on pgsql adapter ([#111](https://github.com/phalcon/migrations/issues/111), [#112](https://github.com/phalcon/migrations/issues/112), [#118](https://github.com/phalcon/migrations/issues/118))
 
