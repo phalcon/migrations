@@ -20,7 +20,6 @@ use Phalcon\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
-use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\IndexInterface;
 use Phalcon\Db\ReferenceInterface;
@@ -28,6 +27,7 @@ use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
+use Phalcon\Migrations\Db\FieldDefinition;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
@@ -434,6 +434,7 @@ class Migration
             }
 
             $fields = [];
+            $previousField = null;
             /** @var ColumnInterface $tableColumn */
             foreach ($definition['columns'] as $tableColumn) {
                 /**
@@ -443,28 +444,42 @@ class Migration
                     throw new DbException('Table must have at least one column');
                 }
 
-                /** @var ColumnInterface[] $fields */
-                $fields[$tableColumn->getName()] = $tableColumn;
+                $field = new FieldDefinition($tableColumn);
+                $field->setPrevious($previousField);
+                if (null !== $previousField) {
+                    $previousField->setNext($field);
+                }
+                $previousField = $field;
+
+                $fields[$field->getName()] = $field;
             }
 
             if ($tableExists) {
                 $localFields = [];
-                /** @var ColumnInterface[] $description */
+                $previousField = null;
                 $description = self::$connection->describeColumns($tableName, $defaultSchema);
-                foreach ($description as $field) {
-                    /** @var ColumnInterface[] $localFields */
+                /** @var ColumnInterface $localColumn */
+                foreach ($description as $localColumn) {
+                    $field = new FieldDefinition($localColumn);
+                    $field->setPrevious($previousField);
+                    if (null !== $previousField) {
+                        $previousField->setNext($field);
+                    }
+                    $previousField = $field;
+
                     $localFields[$field->getName()] = $field;
                 }
 
-                foreach ($fields as $fieldName => $column) {
-                    if (!isset($localFields[$fieldName])) {
+                foreach ($fields as $fieldDefinition) {
+                    $localFieldDefinition = $fieldDefinition->getPairedDefinition($localFields);
+                    if (null === $localFieldDefinition) {
                         try {
-                            self::$connection->addColumn($tableName, $tableSchema, $column);
+                            self::$connection->addColumn($tableName, $tableSchema, $fieldDefinition->getColumn());
                         } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to add column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $column->getName(),
+                                    $fieldDefinition->getName(),
                                     $tableName,
                                     get_called_class(),
                                     $exception->getMessage()
@@ -475,35 +490,19 @@ class Migration
                         continue;
                     }
 
-                    $changed = false;
-                    if ($localFields[$fieldName]->getType() !== $column->getType()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->getSize() !== $column->getSize()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->isNotNull() !== $column->isNotNull()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->getDefault() !== $column->getDefault()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->isUnsigned() !== $column->isUnsigned()) {
-                        $changed = true;
-                    }
-
-                    if ($changed === true) {
+                    if ($fieldDefinition->isChanged($localFieldDefinition)) {
                         try {
-                            self::$connection->modifyColumn($tableName, $tableSchema, $column, $column);
+                            self::$connection->modifyColumn(
+                                $tableName,
+                                $tableSchema,
+                                $fieldDefinition->getColumn(),
+                                $localFieldDefinition->getColumn()
+                            );
                         } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to modify column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $column->getName(),
+                                    $fieldDefinition->getName(),
                                     $tableName,
                                     get_called_class(),
                                     $exception->getMessage()
@@ -513,18 +512,19 @@ class Migration
                     }
                 }
 
-                foreach ($localFields as $fieldName => $localField) {
-                    if (!isset($fields[$fieldName])) {
+                foreach ($localFields as $fieldDefinition) {
+                    $newFieldDefinition = $fieldDefinition->getPairedDefinition($fields);
+                    if (null === $newFieldDefinition) {
                         try {
                             /**
                              * TODO: Check, why schemaName is empty string.
                              */
-                            self::$connection->dropColumn($tableName, '', $fieldName);
+                            self::$connection->dropColumn($tableName, '', $fieldDefinition->getName());
                         } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to drop column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $fieldName,
+                                    $fieldDefinition->getName(),
                                     $tableName,
                                     get_called_class(),
                                     $exception->getMessage()
@@ -782,7 +782,7 @@ class Migration
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
-                function ($value) {
+                static function ($value) {
                     if (null === $value || $value === 'NULL') {
                         return 'NULL';
                     }
@@ -820,7 +820,7 @@ class Migration
      *
      * @param string $tableName
      */
-    public function batchDelete(string $tableName)
+    public function batchDelete(string $tableName): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
@@ -833,7 +833,7 @@ class Migration
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
-                function ($value) {
+                static function ($value) {
                     return null === $value ? null : stripslashes($value);
                 },
                 $line
@@ -852,7 +852,7 @@ class Migration
      *
      * @return AbstractAdapter
      */
-    public function getConnection()
+    public function getConnection(): AbstractAdapter
     {
         return self::$connection;
     }
@@ -890,11 +890,11 @@ class Migration
         }
 
         $adapter = strtolower($config->get('adapter'));
-        if (self::DB_ADAPTER_POSTGRESQL == $adapter) {
+        if (self::DB_ADAPTER_POSTGRESQL === $adapter) {
             return 'public';
         }
 
-        if (self::DB_ADAPTER_SQLITE == $adapter) {
+        if (self::DB_ADAPTER_SQLITE === $adapter) {
             // SQLite only supports the current database, unless one is
             // attached. This is not the case, so don't return a schema.
             return null;
