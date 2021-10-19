@@ -1,5 +1,6 @@
 # [2.2.3](https://github.com/phalcon/migrations/releases/tag/v2.2.3) (2021-08-11)
 - Changed column modification behaviour during table morph ([#97](https://github.com/phalcon/migrations/issues/97))
+- Updated composer packages ([#124](https://github.com/phalcon/migrations/pull/124))
 
 # [2.2.2](https://github.com/phalcon/migrations/releases/tag/v2.2.2) (2021-08-08)
 - Integrated nette/php-generator, changed algorithm of migrations generation ([#90](https://github.com/phalcon/migrations/issues/90))
