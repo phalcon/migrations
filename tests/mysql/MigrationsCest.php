@@ -445,7 +445,7 @@ final class MigrationsCest
 
         $columns = $mysqlTester->getPhalconDb()->describeColumns($tableName);
 
-        $mysqlTester->asserttrue($columns[0]->isUnsigned());
+        $mysqlTester->assertTrue($columns[0]->isUnsigned());
     }
 
     public function nullableTimestamp(MysqlTester $I): void

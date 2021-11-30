@@ -126,10 +126,16 @@ class FieldDefinition
 
     public function isChangedData(FieldDefinition $comparingFieldDefinition): bool
     {
-        return $this->currentColumn->getType() !== $comparingFieldDefinition->getColumn()->getType() ||
-               $this->currentColumn->getSize() !== $comparingFieldDefinition->getColumn()->getSize() ||
-               $this->currentColumn->isNotNull() !== $comparingFieldDefinition->getColumn()->isNotNull() ||
-               $this->currentColumn->getDefault() !== $comparingFieldDefinition->getColumn()->getDefault() ||
-               $this->currentColumn->isUnsigned() !== $comparingFieldDefinition->getColumn()->isUnsigned();
+        $paramsToCheck = get_class_methods(ColumnInterface::class);
+        unset($paramsToCheck['getName']);
+
+        $comparingFieldColumn = $comparingFieldDefinition->getColumn();
+        foreach ($paramsToCheck as $method) {
+            if ($this->currentColumn->$method() !== $comparingFieldColumn->$method()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
