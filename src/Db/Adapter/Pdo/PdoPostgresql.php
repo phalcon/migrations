@@ -118,8 +118,8 @@ class PdoPostgresql extends Postgresql
         foreach ($indexes as $name => $index) {
             $indexObjects[$name] = new Index(
                 $name,
-                $index['columns'] ?? [],
-                $index['type'] ?? ''
+                $index['columns'],
+                $index['type']
             );
         }
 
