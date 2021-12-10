@@ -1,4 +1,4 @@
-# [2.2.4](https://github.com/phalcon/migrations/releases/tag/v2.2.4) (xxxx-xx-xx)
+# [2.2.4](https://github.com/phalcon/migrations/releases/tag/v2.2.4) (2021-12-10)
 - Changed column modification behaviour during table morph ([#126](https://github.com/phalcon/migrations/issues/126))
 
 # [2.2.3](https://github.com/phalcon/migrations/releases/tag/v2.2.3) (2021-08-11)
