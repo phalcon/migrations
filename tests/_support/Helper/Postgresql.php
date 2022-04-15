@@ -6,7 +6,7 @@ namespace Helper;
 
 use Codeception\Module;
 use Codeception\TestInterface;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;

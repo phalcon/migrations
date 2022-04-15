@@ -15,7 +15,7 @@ namespace Phalcon\Migrations;
 
 use DirectoryIterator;
 use Exception;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Db\Column;
 use Phalcon\Db\Exception as DbException;

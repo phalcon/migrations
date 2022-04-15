@@ -16,7 +16,7 @@ namespace Phalcon\Migrations\Mvc\Model;
 use DirectoryIterator;
 use Exception;
 use Nette\PhpGenerator\PsrPrinter;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
