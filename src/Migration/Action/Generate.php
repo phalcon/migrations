@@ -30,6 +30,7 @@ use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Mvc\Model\Migration;
 use Phalcon\Migrations\Version\ItemInterface;
+use Throwable;
 
 /**
  * Action class to generate migration file contents
@@ -506,7 +507,13 @@ class Generate
             }
 
             if (!empty($definition)) {
-                yield $name => [$definition, $index->getType()];
+                $type = null;
+                //Foreign Key, No Type
+                if ('_fk' !== substr($index->getName(), -3)) {
+                    $type = $index->getType();
+                }
+
+                yield $name => [$definition, $type];
             }
         }
     }
