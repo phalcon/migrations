@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console\Commands;
 
-use Phalcon\Exception;
+use Exception;
 
 /**
  * Commands Exception
