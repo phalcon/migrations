@@ -1,7 +1,7 @@
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - '*'
 
 name: Upload Phar to Release
 
@@ -22,11 +22,6 @@ jobs:
         run: test -e phalcon-migrations.phar && exit 0 || exit 10
 
       - name: Upload to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./phalcon-migrations.phar
-          asset_name: phalcon-migrations.phar
-          asset_content_type: application/octet-stream
+          files: phalcon-migrations.phar

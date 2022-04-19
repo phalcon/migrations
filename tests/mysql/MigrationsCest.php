@@ -9,7 +9,7 @@ use Exception;
 use Faker\Factory as FakerFactory;
 use MysqlTester;
 use PDO;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
@@ -273,7 +273,7 @@ final class MigrationsCest
         ob_clean();
 
         $I->assertEquals(4, $autoIncrement);
-        $I->assertContains(
+        $I->assertStringContainsString(
             "'AUTO_INCREMENT' => '4'",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
@@ -322,7 +322,7 @@ final class MigrationsCest
         ob_clean();
 
         $I->assertEquals(4, $autoIncrement);
-        $I->assertContains(
+        $I->assertStringContainsString(
             "'AUTO_INCREMENT' => ''",
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php')
         );
@@ -401,7 +401,7 @@ final class MigrationsCest
         $migrationContents = file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.php');
 
         $I->assertSame(1, substr_count($migrationContents, 'this->batchInsert'));
-        $I->assertContains(
+        $I->assertStringContainsString(
             '3',
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.dat')
         );
@@ -445,7 +445,7 @@ final class MigrationsCest
 
         $columns = $mysqlTester->getPhalconDb()->describeColumns($tableName);
 
-        $mysqlTester->asserttrue($columns[0]->isUnsigned());
+        $mysqlTester->assertTrue($columns[0]->isUnsigned());
     }
 
     public function nullableTimestamp(MysqlTester $I): void

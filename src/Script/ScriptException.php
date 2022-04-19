@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Script;
 
-use Phalcon\Exception as PhalconException;
+use Exception as PhalconException;
 
 class ScriptException extends PhalconException
 {

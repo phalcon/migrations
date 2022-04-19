@@ -14,5 +14,7 @@
     </projectFiles>
     <issueHandlers>
         <MethodSignatureMismatch errorLevel="info" />
+        <InvalidArgument errorLevel="info" />
+        <PossiblyUndefinedArrayOffset errorLevel="info" />
     </issueHandlers>
 </psalm>

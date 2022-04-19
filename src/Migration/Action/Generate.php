@@ -14,13 +14,23 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Migration\Action;
 
 use Generator;
+use Nette\PhpGenerator\ClassType;
+use Nette\PhpGenerator\PhpFile;
+use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Column;
 use Phalcon\Db\ColumnInterface;
+use Phalcon\Db\Enum;
+use Phalcon\Db\Exception;
 use Phalcon\Db\Index;
 use Phalcon\Db\IndexInterface;
+use Phalcon\Db\Reference;
 use Phalcon\Db\ReferenceInterface;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
+use Phalcon\Migrations\Exception\RuntimeException;
+use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Mvc\Model\Migration;
+use Phalcon\Migrations\Version\ItemInterface;
+use Throwable;
 
 /**
  * Action class to generate migration file contents
@@ -52,7 +62,7 @@ class Generate
 
         Column::TYPE_BOOLEAN => 'TYPE_BOOLEAN',
         Column::TYPE_FLOAT => 'TYPE_FLOAT',
-        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
+        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
         Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
 
         Column::TYPE_BLOB => 'TYPE_BLOB',
@@ -62,6 +72,20 @@ class Generate
         Column::TYPE_JSON => 'TYPE_JSON',
         Column::TYPE_JSONB => 'TYPE_JSONB',
         Column::TYPE_ENUM => 'TYPE_ENUM',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $supportedColumnTypesPgsql = [
+        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $supportedColumnTypesMysql = [
+        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
     ];
 
     /**
@@ -110,6 +134,20 @@ class Generate
         Column::TYPE_INTEGER,
         Column::TYPE_BIGINTEGER,
     ];
+
+    /**
+     * Migration file entity
+     *
+     * @var PhpFile
+     */
+    private $file;
+
+    /**
+     * Migration class entity
+     *
+     * @var ClassType
+     */
+    private $class;
 
     /**
      * SQL Adapter Name
@@ -189,6 +227,185 @@ class Generate
         $this->options = $options;
     }
 
+    public function getEntity(): PhpFile
+    {
+        $this->checkEntityExists();
+
+        return $this->file;
+    }
+
+    public function createEntity(string $className, bool $recreate = false): self
+    {
+        if (null === $this->class || $recreate) {
+            $this->file = new PhpFile();
+            $this->file->addUse(Column::class)
+                ->addUse(Exception::class)
+                ->addUse(Index::class)
+                ->addUse(Reference::class)
+                ->addUse(Migration::class);
+
+            $this->class = $this->file->addClass($className);
+            $this->class
+                ->setExtends(Migration::class)
+                ->addComment("Class {$className}");
+        }
+
+        return $this;
+    }
+
+    /**
+     * @throws UnknownColumnTypeException
+     */
+    public function addMorph(Snippet $snippet, string $table, bool $skipRefSchema = false, bool $skipAI = true): self
+    {
+        $this->checkEntityExists();
+
+        $columns = [];
+        foreach ($this->getColumns() as $columnName => $columnDefinition) {
+            $definitions = implode(",\n                ", $columnDefinition);
+            $columns[] = sprintf($snippet->getColumnTemplate(), $columnName, $definitions);
+        }
+
+        $indexes = [];
+        foreach ($this->getIndexes() as $indexName => $indexDefinition) {
+            [$fields, $indexType] = $indexDefinition;
+            $definitions = implode(", ", $fields);
+            $type = $indexType ? "'$indexType'" : "''";
+            $indexes[] = sprintf($snippet->getIndexTemplate(), $indexName, $definitions, $type);
+        }
+
+        $references = [];
+        foreach ($this->getReferences($skipRefSchema) as $constraintName => $referenceDefinition) {
+            $definitions = implode(",\n                ", $referenceDefinition);
+            $references[] = sprintf($snippet->getReferenceTemplate(), $constraintName, $definitions);
+        }
+
+        $options = [];
+        foreach ($this->getOptions($skipAI) as $option) {
+            $options[] = sprintf($snippet->getOptionTemplate(), $option);
+        }
+
+        $body = sprintf(
+            $snippet->getMorphTemplate(),
+            $table,
+            $snippet->definitionToString('columns', $columns)
+            . $snippet->definitionToString('indexes', $indexes)
+            . $snippet->definitionToString('references', $references)
+            . $snippet->definitionToString('options', $options)
+        );
+
+        $this->class->addMethod('morph')
+            ->addComment("Define the table structure\n")
+            ->addComment('@return void')
+            ->addComment('@throws Exception')
+            ->setReturnType('void')
+            ->setBody($body);
+
+        return $this;
+    }
+
+    public function addUp(string $table, $exportData = null, bool $shouldExportDataFromTable = false): self
+    {
+        $this->checkEntityExists();
+
+        $body = "\n";
+        if ($exportData === 'always' || $shouldExportDataFromTable) {
+            $quoteWrappedColumns = "\n";
+            foreach ($this->quoteWrappedColumns as $quoteWrappedColumn) {
+                $quoteWrappedColumns .= "    $quoteWrappedColumn,\n";
+            }
+            $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
+        }
+
+        $this->class->addMethod('up')
+            ->addComment("Run the migrations\n")
+            ->addComment('@return void')
+            ->setReturnType('void')
+            ->setBody($body);
+
+        return $this;
+    }
+
+    public function addDown(string $table, $exportData = null, bool $shouldExportDataFromTable = false): self
+    {
+        $this->checkEntityExists();
+
+        $body = "\n";
+        if ($exportData === 'always' || $shouldExportDataFromTable) {
+            $body = "\$this->batchDelete('$table');";
+        }
+
+        $this->class->addMethod('down')
+            ->addComment("Reverse the migrations\n")
+            ->addComment('@return void')
+            ->setReturnType('void')
+            ->setBody($body);
+
+        return $this;
+    }
+
+    public function addAfterCreateTable(string $table, $exportData = null): self
+    {
+        $this->checkEntityExists();
+
+        if ($exportData === 'oncreate') {
+            $quoteWrappedColumns = "\n";
+            foreach ($this->quoteWrappedColumns as $quoteWrappedColumn) {
+                $quoteWrappedColumns .= "    $quoteWrappedColumn,\n";
+            }
+            $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
+
+            $this->class->addMethod('afterCreateTable')
+                ->addComment("This method is called after the table was created\n")
+                ->addComment('@return void')
+                ->setReturnType('void')
+                ->setBody($body);
+        }
+
+        return $this;
+    }
+
+    public function createDumpFiles(
+        string $table,
+        string $migrationPath,
+        AbstractAdapter $connection,
+        ItemInterface $version,
+        $exportData = null,
+        bool $shouldExportDataFromTable = false
+    ): self {
+        $numericColumns = $this->getNumericColumns();
+        if ($exportData === 'always' || $exportData === 'oncreate' || $shouldExportDataFromTable) {
+            $fileHandler = fopen($migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
+            $cursor = $connection->query('SELECT * FROM ' . $connection->escapeIdentifier($table));
+            $cursor->setFetchMode(Enum::FETCH_ASSOC);
+            while ($row = $cursor->fetchArray()) {
+                $data = [];
+                foreach ($row as $key => $value) {
+                    if (isset($numericColumns[$key])) {
+                        if ($value === '' || $value === null) {
+                            $data[] = 'NULL';
+                        } else {
+                            $data[] = $value;
+                        }
+                    } elseif (is_string($value)) {
+                        $data[] = addslashes($value);
+                    } else {
+                        $data[] = $value ?? 'NULL';
+                    }
+
+                    unset($value);
+                }
+
+                fputcsv($fileHandler, $data);
+                unset($row, $data);
+            }
+
+            fclose($fileHandler);
+        }
+
+        return $this;
+    }
+
     /**
      * Prepare table columns
      *
@@ -198,12 +415,19 @@ class Generate
     public function getColumns(): Generator
     {
         $currentColumnName = null;
+        if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL) {
+            $supportedColumnTypes = \array_replace($this->supportedColumnTypes, $this->supportedColumnTypesPgsql);
+        } elseif ($this->adapter === Migration::DB_ADAPTER_MYSQL) {
+            $supportedColumnTypes = \array_replace($this->supportedColumnTypes, $this->supportedColumnTypesMysql);
+        } else {
+            $supportedColumnTypes = $this->supportedColumnTypes;
+        }
 
         foreach ($this->columns as $column) {
             /** @var ColumnInterface $column */
 
             $columnType = $column->getType();
-            if (!isset($this->supportedColumnTypes[$columnType])) {
+            if (!isset($supportedColumnTypes[$columnType])) {
                 throw new UnknownColumnTypeException($column);
             }
 
@@ -212,7 +436,7 @@ class Generate
             }
 
             $definition = [
-                "'type' => Column::" . $this->supportedColumnTypes[$columnType],
+                "'type' => Column::" . $supportedColumnTypes[$columnType],
             ];
 
             if ($column->hasDefault() && !$column->isAutoIncrement()) {
@@ -283,7 +507,13 @@ class Generate
             }
 
             if (!empty($definition)) {
-                yield $name => [$definition, $index->getType()];
+                $type = null;
+                //Foreign Key, No Type
+                if ('_fk' !== substr($index->getName(), -3)) {
+                    $type = $index->getType();
+                }
+
+                yield $name => [$definition, $type];
             }
         }
     }
@@ -425,5 +655,12 @@ class Generate
         }
 
         return $size;
+    }
+
+    public function checkEntityExists(): void
+    {
+        if (null === $this->file) {
+            throw new RuntimeException('Migration entity is e,pty. Call Generate::createEntity()');
+        }
     }
 }

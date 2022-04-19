@@ -7,7 +7,7 @@ namespace Helper;
 use Codeception\Module;
 use Codeception\TestInterface;
 use PDO;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\PdoFactory;
 use Phalcon\Db\Exception;

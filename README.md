@@ -42,7 +42,7 @@ Configuration filename can be whatever you want.
 ```php
 <?php
 
-use Phalcon\Config;
+use Phalcon\Config\Config;
 
 return new Config([
     'database' => [

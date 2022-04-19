@@ -15,7 +15,7 @@ namespace Phalcon\Migrations;
 
 use DirectoryIterator;
 use Exception;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Db\Column;
 use Phalcon\Db\Exception as DbException;
@@ -27,6 +27,7 @@ use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
+use Phalcon\Migrations\Utils\Helper;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\TimestampedItem;
@@ -66,6 +67,7 @@ class Migrations
      */
     public static function generate(array $options)
     {
+        $helper = new Helper();
         $optionStack = new OptionStack();
         $listTables = new ListTablesDb();
         $optionStack->setOptions($options);
@@ -75,60 +77,23 @@ class Migrations
         $optionStack->setDefaultOption('verbose', false);
         $optionStack->setDefaultOption('skip-ref-schema', false);
 
-        $migrationsDirs = $optionStack->getOption('migrationsDir');
-        if (is_array($migrationsDirs)) {
-            if (count($migrationsDirs) > 1) {
-                $question = 'Which migrations path would you like to use?' . PHP_EOL;
-                foreach ($migrationsDirs as $id => $dir) {
-                    $question .= " [{$id}] $dir" . PHP_EOL;
-                }
-
-                fwrite(STDOUT, Color::info($question));
-                $handle = fopen('php://stdin', 'r');
-                $line = (int)fgets($handle);
-                if (!isset($migrationsDirs[$line])) {
-                    echo "ABORTING!\n";
-                    return false;
-                }
-
-                fclose($handle);
-                $migrationsDir = $migrationsDirs[$line];
-            } else {
-                $migrationsDir = $migrationsDirs[0];
-            }
-        } else {
-            $migrationsDir = $migrationsDirs;
-        }
-
         // Migrations directory
-        if ($migrationsDir && !file_exists($migrationsDir)) {
-            if (!mkdir($migrationsDir, 0755, true) && !is_dir($migrationsDir)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $migrationsDir));
-            }
-        }
+        $migrationsDirs = $optionStack->getOption('migrationsDir');
+        $migrationsDir = $helper->getMigrationsDir($migrationsDirs);
 
         $versionItem = $optionStack->getVersionNameGeneratingMigration();
+        $verbose = $optionStack->getOption('verbose');
+        $force = $optionStack->getOption('force');
 
         // Path to migration dir
-        $migrationPath = rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion();
-        if (!file_exists($migrationPath)) {
-            if (is_writable(dirname($migrationPath)) && !$optionStack->getOption('verbose')) {
-                if (!mkdir($migrationPath) && !is_dir($migrationPath)) {
-                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $migrationPath));
-                }
-            } elseif (!is_writable(dirname($migrationPath))) {
-                throw new RuntimeException("Unable to write '{$migrationPath}' directory. Permission denied");
-            }
-        } elseif (!$optionStack->getOption('force')) {
-            throw new RuntimeException('Version ' . $versionItem->getVersion() . ' already exists');
-        }
+        $migrationPath = $helper->getMigrationsPath($versionItem, $migrationsDir, $verbose, $force);
 
         // Try to connect to the DB
         if (!isset($optionStack->getOption('config')->database)) {
             throw new RuntimeException('Cannot load database configuration');
         }
 
-        ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
+        ModelMigration::setup($optionStack->getOption('config')->database, $verbose);
         ModelMigration::setSkipAutoIncrement((bool)$optionStack->getOption('noAutoIncrement'));
         ModelMigration::setMigrationPath($migrationsDir);
 
@@ -141,17 +106,14 @@ class Migrations
                 $optionStack->getOption('skip-ref-schema')
             );
 
-            if (!$optionStack->getOption('verbose')) {
+            if (!$verbose) {
                 foreach ($migrations as $tableName => $migration) {
                     if ($tableName === self::MIGRATION_LOG_TABLE) {
                         continue;
                     }
 
                     $tableFile = $migrationPath . DIRECTORY_SEPARATOR . $tableName . '.php';
-                    $wasMigrated = file_put_contents(
-                        $tableFile,
-                        '<?php' . PHP_EOL . PHP_EOL . $migration
-                    ) || $wasMigrated;
+                    $wasMigrated = file_put_contents($tableFile, $migration) || $wasMigrated;
                 }
             }
         } else {
@@ -174,12 +136,9 @@ class Migrations
                     $optionStack->getOption('exportDataFromTables') ?: [],
                     $optionStack->getOption('skip-ref-schema')
                 );
-                if (!$optionStack->getOption('verbose')) {
+                if (!$verbose) {
                     $tableFile = $migrationPath . DIRECTORY_SEPARATOR . $table . '.php';
-                    $wasMigrated = file_put_contents(
-                        $tableFile,
-                        '<?php' . PHP_EOL . PHP_EOL . $migration
-                    );
+                    $wasMigrated = file_put_contents($tableFile, $migration);
                 }
             }
         }
@@ -187,7 +146,7 @@ class Migrations
         if (self::isConsole()) {
             if ($wasMigrated) {
                 print Color::success('Version ' . $versionItem->getVersion() . ' was successfully generated') . PHP_EOL;
-            } elseif (!$optionStack->getOption('verbose')) {
+            } elseif (!$verbose) {
                 print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
             }
         }
@@ -230,7 +189,6 @@ class Migrations
         /** @var IncrementalItem $initialVersion */
         $initialVersion = self::getCurrentVersion($optionStack->getOptions());
         $completedVersions = self::getCompletedVersions($optionStack->getOptions());
-        $migrationsDirs = [];
         $versionItems = [];
         $migrationsDirList = $optionStack->getOption('migrationsDir');
         if (is_array($migrationsDirList)) {
@@ -239,7 +197,6 @@ class Migrations
                 if (!file_exists($migrationsDir)) {
                     throw new RuntimeException('Migrations directory was not found.');
                 }
-                $migrationsDirs[] = $migrationsDir;
                 foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
                     $items->setPath($migrationsDir);
                     $versionItems[] = $items;
@@ -251,7 +208,6 @@ class Migrations
                 throw new RuntimeException('Migrations directory was not found.');
             }
 
-            $migrationsDirs[] = $migrationsDir;
             foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
                 $items->setPath($migrationsDir);
                 $versionItems[] = $items;
@@ -306,15 +262,14 @@ class Migrations
         if (ModelMigration::DIRECTION_FORWARD === $direction) {
             // If we migrate up, we should go from the beginning to run some migrations which may have been missed
             $versionItemsTmp = VersionCollection::sortAsc(array_merge($versionItems, [$initialVersion]));
-            $initialVersion = $versionItemsTmp[0];
         } else {
             /*
-             * If we migrate downs,
-             * we should go from the last migration to revert some migrations which may have been missed
+             * If we migrate downs, we should go from the last migration to revert some migrations which may have
+             * been missed
              */
             $versionItemsTmp = VersionCollection::sortDesc(array_merge($versionItems, [$initialVersion]));
-            $initialVersion = $versionItemsTmp[0];
         }
+        $initialVersion = $versionItemsTmp[0];
 
         // Run migration
         $versionsBetween = VersionCollection::between($initialVersion, $finalVersion, $versionItems);

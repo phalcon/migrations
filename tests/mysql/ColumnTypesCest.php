@@ -17,7 +17,7 @@ use Codeception\Example;
 use Exception;
 use MysqlTester;
 use PDO;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;

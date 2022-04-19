@@ -1,3 +1,21 @@
+# [2.2.4](https://github.com/phalcon/migrations/releases/tag/v2.2.4) (2021-12-10)
+- Changed column modification behaviour during table morph ([#126](https://github.com/phalcon/migrations/issues/126))
+
+# [2.2.3](https://github.com/phalcon/migrations/releases/tag/v2.2.3) (2021-08-11)
+- Changed column modification behaviour during table morph ([#97](https://github.com/phalcon/migrations/issues/97))
+- Updated composer packages ([#124](https://github.com/phalcon/migrations/pull/124))
+
+# [2.2.2](https://github.com/phalcon/migrations/releases/tag/v2.2.2) (2021-08-08)
+- Integrated nette/php-generator, changed algorithm of migrations generation ([#90](https://github.com/phalcon/migrations/issues/90))
+
+# [2.2.1](https://github.com/phalcon/migrations/releases/tag/v2.2.1) (2021-08-03)
+- Fixed types and indexes definition on pgsql adapter ([#111](https://github.com/phalcon/migrations/issues/111), [#112](https://github.com/phalcon/migrations/issues/112), [#118](https://github.com/phalcon/migrations/issues/118))
+
+# [2.2.0](https://github.com/phalcon/migrations/releases/tag/v2.2.0) (2021-08-03)
+Supported Versions: 7.3, 7.4, 8.0
+
+- This release provides initial PHP 8 support.
+
 # [2.1.6](https://github.com/phalcon/migrations/releases/tag/v2.1.6) (2021-03-22)
 - Fixed duplicated table `phalcon_migrations` in PostgreSQL ([#104](https://github.com/phalcon/migrations/issues/104))
 - Fixed morphing when column attribute `unsiged` is changed ([#109](https://github.com/phalcon/migrations/issues/109))

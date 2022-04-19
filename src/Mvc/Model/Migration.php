@@ -15,11 +15,11 @@ namespace Phalcon\Migrations\Mvc\Model;
 
 use DirectoryIterator;
 use Exception;
-use Phalcon\Config;
+use Nette\PhpGenerator\PsrPrinter;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
-use Phalcon\Db\Enum;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Db\IndexInterface;
 use Phalcon\Db\ReferenceInterface;
@@ -27,6 +27,7 @@ use Phalcon\Events\Manager as EventsManager;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
+use Phalcon\Migrations\Db\FieldDefinition;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
@@ -35,7 +36,7 @@ use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
-use Phalcon\Text;
+use Phalcon\Support\Helper\Str\Camelize;
 use Throwable;
 
 use function get_called_class;
@@ -217,6 +218,7 @@ class Migration
         array $exportTables = [],
         bool $skipRefSchema = false
     ): string {
+        $printer = new PsrPrinter();
         $snippet = new Snippet();
         $adapter = strtolower((string)self::$databaseConfig->path('adapter'));
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
@@ -225,122 +227,27 @@ class Migration
         $references = self::$connection->describeReferences($table, $defaultSchema);
         $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
 
-        $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
-
-        /**
-         * Generate Columns
-         */
-        $tableDefinition = [];
-        foreach ($generateAction->getColumns() as $columnName => $columnDefinition) {
-            $tableDefinition[] = $snippet->getColumnDefinition($columnName, $columnDefinition);
-        }
-
-        /**
-         * Generate Indexes
-         */
-        $indexesDefinition = [];
-        foreach ($generateAction->getIndexes() as $indexName => $indexDefinition) {
-            [$definition, $type] = $indexDefinition;
-            $indexesDefinition[] = $snippet->getIndexDefinition($indexName, $definition, $type);
-        }
-
-        /**
-         * Generate References
-         */
-        $referencesDefinition = [];
-        foreach ($generateAction->getReferences($skipRefSchema) as $constraintName => $referenceDefinition) {
-            $referencesDefinition[] = $snippet->getReferenceDefinition($constraintName, $referenceDefinition);
-        }
-
-        /**
-         * Generate Options
-         */
-        $optionsDefinition = $generateAction->getOptions(self::$skipAI);
-
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
-        $className = Text::camelize($table) . 'Migration_' . $classVersion;
+        $className = (new Camelize())($table) . 'Migration_' . $classVersion;
+        $shouldExportDataFromTable = self::shouldExportDataFromTable($table, $exportTables);
 
-        // morph()
-        $classData = $snippet->getMigrationMorph($className, $table, $tableDefinition);
+        $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
+        $generateAction->createEntity($className)
+            ->addMorph($snippet, $table, $skipRefSchema, self::$skipAI)
+            ->addUp($table, $exportData, $shouldExportDataFromTable)
+            ->addDown($table, $exportData, $shouldExportDataFromTable)
+            ->addAfterCreateTable($table, $exportData)
+            ->createDumpFiles(
+                $table,
+                self::$migrationPath,
+                self::$connection,
+                $version,
+                $exportData,
+                $shouldExportDataFromTable
+            );
 
-        if (count($indexesDefinition) > 0) {
-            $classData .= $snippet->getMigrationDefinition('indexes', $indexesDefinition);
-        }
 
-        if (count($referencesDefinition) > 0) {
-            $classData .= $snippet->getMigrationDefinition('references', $referencesDefinition);
-        }
-
-        if (count($optionsDefinition) > 0) {
-            $classData .= $snippet->getMigrationDefinition('options', $optionsDefinition);
-        }
-
-        $classData .= "            ]\n        );\n    }\n";
-
-        // up()
-        $classData .= $snippet->getMigrationUp();
-
-        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
-            $classData .= $snippet->getMigrationBatchInsert($table, $generateAction->getQuoteWrappedColumns());
-        }
-
-        $classData .= "\n    }\n";
-
-        // down()
-        $classData .= $snippet->getMigrationDown();
-
-        if ($exportData === 'always' || self::shouldExportDataFromTable($table, $exportTables)) {
-            $classData .= $snippet->getMigrationBatchDelete($table);
-        }
-
-        $classData .= "\n    }\n";
-
-        // afterCreateTable()
-        if ($exportData === 'oncreate') {
-            $classData .= $snippet->getMigrationAfterCreateTable($table, $generateAction->getQuoteWrappedColumns());
-        }
-
-        // end of class
-        $classData .= "\n}\n";
-
-        $numericColumns = $generateAction->getNumericColumns();
-        // dump data
-        if (
-            $exportData === 'always' ||
-            $exportData === 'oncreate' ||
-            self::shouldExportDataFromTable($table, $exportTables)
-        ) {
-            $fileHandler = fopen(self::$migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
-            $cursor = self::$connection->query('SELECT * FROM ' . self::$connection->escapeIdentifier($table));
-            $cursor->setFetchMode(Enum::FETCH_ASSOC);
-            while ($row = $cursor->fetchArray()) {
-                $data = [];
-                foreach ($row as $key => $value) {
-                    if (isset($numericColumns[$key])) {
-                        if ($value === '' || $value === null) {
-                            $data[] = 'NULL';
-                        } else {
-                            $data[] = $value;
-                        }
-                    } else {
-                        if (is_string($value)) {
-                            $data[] = addslashes($value);
-                        } else {
-                            $data[] = $value === null ? 'NULL' : $value;
-                        }
-                    }
-
-                    unset($value);
-                }
-
-                fputcsv($fileHandler, $data);
-                unset($row, $data);
-            }
-
-            fclose($fileHandler);
-        }
-
-        return $classData;
+        return $printer->printFile($generateAction->getEntity());
     }
 
     public static function shouldExportDataFromTable(string $table, array $exportTables): bool
@@ -440,7 +347,7 @@ class Migration
             return null;
         }
 
-        $className = Text::camelize($tableName) . 'Migration_' . $version->getStamp();
+        $className = (new Camelize())($tableName) . 'Migration_' . $version->getStamp();
 
         include_once $fileName;
         if (!class_exists($className)) {
@@ -527,6 +434,7 @@ class Migration
             }
 
             $fields = [];
+            $previousField = null;
             /** @var ColumnInterface $tableColumn */
             foreach ($definition['columns'] as $tableColumn) {
                 /**
@@ -536,28 +444,42 @@ class Migration
                     throw new DbException('Table must have at least one column');
                 }
 
-                /** @var ColumnInterface[] $fields */
-                $fields[$tableColumn->getName()] = $tableColumn;
+                $field = new FieldDefinition($tableColumn);
+                $field->setPrevious($previousField);
+                if (null !== $previousField) {
+                    $previousField->setNext($field);
+                }
+                $previousField = $field;
+
+                $fields[$field->getName()] = $field;
             }
 
             if ($tableExists) {
                 $localFields = [];
-                /** @var ColumnInterface[] $description */
+                $previousField = null;
                 $description = self::$connection->describeColumns($tableName, $defaultSchema);
-                foreach ($description as $field) {
-                    /** @var ColumnInterface[] $localFields */
+                /** @var ColumnInterface $localColumn */
+                foreach ($description as $localColumn) {
+                    $field = new FieldDefinition($localColumn);
+                    $field->setPrevious($previousField);
+                    if (null !== $previousField) {
+                        $previousField->setNext($field);
+                    }
+                    $previousField = $field;
+
                     $localFields[$field->getName()] = $field;
                 }
 
-                foreach ($fields as $fieldName => $column) {
-                    if (!isset($localFields[$fieldName])) {
+                foreach ($fields as $fieldDefinition) {
+                    $localFieldDefinition = $fieldDefinition->getPairedDefinition($localFields);
+                    if (null === $localFieldDefinition) {
                         try {
-                            self::$connection->addColumn($tableName, $tableSchema, $column);
+                            self::$connection->addColumn($tableName, $tableSchema, $fieldDefinition->getColumn());
                         } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to add column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $column->getName(),
+                                    $fieldDefinition->getName(),
                                     $tableName,
                                     get_called_class(),
                                     $exception->getMessage()
@@ -568,35 +490,19 @@ class Migration
                         continue;
                     }
 
-                    $changed = false;
-                    if ($localFields[$fieldName]->getType() !== $column->getType()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->getSize() !== $column->getSize()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->isNotNull() !== $column->isNotNull()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->getDefault() !== $column->getDefault()) {
-                        $changed = true;
-                    }
-
-                    if ($localFields[$fieldName]->isUnsigned() !== $column->isUnsigned()) {
-                        $changed = true;
-                    }
-
-                    if ($changed === true) {
+                    if ($fieldDefinition->isChanged($localFieldDefinition)) {
                         try {
-                            self::$connection->modifyColumn($tableName, $tableSchema, $column, $column);
+                            self::$connection->modifyColumn(
+                                $tableName,
+                                $tableSchema,
+                                $fieldDefinition->getColumn(),
+                                $localFieldDefinition->getColumn()
+                            );
                         } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to modify column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $column->getName(),
+                                    $fieldDefinition->getName(),
                                     $tableName,
                                     get_called_class(),
                                     $exception->getMessage()
@@ -606,18 +512,19 @@ class Migration
                     }
                 }
 
-                foreach ($localFields as $fieldName => $localField) {
-                    if (!isset($fields[$fieldName])) {
+                foreach ($localFields as $fieldDefinition) {
+                    $newFieldDefinition = $fieldDefinition->getPairedDefinition($fields);
+                    if (null === $newFieldDefinition) {
                         try {
                             /**
                              * TODO: Check, why schemaName is empty string.
                              */
-                            self::$connection->dropColumn($tableName, '', $fieldName);
+                            self::$connection->dropColumn($tableName, '', $fieldDefinition->getName());
                         } catch (Throwable $exception) {
                             throw new RuntimeException(
                                 sprintf(
                                     "Failed to drop column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $fieldName,
+                                    $fieldDefinition->getName(),
                                     $tableName,
                                     get_called_class(),
                                     $exception->getMessage()
@@ -875,7 +782,7 @@ class Migration
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
-                function ($value) {
+                static function ($value) {
                     if (null === $value || $value === 'NULL') {
                         return 'NULL';
                     }
@@ -913,7 +820,7 @@ class Migration
      *
      * @param string $tableName
      */
-    public function batchDelete(string $tableName)
+    public function batchDelete(string $tableName): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
@@ -926,7 +833,7 @@ class Migration
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
-                function ($value) {
+                static function ($value) {
                     return null === $value ? null : stripslashes($value);
                 },
                 $line
@@ -945,7 +852,7 @@ class Migration
      *
      * @return AbstractAdapter
      */
-    public function getConnection()
+    public function getConnection(): AbstractAdapter
     {
         return self::$connection;
     }
@@ -983,11 +890,11 @@ class Migration
         }
 
         $adapter = strtolower($config->get('adapter'));
-        if (self::DB_ADAPTER_POSTGRESQL == $adapter) {
+        if (self::DB_ADAPTER_POSTGRESQL === $adapter) {
             return 'public';
         }
 
-        if (self::DB_ADAPTER_SQLITE == $adapter) {
+        if (self::DB_ADAPTER_SQLITE === $adapter) {
             // SQLite only supports the current database, unless one is
             // attached. This is not the case, so don't return a schema.
             return null;
