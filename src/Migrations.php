@@ -243,7 +243,7 @@ class Migrations
         self::connectionSetup($optionStack->getOptions());
 
         /**
-         * Everything is up to date
+         * Everything is up-to-date
          */
         if (
             $initialVersion->getStamp() === $finalVersion->getStamp() &&
@@ -260,12 +260,15 @@ class Migrations
         }
 
         if (ModelMigration::DIRECTION_FORWARD === $direction) {
-            // If we migrate up, we should go from the beginning to run some migrations which may have been missed
+            /**
+             * If we migrate up, we should go from the beginning
+             * to run some migrations which may have been missed.
+             */
             $versionItemsTmp = VersionCollection::sortAsc(array_merge($versionItems, [$initialVersion]));
         } else {
-            /*
-             * If we migrate downs, we should go from the last migration to revert some migrations which may have
-             * been missed
+            /**
+             * If we migrate downs, we should go from the last migration
+             * to revert some migrations which may have been missed.
              */
             $versionItemsTmp = VersionCollection::sortDesc(array_merge($versionItems, [$initialVersion]));
         }
@@ -288,6 +291,7 @@ class Migrations
             ) {
                 continue;
             }
+
             if (
                 ModelMigration::DIRECTION_FORWARD === $direction
                 && isset($completedVersions[(string)$versionItem])
@@ -295,6 +299,7 @@ class Migrations
                 print Color::info('Version ' . (string)$versionItem . ' was already applied');
                 continue;
             }
+
             if (
                 ModelMigration::DIRECTION_BACK === $direction
                 && !isset($completedVersions[(string)$initialVersion])
@@ -555,10 +560,12 @@ class Migrations
             if (0 == $lastGoodMigration->numRows()) {
                 return VersionCollection::createItem(null);
             }
+
             $lastGoodMigration = $lastGoodMigration->fetchArray();
 
             return VersionCollection::createItem($lastGoodMigration['version']);
         }
+
         // Get and clean migration
         $version = file_exists(self::$storage) ? file_get_contents(self::$storage) : null;
         $version = $version ? trim($version) : null;
