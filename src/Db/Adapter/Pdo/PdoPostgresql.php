@@ -95,8 +95,8 @@ class PdoPostgresql extends Postgresql
         $indexes = [];
         $indexObjects = [];
 
-        $_indexes = $this->fetchAll($this->dialect->describeIndexes($table, $schema));
-        foreach ($_indexes as $index) {
+        $rows = $this->fetchAll($this->dialect->describeIndexes($table, $schema));
+        foreach ($rows as $index) {
             $keyName = $index['key_name'] ?? $index[2];
             $nonUnique = $index['non_unique'] ?? true;
             $isPrimary = $index['is_primary'] ?? false;
@@ -111,6 +111,7 @@ class PdoPostgresql extends Postgresql
 
             $columns = $indexes[$keyName]['columns'] ?? [];
             $columns[] = $index['column_name'] ?? $index[4];
+
             $indexes[$keyName]['columns'] = $columns;
             $indexes[$keyName]['type'] = $indexType;
         }
