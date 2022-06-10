@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Version;
 
 /**
- * Allows to manipulate version texts
+ * Allows manipulating version texts.
  */
 class IncrementalItem implements ItemInterface
 {
@@ -38,7 +38,7 @@ class IncrementalItem implements ItemInterface
     /**
      * @var array
      */
-    private $parts = [];
+    private $parts;
 
     /**
      * @param string $version
