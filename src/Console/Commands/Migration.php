@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console\Commands;
 
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Config\Adapter\Ini as IniConfig;
 use Phalcon\Config\Adapter\Json as JsonConfig;
 use Phalcon\Config\Adapter\Yaml as YamlConfig;
