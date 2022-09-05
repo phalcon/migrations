@@ -16,7 +16,6 @@ namespace Phalcon\Migrations\Tests\Mysql;
 use MysqlTester;
 use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
-
 use Phalcon\Migrations\Script\ScriptException;
 
 use function codecept_data_dir;
