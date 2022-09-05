@@ -3,7 +3,7 @@ name: "Tests"
 on: [push, pull_request]
 
 jobs:
-  run-tests-php7:
+  run-tests-php:
     name: PHP ${{ matrix.php-versions }} with Phalcon ${{ matrix.phalcon-versions }}
     runs-on: ubuntu-latest
     env:
@@ -26,9 +26,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.3', '7.4']
+        php-versions: ['7.4', '8.0', '8.1']
         # There is no 4.1.1 version due release bug
-        phalcon-versions: ['4.0.5', '4.0.6', '4.1.0', '4.1.2']
+        phalcon-versions: ['5.0.0RC4']
     steps:
       - uses: actions/checkout@v1
       - name: Setup cache environment
@@ -83,4 +83,3 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./tests/_output/coverage-*.xml
-
