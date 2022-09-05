@@ -16,7 +16,7 @@ namespace Phalcon\Migrations\Mvc\Model;
 use DirectoryIterator;
 use Exception;
 use Nette\PhpGenerator\PsrPrinter;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
@@ -36,7 +36,7 @@ use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
-use Phalcon\Text;
+use Phalcon\Support\HelperFactory;
 use Throwable;
 
 use function get_called_class;
@@ -218,6 +218,7 @@ class Migration
         array $exportTables = [],
         bool $skipRefSchema = false
     ): string {
+        $helper = new HelperFactory();
         $printer = new PsrPrinter();
         $snippet = new Snippet();
         $adapter = strtolower((string)self::$databaseConfig->path('adapter'));
@@ -228,7 +229,7 @@ class Migration
         $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
 
         $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
-        $className = Text::camelize($table) . 'Migration_' . $classVersion;
+        $className = $helper->camelize($table) . 'Migration_' . $classVersion;
         $shouldExportDataFromTable = self::shouldExportDataFromTable($table, $exportTables);
 
         $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
@@ -342,12 +343,13 @@ class Migration
      */
     private static function createClass(ItemInterface $version, string $tableName): ?Migration
     {
+        $helper   = new HelperFactory();
         $fileName = self::$migrationPath . $version->getVersion() . DIRECTORY_SEPARATOR . $tableName . '.php';
         if (!file_exists($fileName)) {
             return null;
         }
 
-        $className = Text::camelize($tableName) . 'Migration_' . $version->getStamp();
+        $className = $helper->camelize($tableName) . 'Migration_' . $version->getStamp();
 
         include_once $fileName;
         if (!class_exists($className)) {
