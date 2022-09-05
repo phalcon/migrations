@@ -24,6 +24,7 @@ final class GenerateCest
 {
     /**
      * @param IntegrationTester $I
+     *
      * @throws UnknownColumnTypeException
      */
     public function constructMysql(IntegrationTester $I): void
@@ -31,7 +32,7 @@ final class GenerateCest
         $I->wantToTest('Migration\Action\Generate - __construct(Mysql)');
 
         $adapter = 'mysql';
-        $class = new Generate($adapter);
+        $class   = new Generate($adapter);
 
         $I->assertSame($adapter, $class->getAdapter());
         $I->assertIsObject($class->getColumns());
@@ -44,6 +45,7 @@ final class GenerateCest
 
     /**
      * @param IntegrationTester $I
+     *
      * @throws UnknownColumnTypeException
      */
     public function constructPostgresql(IntegrationTester $I): void
@@ -51,7 +53,7 @@ final class GenerateCest
         $I->wantToTest('Migration\Action\Generate - __construct(Postgresql)');
 
         $adapter = 'postgresql';
-        $class = new Generate($adapter);
+        $class   = new Generate($adapter);
 
         $I->assertSame($adapter, $class->getAdapter());
         $I->assertIsObject($class->getColumns());
@@ -73,17 +75,17 @@ final class GenerateCest
             'fk_accessToken_client_1' => new Reference(
                 'fk_accessToken_client_1',
                 [
-                    'referencedTable' => 'client',
-                    'referencedSchema' => 'public',
-                    'columns' => ['clientId'],
+                    'referencedTable'   => 'client',
+                    'referencedSchema'  => 'public',
+                    'columns'           => ['clientId'],
                     'referencedColumns' => ['id'],
-                    'onUpdate' => 'NO ACTION',
-                    'onDelete' => 'NO ACTION',
+                    'onUpdate'          => 'NO ACTION',
+                    'onDelete'          => 'NO ACTION',
                 ]
             ),
         ];
 
-        $class = new Generate('mysql', [], [], $references);
+        $class               = new Generate('mysql', [], [], $references);
         $generatedReferences = [];
         foreach ($class->getReferences() as $name => $reference) {
             $generatedReferences[$name] = $reference;
@@ -104,11 +106,11 @@ final class GenerateCest
             'fk_accessToken_client_1' => new Reference(
                 'fk_accessToken_client_1',
                 [
-                    'referencedTable' => 'client',
-                    'columns' => ['clientId'],
+                    'referencedTable'   => 'client',
+                    'columns'           => ['clientId'],
                     'referencedColumns' => ['id'],
-                    'onUpdate' => 'NO ACTION',
-                    'onDelete' => 'NO ACTION',
+                    'onUpdate'          => 'NO ACTION',
+                    'onDelete'          => 'NO ACTION',
                 ]
             ),
         ];
@@ -117,12 +119,12 @@ final class GenerateCest
             'fk_accessToken_client_1' => new Reference(
                 'fk_accessToken_client_1',
                 [
-                    'referencedSchema' => 'public',
-                    'referencedTable' => 'client',
-                    'columns' => ['clientId'],
+                    'referencedSchema'  => 'public',
+                    'referencedTable'   => 'client',
+                    'columns'           => ['clientId'],
                     'referencedColumns' => ['id'],
-                    'onUpdate' => 'NO ACTION',
-                    'onDelete' => 'NO ACTION',
+                    'onUpdate'          => 'NO ACTION',
+                    'onDelete'          => 'NO ACTION',
                 ]
             ),
         ];
@@ -130,9 +132,9 @@ final class GenerateCest
         /**
          * Case 1 - when 'referencedSchema' wasn't specified
          */
-        $schemaFound1 = false;
+        $schemaFound1        = false;
         $generatedReferences = [];
-        $class = new Generate('mysql', [], [], $references1);
+        $class               = new Generate('mysql', [], [], $references1);
         foreach ($class->getReferences() as $name => $reference) {
             $generatedReferences[$name] = $reference;
 
@@ -147,9 +149,9 @@ final class GenerateCest
         /**
          * Case 2 - when option 'skip-ref-schema' was provided
          */
-        $schemaFound2 = false;
+        $schemaFound2        = false;
         $generatedReferences = [];
-        $class = new Generate('mysql', [], [], $references1);
+        $class               = new Generate('mysql', [], [], $references1);
         foreach ($class->getReferences(true) as $name => $reference) {
             $generatedReferences[$name] = $reference;
 
@@ -178,18 +180,18 @@ final class GenerateCest
             'fk_accessToken_client_1' => new Reference(
                 'fk_accessToken_client_1',
                 [
-                    'referencedTable' => 'client',
-                    'columns' => ['clientId'],
+                    'referencedTable'   => 'client',
+                    'columns'           => ['clientId'],
                     'referencedColumns' => ['id'],
-                    'onUpdate' => 'NO ACTION',
-                    'onDelete' => 'NO ACTION',
+                    'onUpdate'          => 'NO ACTION',
+                    'onDelete'          => 'NO ACTION',
                 ]
             ),
         ];
 
-        $schemaFound = false;
+        $schemaFound         = false;
         $generatedReferences = [];
-        $class = new Generate('mysql', [], [], $references);
+        $class               = new Generate('mysql', [], [], $references);
         foreach ($class->getReferences() as $name => $reference) {
             $generatedReferences[$name] = $reference;
 
@@ -207,6 +209,7 @@ final class GenerateCest
 
     /**
      * @param IntegrationTester $I
+     *
      * @throws UnknownColumnTypeException
      */
     public function getQuoteWrappedColumns(IntegrationTester $I): void
@@ -215,18 +218,18 @@ final class GenerateCest
 
         $columns = [
             new Column('column1', [
-                'type' => Column::TYPE_INTEGER,
-                'size' => 10,
+                'type'    => Column::TYPE_INTEGER,
+                'size'    => 10,
                 'notNull' => true,
             ]),
             new Column('column2', [
-                'type' => Column::TYPE_VARCHAR,
-                'size' => 255,
+                'type'    => Column::TYPE_VARCHAR,
+                'size'    => 255,
                 'notNull' => true,
             ]),
         ];
 
-        $class = new Generate('mysql', $columns);
+        $class           = new Generate('mysql', $columns);
         $preparedColumns = [];
         foreach ($class->getColumns() as $name => $definition) {
             $preparedColumns[$name] = $definition;
@@ -248,13 +251,13 @@ final class GenerateCest
         $I->expectThrowable(UnknownColumnTypeException::class, function () {
             $columns = [
                 new Column('unknown', [
-                    'type' => 9000,
-                    'size' => 10,
+                    'type'    => 9000,
+                    'size'    => 10,
                     'notNull' => true,
                 ]),
             ];
 
-            $data = [];
+            $data  = [];
             $class = new Generate('mysql', $columns);
             foreach ($class->getColumns() as $column) {
                 // Wait error
@@ -265,17 +268,18 @@ final class GenerateCest
 
     /**
      * @param IntegrationTester $I
+     *
      * @throws UnknownColumnTypeException
      */
     public function columnHasDefault(IntegrationTester $I): void
     {
         $I->wantToTest('Migration\Action\Generate - getColumns() has default');
 
-        $expected = "'default' => \"0\"";
+        $expected           = "'default' => \"0\"";
         $columnsWithDefault = [
             new Column('column_default', [
-                'type' => Column::TYPE_INTEGER,
-                'size' => 10,
+                'type'    => Column::TYPE_INTEGER,
+                'size'    => 10,
                 'notNull' => true,
                 'default' => 0,
             ]),
@@ -283,13 +287,13 @@ final class GenerateCest
 
         $columnsWithDefaultAndAI = [
             new Column('column_ai', [
-                'type' => Column::TYPE_INTEGER,
-                'size' => 10,
-                'notNull' => true,
+                'type'          => Column::TYPE_INTEGER,
+                'size'          => 10,
+                'notNull'       => true,
                 'autoIncrement' => true,
-                'first' => true,
-                'primary' => true,
-                'default' => 0,
+                'first'         => true,
+                'primary'       => true,
+                'default'       => 0,
             ]),
         ];
 

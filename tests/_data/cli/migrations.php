@@ -12,7 +12,7 @@
 declare(strict_types=1);
 
 use Dotenv\Dotenv;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 
 Dotenv::createImmutable(realpath('tests'))->load();
 

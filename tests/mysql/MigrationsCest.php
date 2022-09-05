@@ -9,7 +9,7 @@ use Exception;
 use Faker\Factory as FakerFactory;
 use MysqlTester;
 use PDO;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
@@ -25,6 +25,7 @@ final class MigrationsCest
 {
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateEmptyDataBase(MysqlTester $I): void
@@ -36,7 +37,7 @@ final class MigrationsCest
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
+            'config'        => $I->getMigrationsConfig(),
         ]);
         ob_clean();
 
@@ -46,6 +47,7 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateSingleTable(MysqlTester $I): void
@@ -58,8 +60,8 @@ final class MigrationsCest
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
         ob_clean();
 
@@ -69,29 +71,32 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateTwoTables(MysqlTester $I): void
     {
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable('test', getenv('MYSQL_TEST_DB_DATABASE'), [
-            'columns' => [
-                new Column('column_name', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
-                ]),
-                new Column('another_column', [
-                    'type' => Column::TYPE_VARCHAR,
-                    'size' => 255,
-                    'unsigned' => true,
-                    'notNull' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable('test', getenv('MYSQL_TEST_DB_DATABASE'), [
+              'columns' => [
+                  new Column('column_name', [
+                      'type'     => Column::TYPE_INTEGER,
+                      'size'     => 10,
+                      'unsigned' => true,
+                      'notNull'  => true,
+                      'first'    => true,
+                  ]),
+                  new Column('another_column', [
+                      'type'     => Column::TYPE_VARCHAR,
+                      'size'     => 255,
+                      'unsigned' => true,
+                      'notNull'  => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $this->createSingleColumnTable($I, 'test2');
 
@@ -100,8 +105,8 @@ final class MigrationsCest
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
         ob_clean();
 
@@ -111,6 +116,7 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateByMigrationsDirAsString(MysqlTester $I): void
@@ -121,8 +127,8 @@ final class MigrationsCest
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
         ob_clean();
 
@@ -132,41 +138,44 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws \Phalcon\Db\Exception
      * @throws Exception
      */
     public function typeDateWithManyRows(MysqlTester $I): void
     {
-        $faker = FakerFactory::create();
-        $tableName = 'test_date_with_many_rows';
+        $faker         = FakerFactory::create();
+        $tableName     = 'test_date_with_many_rows';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
-                ]),
-                new Column('name', [
-                    'type' => Column::TYPE_VARCHAR,
-                    'size' => 255,
-                    'notNull' => true,
-                ]),
-                new Column('create_date', [
-                    'type' => Column::TYPE_DATE,
-                    'notNull' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+              'columns' => [
+                  new Column('id', [
+                      'type'     => Column::TYPE_INTEGER,
+                      'size'     => 10,
+                      'unsigned' => true,
+                      'notNull'  => true,
+                      'first'    => true,
+                  ]),
+                  new Column('name', [
+                      'type'    => Column::TYPE_VARCHAR,
+                      'size'    => 255,
+                      'notNull' => true,
+                  ]),
+                  new Column('create_date', [
+                      'type'    => Column::TYPE_DATE,
+                      'notNull' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $data = [];
         for ($id = 1; $id <= 10000; $id++) {
             $data[] = [
-                'id' => $id,
-                'name' => $faker->name,
+                'id'          => $id,
+                'name'        => $faker->name,
                 'create_date' => $faker->date(),
             ];
         }
@@ -176,14 +185,14 @@ final class MigrationsCest
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
 
         for ($i = 0; $i < 3; $i++) {
             Migrations::run([
-                'migrationsDir' => $migrationsDir,
-                'config' => $I->getMigrationsConfig(),
+                'migrationsDir'  => $migrationsDir,
+                'config'         => $I->getMigrationsConfig(),
                 'migrationsInDb' => true,
             ]);
         }
@@ -195,12 +204,13 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws \Phalcon\Db\Exception
      * @throws Exception
      */
     public function phalconMigrationsTable(MysqlTester $I): void
     {
-        $tableName = 'test_mysql_phalcon_migrations';
+        $tableName     = 'test_mysql_phalcon_migrations';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
         $this->createSingleColumnTable($I, $tableName);
@@ -210,22 +220,28 @@ final class MigrationsCest
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $indexes = $I->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $indexes      = $I->getPhalconDb()
+                          ->describeIndexes(Migrations::MIGRATION_LOG_TABLE)
+        ;
         $currentIndex = current($indexes);
 
-        $I->assertTrue($I->getPhalconDb()->tableExists($tableName));
-        $I->assertTrue($I->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists($tableName));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists(Migrations::MIGRATION_LOG_TABLE));
         $I->assertSame(1, count($indexes));
         $I->assertArrayHasKey('PRIMARY', $indexes);
         $I->assertSame('PRIMARY', $currentIndex->getType());
@@ -233,27 +249,30 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateWithAutoIncrement(MysqlTester $I): void
     {
-        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
-        $tableName = 'generate_ai';
+        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName     = 'generate_ai';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, $dbName, [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
-                    'primary' => true,
-                    'autoIncrement' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $dbName, [
+              'columns' => [
+                  new Column('id', [
+                      'type'          => Column::TYPE_INTEGER,
+                      'size'          => 10,
+                      'unsigned'      => true,
+                      'notNull'       => true,
+                      'first'         => true,
+                      'primary'       => true,
+                      'autoIncrement' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $I->batchInsert($tableName, ['id'], [
             [1],
@@ -262,13 +281,14 @@ final class MigrationsCest
         ]);
         $autoIncrement = $I
             ->getPhalconDb()
-            ->fetchColumn(sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName), [], 10);
+            ->fetchColumn(sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName), [], 10)
+        ;
 
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
         ob_clean();
 
@@ -281,27 +301,30 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateWithoutAutoIncrement(MysqlTester $I): void
     {
-        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
-        $tableName = 'generate_no_ai';
+        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName     = 'generate_no_ai';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, $dbName, [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
-                    'primary' => true,
-                    'autoIncrement' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $dbName, [
+              'columns' => [
+                  new Column('id', [
+                      'type'          => Column::TYPE_INTEGER,
+                      'size'          => 10,
+                      'unsigned'      => true,
+                      'notNull'       => true,
+                      'first'         => true,
+                      'primary'       => true,
+                      'autoIncrement' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $I->batchInsert($tableName, ['id'], [
             [1],
@@ -310,13 +333,14 @@ final class MigrationsCest
         ]);
         $autoIncrement = $I
             ->getPhalconDb()
-            ->fetchColumn(sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName), [], 10);
+            ->fetchColumn(sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName), [], 10)
+        ;
 
         ob_start();
         Migrations::generate([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'migrationsDir'   => $migrationsDir,
+            'config'          => $I->getMigrationsConfig(),
+            'tableName'       => '@',
             'noAutoIncrement' => true,
         ]);
         ob_clean();
@@ -330,6 +354,7 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws \Phalcon\Db\Exception
      */
     public function runAllMigrations(MysqlTester $I): void
@@ -343,7 +368,8 @@ final class MigrationsCest
      * @dataProvider specificMigrationsDataProvider
      *
      * @param MysqlTester $I
-     * @param Example $example
+     * @param Example     $example
+     *
      * @throws \Phalcon\Db\Exception
      */
     public function runSpecificMigrations(MysqlTester $I, Example $example): void
@@ -360,27 +386,30 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      */
     public function generateWithExportOnCreate(MysqlTester $I): void
     {
-        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
-        $tableName = 'on_create';
+        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName     = 'on_create';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, $dbName, [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
-                    'primary' => true,
-                    'autoIncrement' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $dbName, [
+              'columns' => [
+                  new Column('id', [
+                      'type'          => Column::TYPE_INTEGER,
+                      'size'          => 10,
+                      'unsigned'      => true,
+                      'notNull'       => true,
+                      'first'         => true,
+                      'primary'       => true,
+                      'autoIncrement' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $I->batchInsert($tableName, ['id'], [
             [1],
@@ -390,11 +419,11 @@ final class MigrationsCest
 
         ob_start();
         Migrations::generate([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'migrationsDir'   => $migrationsDir,
+            'config'          => $I->getMigrationsConfig(),
+            'tableName'       => '@',
             'noAutoIncrement' => true,
-            'exportData' => 'oncreate',
+            'exportData'      => 'oncreate',
         ]);
         ob_clean();
 
@@ -409,90 +438,100 @@ final class MigrationsCest
 
     public function updateColumnUnsigned(MysqlTester $mysqlTester): void
     {
-        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
-        $tableName = 'update_unsigned_column';
+        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName     = 'update_unsigned_column';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $mysqlTester->getPhalconDb()->createTable($tableName, $dbName, [
-            'columns' => [
-                new Column('id', [
-                  'type' => Column::TYPE_INTEGER,
-                  'size' => 10,
-                  'unsigned' => false,
-                  'notNull' => true,
-                  'first' => true,
-                  'primary' => true,
-                  'autoIncrement' => true,
-                ]),
-            ],
-        ]);
+        $mysqlTester->getPhalconDb()
+                    ->createTable($tableName, $dbName, [
+                        'columns' => [
+                            new Column('id', [
+                                'type'          => Column::TYPE_INTEGER,
+                                'size'          => 10,
+                                'unsigned'      => false,
+                                'notNull'       => true,
+                                'first'         => true,
+                                'primary'       => true,
+                                'autoIncrement' => true,
+                            ]),
+                        ],
+                    ])
+        ;
 
         ob_start();
         Migrations::generate([
-          'migrationsDir' => $migrationsDir,
-          'config' => $mysqlTester->getMigrationsConfig(),
-          'tableName' => '@',
+            'migrationsDir' => $migrationsDir,
+            'config'        => $mysqlTester->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
         ob_clean();
 
         ob_start();
         Migrations::run([
-          'migrationsDir' => codecept_data_dir('issues/109'),
-          'config' => $mysqlTester->getMigrationsConfig(),
-          'migrationsInDb' => true,
+            'migrationsDir'  => codecept_data_dir('issues/109'),
+            'config'         => $mysqlTester->getMigrationsConfig(),
+            'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $columns = $mysqlTester->getPhalconDb()->describeColumns($tableName);
+        $columns = $mysqlTester->getPhalconDb()
+                               ->describeColumns($tableName)
+        ;
 
         $mysqlTester->assertTrue($columns[0]->isUnsigned());
     }
 
     public function nullableTimestamp(MysqlTester $I): void
     {
-        $dbName = getenv('MYSQL_TEST_DB_DATABASE');
-        $tableName = 'nullable_timestamp';
+        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $tableName     = 'nullable_timestamp';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, $dbName, [
-            'columns' => [
-                new Column(
-                    'created_at',
-                    [
-                        'type' => Column::TYPE_TIMESTAMP,
-                        'default' => 'CURRENT_TIMESTAMP',
-                        'notNull' => true,
-                    ]
-                ),
-                new Column(
-                    'deleted_at',
-                    [
-                        'type' => Column::TYPE_TIMESTAMP,
-                        'default' => null,
-                        'notNull' => false,
-                        'after' => 'created_at',
-                    ]
-                ),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $dbName, [
+              'columns' => [
+                  new Column(
+                      'created_at',
+                      [
+                          'type'    => Column::TYPE_TIMESTAMP,
+                          'default' => 'CURRENT_TIMESTAMP',
+                          'notNull' => true,
+                      ]
+                  ),
+                  new Column(
+                      'deleted_at',
+                      [
+                          'type'    => Column::TYPE_TIMESTAMP,
+                          'default' => null,
+                          'notNull' => false,
+                          'after'   => 'created_at',
+                      ]
+                  ),
+              ],
+          ])
+        ;
 
         ob_start();
         Migrations::generate([
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $columns = $I->getPhalconDb()->describeColumns($tableName);
+        $columns = $I->getPhalconDb()
+                     ->describeColumns($tableName)
+        ;
 
         $I->assertFalse($columns[1]->isNotNull());
         $I->assertNull($columns[1]->getDefault());
@@ -501,6 +540,7 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
+     *
      * @throws \Phalcon\Db\Exception
      */
     protected function runIssue66Migrations(MysqlTester $I): void
@@ -508,8 +548,8 @@ final class MigrationsCest
         ob_start();
 
         Migrations::run([
-            'migrationsDir' => codecept_data_dir('issues/66'),
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => codecept_data_dir('issues/66'),
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
 
@@ -518,40 +558,42 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
-     * @param array $versions
+     * @param array       $versions
      */
     protected function insertCompletedMigrations(MysqlTester $I, array $versions): void
     {
-        $I->getPhalconDb()->createTable(Migrations::MIGRATION_LOG_TABLE, '', [
-            'columns' => [
-                new Column(
-                    'version',
-                    [
-                        'type' => Column::TYPE_VARCHAR,
-                        'size' => 255,
-                        'notNull' => true,
-                        'first' => true,
-                        'primary' => true,
-                    ]
-                ),
-                new Column(
-                    'start_time',
-                    [
-                        'type' => Column::TYPE_TIMESTAMP,
-                        'notNull' => true,
-                        'default' => 'CURRENT_TIMESTAMP',
-                    ]
-                ),
-                new Column(
-                    'end_time',
-                    [
-                        'type' => Column::TYPE_TIMESTAMP,
-                        'notNull' => true,
-                        'default' => 'CURRENT_TIMESTAMP',
-                    ]
-                )
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable(Migrations::MIGRATION_LOG_TABLE, '', [
+              'columns' => [
+                  new Column(
+                      'version',
+                      [
+                          'type'    => Column::TYPE_VARCHAR,
+                          'size'    => 255,
+                          'notNull' => true,
+                          'first'   => true,
+                          'primary' => true,
+                      ]
+                  ),
+                  new Column(
+                      'start_time',
+                      [
+                          'type'    => Column::TYPE_TIMESTAMP,
+                          'notNull' => true,
+                          'default' => 'CURRENT_TIMESTAMP',
+                      ]
+                  ),
+                  new Column(
+                      'end_time',
+                      [
+                          'type'    => Column::TYPE_TIMESTAMP,
+                          'notNull' => true,
+                          'default' => 'CURRENT_TIMESTAMP',
+                      ]
+                  )
+              ],
+          ])
+        ;
 
         $date = date('Y-m-d H:i:s');
         foreach ($versions as $version) {
@@ -561,7 +603,9 @@ final class MigrationsCest
                 $date,
                 $date
             );
-            $I->getPhalconDb()->execute($sql);
+            $I->getPhalconDb()
+              ->execute($sql)
+            ;
         }
     }
 
@@ -582,20 +626,22 @@ final class MigrationsCest
 
     /**
      * @param MysqlTester $I
-     * @param string $tableName
+     * @param string      $tableName
      */
     protected function createSingleColumnTable(MysqlTester $I, string $tableName = 'test'): void
     {
-        $I->getPhalconDb()->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
-            'columns' => [
-                new Column('column_name', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+              'columns' => [
+                  new Column('column_name', [
+                      'type'     => Column::TYPE_INTEGER,
+                      'size'     => 10,
+                      'unsigned' => true,
+                      'notNull'  => true,
+                      'first'    => true,
+                  ]),
+              ],
+          ])
+        ;
     }
 }

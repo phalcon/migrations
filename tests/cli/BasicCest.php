@@ -33,11 +33,11 @@ final class BasicCest
      * @dataProvider helpArgumentsDataProvider
      *
      * @param CliTester $I
-     * @param Example $example
+     * @param Example   $example
      */
     public function runHelp(CliTester $I, Example $example): void
     {
-        $command = join(' ', ['php phalcon-migrations', (string)$example[0]]);
+        $command = join(' ', ['php phalcon-migrations', (string) $example[0]]);
 
         $I->runShellCommand($command);
         $I->seeInShellOutput('Phalcon Migrations');

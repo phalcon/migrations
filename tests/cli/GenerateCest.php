@@ -54,19 +54,21 @@ final class GenerateCest
      */
     public function generateFirstVersion(CliTester $I): void
     {
-        $I->getPhalconDb()->createTable('cli-first-test', '', [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'notNull' => true,
-                ]),
-                new Column('num_point', [
-                    'type' => Column::TYPE_FLOAT,
-                    'notNull' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable('cli-first-test', '', [
+              'columns' => [
+                  new Column('id', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'size'    => 10,
+                      'notNull' => true,
+                  ]),
+                  new Column('num_point', [
+                      'type'    => Column::TYPE_FLOAT,
+                      'notNull' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
         $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
@@ -121,43 +123,47 @@ final class GenerateCest
     protected function createFKTables(CliTester $I): void
     {
         $schema = getenv('MYSQL_TEST_DB_DATABASE');
-        $I->getPhalconDb()->createTable('client', $schema, [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 11,
-                    'notNull' => true,
-                    'primary' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable('client', $schema, [
+              'columns' => [
+                  new Column('id', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'size'    => 11,
+                      'notNull' => true,
+                      'primary' => true,
+                  ]),
+              ],
+          ])
+        ;
 
-        $I->getPhalconDb()->createTable('cli-skip-ref-schema', $schema, [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'notNull' => true,
-                ]),
-                new Column('clientId', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 11,
-                    'notNull' => true,
-                ]),
-            ],
-            'references' => [
-                new Reference(
-                    'fk_client_1',
-                    [
-                        'referencedSchema' => $schema,
-                        'referencedTable' => 'client',
-                        'columns' => ['clientId'],
-                        'referencedColumns' => ['id'],
-                        'onUpdate' => 'NO ACTION',
-                        'onDelete' => 'NO ACTION',
-                    ]
-                ),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable('cli-skip-ref-schema', $schema, [
+              'columns'    => [
+                  new Column('id', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'size'    => 10,
+                      'notNull' => true,
+                  ]),
+                  new Column('clientId', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'size'    => 11,
+                      'notNull' => true,
+                  ]),
+              ],
+              'references' => [
+                  new Reference(
+                      'fk_client_1',
+                      [
+                          'referencedSchema'  => $schema,
+                          'referencedTable'   => 'client',
+                          'columns'           => ['clientId'],
+                          'referencedColumns' => ['id'],
+                          'onUpdate'          => 'NO ACTION',
+                          'onDelete'          => 'NO ACTION',
+                      ]
+                  ),
+              ],
+          ])
+        ;
     }
 }
