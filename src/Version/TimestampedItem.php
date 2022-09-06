@@ -15,6 +15,9 @@ namespace Phalcon\Migrations\Version;
 
 use InvalidArgumentException;
 
+use function explode;
+use function preg_match;
+
 /**
  * The version prefixed by timestamp value
  */
@@ -53,8 +56,8 @@ class TimestampedItem implements ItemInterface
             throw new InvalidArgumentException('Wrong version number provided');
         }
 
-        $this->version = $version;
-        $this->parts = explode('_', $version);
+        $this->version       = $version;
+        $this->parts         = explode('_', $version);
         $this->isFullVersion = isset($this->parts[1]);
     }
 
@@ -65,7 +68,7 @@ class TimestampedItem implements ItemInterface
      */
     public function getStamp(): int
     {
-        return (int)$this->parts[0];
+        return (int) $this->parts[0];
     }
 
     /**

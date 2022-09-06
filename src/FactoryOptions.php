@@ -44,6 +44,7 @@ interface FactoryOptions
      * Get valid option or throw exception
      *
      * @param mixed $key
+     *
      * @throw InvalidArgumentException
      *
      * @return mixed

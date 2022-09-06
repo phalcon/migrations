@@ -16,6 +16,10 @@ namespace Phalcon\Migrations\Observer;
 use Phalcon\Db\Profiler as DbProfiler;
 use Phalcon\Db\Profiler\Item;
 
+use function str_replace;
+
+use const PHP_EOL;
+
 /**
  * Displays transactions made on the database and the times them taken to execute
  */
@@ -26,7 +30,7 @@ class Profiler extends DbProfiler
      */
     public function beforeStartProfile(Item $profile): void
     {
-        echo $profile->getInitialTime() , ': ' , str_replace([ "\n", "\t" ], " ", $profile->getSqlStatement());
+        echo $profile->getInitialTime(), ': ', str_replace(["\n", "\t"], " ", $profile->getSqlStatement());
     }
 
     /**
@@ -34,6 +38,6 @@ class Profiler extends DbProfiler
      */
     public function afterEndProfile(Item $profile): void
     {
-        echo '  => ' , $profile->getFinalTime() , ' (' , ($profile->getTotalElapsedSeconds()) , ')' , PHP_EOL;
+        echo '  => ', $profile->getFinalTime(), ' (', ($profile->getTotalElapsedSeconds()), ')', PHP_EOL;
     }
 }

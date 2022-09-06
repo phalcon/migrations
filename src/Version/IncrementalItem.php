@@ -13,6 +13,20 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Version;
 
+use function array_map;
+use function array_reverse;
+use function array_values;
+use function explode;
+use function is_numeric;
+use function is_object;
+use function join;
+use function krsort;
+use function ksort;
+use function ord;
+use function pow;
+use function strval;
+use function trim;
+
 /**
  * Allows manipulating version texts.
  */
@@ -42,18 +56,18 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param string $version
-     * @param int $numberParts
+     * @param int    $numberParts
      */
     public function __construct(string $version, int $numberParts = 3)
     {
-        $version = trim($version);
+        $version     = trim($version);
         $this->parts = explode('.', $version);
-        $nParts = count($this->parts);
+        $nParts      = count($this->parts);
 
         if ($nParts < $numberParts) {
             for ($i = $numberParts; $i >= $nParts; $i--) {
                 $this->parts[] = '0';
-                $version .= '.0';
+                $version       .= '.0';
             }
         } elseif ($nParts > $numberParts) {
             for ($i = $nParts; $i <= $numberParts; $i++) {
@@ -72,6 +86,7 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
+     *
      * @return null|IncrementalItem
      */
     public static function maximum(array $versions)
@@ -87,6 +102,7 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
+     *
      * @return array
      */
     public static function sortDesc(array $versions): array
@@ -105,7 +121,8 @@ class IncrementalItem implements ItemInterface
      *
      * @param IncrementalItem|string $initialVersion
      * @param IncrementalItem|string $finalVersion
-     * @param ItemInterface[] $versions
+     * @param ItemInterface[]        $versions
+     *
      * @return ItemInterface[]
      */
     public static function between($initialVersion, $finalVersion, $versions)
@@ -147,6 +164,7 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
+     *
      * @return array ItemInterface[]
      */
     public static function sortAsc(array $versions): array
@@ -170,6 +188,7 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param int $number
+     *
      * @return IncrementalItem
      */
     public function addMinor(int $number)
@@ -186,7 +205,8 @@ class IncrementalItem implements ItemInterface
         $parts = array_reverse($parts);
 
         $this->setParts($parts)
-            ->regenerateVersionStamp();
+             ->regenerateVersionStamp()
+        ;
 
         $this->version = join('.', $parts);
 
@@ -228,7 +248,7 @@ class IncrementalItem implements ItemInterface
 
     protected function regenerateVersionStamp()
     {
-        $n = 2;
+        $n            = 2;
         $versionStamp = 0;
 
         foreach ($this->parts as $part) {
@@ -241,7 +261,7 @@ class IncrementalItem implements ItemInterface
             $n -= 1;
         }
 
-        $this->versionStamp = (int)$versionStamp;
+        $this->versionStamp = (int) $versionStamp;
 
         return $this;
     }

@@ -18,13 +18,18 @@ use InvalidArgumentException;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 
+use function implode;
+use function strlen;
+use function substr;
+
 class ListTablesDb implements ListTablesInterface
 {
     /**
      * Get table names with prefix for running migration
      *
-     * @param string $tablePrefix
+     * @param string                 $tablePrefix
      * @param DirectoryIterator|null $iterator
+     *
      * @return string
      * @throws DbException
      */
@@ -34,7 +39,9 @@ class ListTablesDb implements ListTablesInterface
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
         }
 
-        $tablesList = (new ModelMigration())->getConnection()->listTables();
+        $tablesList = (new ModelMigration())->getConnection()
+                                            ->listTables()
+        ;
         if (empty($tablesList)) {
             return '';
         }

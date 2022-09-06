@@ -16,13 +16,20 @@ namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 use DirectoryIterator;
 use InvalidArgumentException;
 
+use function array_unique;
+use function explode;
+use function implode;
+use function strlen;
+use function substr;
+
 class ListTablesIterator implements ListTablesInterface
 {
     /**
      * Get table names with prefix for running migration
      *
-     * @param string $tablePrefix
+     * @param string                 $tablePrefix
      * @param DirectoryIterator|null $iterator
+     *
      * @return string
      */
     public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
@@ -32,10 +39,10 @@ class ListTablesIterator implements ListTablesInterface
         }
 
         $fileNames = [];
-        $length = strlen($tablePrefix);
+        $length    = strlen($tablePrefix);
         foreach ($iterator as $fileInfo) {
             if (substr($fileInfo->getFilename(), 0, $length) === $tablePrefix) {
-                $file = explode('.', $fileInfo->getFilename());
+                $file        = explode('.', $fileInfo->getFilename());
                 $fileNames[] = $file[0];
             }
         }

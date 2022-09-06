@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Script;
 
-class ScriptException extends \Exception
+use Exception;
+
+class ScriptException extends Exception
 {
 }

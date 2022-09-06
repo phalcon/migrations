@@ -14,10 +14,20 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Console;
 
 use InvalidArgumentException;
+use LogicException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Version\IncrementalItem as IncrementalVersion;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
+
+use function is_array;
+use function microtime;
+use function pow;
+use function rmdir;
+use function rtrim;
+use function substr;
+
+use const DIRECTORY_SEPARATOR;
 
 /**
  * Parsing CLI options
@@ -30,7 +40,8 @@ trait OptionParserTrait
      * Get prefix from the option
      *
      * @param string $prefix
-     * @param mixed $prefixEnd
+     * @param mixed  $prefixEnd
+     *
      * @return mixed
      */
     public function getPrefixOption(string $prefix, $prefixEnd = '*')
@@ -53,7 +64,7 @@ trait OptionParserTrait
 
         // Use timestamped version if description is provided
         if ($this->options['descr']) {
-            $this->options['version'] = (string)(int)(microtime(true) * pow(10, 6));
+            $this->options['version'] = (string) (int) (microtime(true) * pow(10, 6));
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
             $versionItem = VersionCollection::createItem($this->options['version'] . '_' . $this->options['descr']);
 
@@ -74,7 +85,7 @@ trait OptionParserTrait
                         }
 
                         if (!$this->options['force']) {
-                            throw new \LogicException('Version ' . $item->getVersion() . ' already exists');
+                            throw new LogicException('Version ' . $item->getVersion() . ' already exists');
                         } else {
                             rmdir(rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion());
                         }
@@ -84,7 +95,7 @@ trait OptionParserTrait
             // The version is guessed automatically
         } else {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
-            $versionItems = [];
+            $versionItems      = [];
             $migrationsDirList = $this->options['migrationsDir'];
 
             if (is_array($migrationsDirList)) {

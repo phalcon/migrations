@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Generator;
 
+use function implode;
+use function sprintf;
+
 class Snippet
 {
     public function getMorphTemplate(): string

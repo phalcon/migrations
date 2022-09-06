@@ -21,8 +21,8 @@ class DialectMysql extends Mysql
     /**
      * Generates SQL to add an foreign key to a table.
      *
-     * @param string $tableName
-     * @param string $schemaName
+     * @param string             $tableName
+     * @param string             $schemaName
      * @param ReferenceInterface $reference
      *
      * @return string

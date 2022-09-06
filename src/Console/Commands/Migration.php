@@ -13,13 +13,32 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console\Commands;
 
-use Phalcon\Config\Config;
+use Exception;
 use Phalcon\Config\Adapter\Ini as IniConfig;
 use Phalcon\Config\Adapter\Json as JsonConfig;
 use Phalcon\Config\Adapter\Yaml as YamlConfig;
+use Phalcon\Config\Config;
 use Phalcon\Cop\Parser;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Migrations;
+
+use function explode;
+use function file_exists;
+use function in_array;
+use function is_array;
+use function pathinfo;
+use function preg_match;
+use function realpath;
+use function str_repeat;
+use function strlen;
+use function strtolower;
+use function strtoupper;
+use function substr;
+use function trim;
+
+use const DIRECTORY_SEPARATOR;
+use const PHP_EOL;
+use const PHP_OS;
 
 /**
  * Migration Command
@@ -47,28 +66,28 @@ class Migration implements CommandsInterface
     public function getPossibleParams(): array
     {
         return [
-            'config=s' => 'Configuration file',
-            'migrations=s' => 'Migrations directory. Use comma separated string to specify multiple directories',
-            'directory=s' => 'Directory where the project was created',
-            'table=s' => 'Table to migrate. Table name or table prefix with asterisk. Default: all',
-            'version=s' => 'Version to migrate',
-            'descr=s' => 'Migration description (used for timestamp based migration)',
-            'data=s' => 'Export data [always|oncreate] (Import data when run migration)',
+            'config=s'               => 'Configuration file',
+            'migrations=s'           => 'Migrations directory. Use comma separated string to specify multiple directories',
+            'directory=s'            => 'Directory where the project was created',
+            'table=s'                => 'Table to migrate. Table name or table prefix with asterisk. Default: all',
+            'version=s'              => 'Version to migrate',
+            'descr=s'                => 'Migration description (used for timestamp based migration)',
+            'data=s'                 => 'Export data [always|oncreate] (Import data when run migration)',
             'exportDataFromTables=s' => 'Export data from specific tables, use comma separated string.',
-            'force' => 'Forces to overwrite existing migrations',
-            'ts-based' => 'Timestamp based migration version',
-            'log-in-db' => 'Keep migrations log in the database table rather than in file',
-            'dry' => 'Attempt requested operation without making changes to system (Generating only)',
-            'verbose' => 'Output of debugging information during operation (Running only)',
-            'no-auto-increment' => 'Disable auto increment (Generating only)',
-            'help' => 'Shows this help [optional]',
+            'force'                  => 'Forces to overwrite existing migrations',
+            'ts-based'               => 'Timestamp based migration version',
+            'log-in-db'              => 'Keep migrations log in the database table rather than in file',
+            'dry'                    => 'Attempt requested operation without making changes to system (Generating only)',
+            'verbose'                => 'Output of debugging information during operation (Running only)',
+            'no-auto-increment'      => 'Disable auto increment (Generating only)',
+            'help'                   => 'Shows this help [optional]',
         ];
     }
 
     /**
      * @throws CommandsException
      * @throws \Phalcon\Db\Exception
-     * @throws \Exception
+     * @throws Exception
      */
     public function run(): void
     {
@@ -123,42 +142,42 @@ class Migration implements CommandsInterface
         $migrationsTsBased = $application['migrationsTsBased'] ?? $this->parser->has('ts-based');
 
 
-        $noAutoIncrement = $application['no-auto-increment'] ?? $this->parser->has('no-auto-increment');
-        $skipRefSchema = $application['skip-ref-schema'] ?? $this->parser->has('skip-ref-schema');
+        $noAutoIncrement   = $application['no-auto-increment'] ?? $this->parser->has('no-auto-increment');
+        $skipRefSchema     = $application['skip-ref-schema'] ?? $this->parser->has('skip-ref-schema');
         $skipForeignChecks = $application['skip-foreign-checks'] ?? $this->parser->has('skip-foreign-checks');
 
-        $descr = $application['descr'] ?? $this->parser->get('descr');
+        $descr     = $application['descr'] ?? $this->parser->get('descr');
         $tableName = $this->parser->get('table', '@');
 
         switch ($action) {
             case 'generate':
                 Migrations::generate([
-                    'directory'             => $path,
-                    'tableName'             => $tableName,
-                    'exportData'            => $this->parser->get('data'),
-                    'exportDataFromTables'  => $this->exportFromTables($config),
-                    'migrationsDir'         => $migrationsDir,
-                    'version'               => $this->parser->get('version'),
-                    'force'                 => $this->parser->has('force'),
-                    'noAutoIncrement'       => $noAutoIncrement,
-                    'config'                => $config,
-                    'descr'                 => $descr,
-                    'verbose'               => $this->parser->has('dry'),
-                    'skip-ref-schema'       => $skipRefSchema,
+                    'directory'            => $path,
+                    'tableName'            => $tableName,
+                    'exportData'           => $this->parser->get('data'),
+                    'exportDataFromTables' => $this->exportFromTables($config),
+                    'migrationsDir'        => $migrationsDir,
+                    'version'              => $this->parser->get('version'),
+                    'force'                => $this->parser->has('force'),
+                    'noAutoIncrement'      => $noAutoIncrement,
+                    'config'               => $config,
+                    'descr'                => $descr,
+                    'verbose'              => $this->parser->has('dry'),
+                    'skip-ref-schema'      => $skipRefSchema,
                 ]);
                 break;
             case 'run':
                 Migrations::run([
-                    'directory'             => $path,
-                    'tableName'             => $tableName,
-                    'migrationsDir'         => $migrationsDir,
-                    'force'                 => $this->parser->has('force'),
-                    'tsBased'               => $migrationsTsBased,
-                    'config'                => $config,
-                    'version'               => $this->parser->get('version'),
-                    'migrationsInDb'        => $migrationsInDb,
-                    'verbose'               => $this->parser->has('verbose'),
-                    'skip-foreign-checks'   => $skipForeignChecks,
+                    'directory'           => $path,
+                    'tableName'           => $tableName,
+                    'migrationsDir'       => $migrationsDir,
+                    'force'               => $this->parser->has('force'),
+                    'tsBased'             => $migrationsTsBased,
+                    'config'              => $config,
+                    'version'             => $this->parser->get('version'),
+                    'migrationsInDb'      => $migrationsInDb,
+                    'verbose'             => $this->parser->has('verbose'),
+                    'skip-foreign-checks' => $skipForeignChecks,
                 ]);
                 break;
             case 'list':
@@ -207,11 +226,12 @@ class Migration implements CommandsInterface
 
     /**
      * @param mixed $config
+     *
      * @return array
      */
     protected function exportFromTables($config): array
     {
-        $tables = [];
+        $tables      = [];
         $application = $config->get('application') ?? [];
 
         if ($this->parser->has('exportDataFromTables')) {
@@ -334,6 +354,7 @@ class Migration implements CommandsInterface
      * Check if a path is absolute
      *
      * @param string $path Path to check
+     *
      * @return bool
      */
     protected function isAbsolutePath(string $path): bool

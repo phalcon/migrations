@@ -20,7 +20,7 @@ class DialectPostgresql extends Postgresql
     /**
      * Generates SQL to query foreign keys on a table
      *
-     * @param string $table
+     * @param string      $table
      * @param string|null $schema
      *
      * @return string

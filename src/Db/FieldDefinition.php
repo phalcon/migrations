@@ -15,6 +15,8 @@ namespace Phalcon\Migrations\Db;
 
 use Phalcon\Db\ColumnInterface;
 
+use function get_class_methods;
+
 class FieldDefinition
 {
     /**
@@ -42,10 +44,10 @@ class FieldDefinition
         ?FieldDefinition $previousField = null,
         ?FieldDefinition $nextField = null
     ) {
-        $this->name = $column->getName();
+        $this->name          = $column->getName();
         $this->currentColumn = $column;
         $this->previousField = $previousField;
-        $this->nextField = $nextField;
+        $this->nextField     = $nextField;
     }
 
     public function setPrevious(?FieldDefinition $field = null): void
@@ -121,7 +123,9 @@ class FieldDefinition
 
     public function isChangedName(FieldDefinition $comparingFieldDefinition): bool
     {
-        return $this->currentColumn->getName() !== $comparingFieldDefinition->getColumn()->getName();
+        return $this->currentColumn->getName() !== $comparingFieldDefinition->getColumn()
+                                                                            ->getName()
+        ;
     }
 
     public function isChangedData(FieldDefinition $comparingFieldDefinition): bool

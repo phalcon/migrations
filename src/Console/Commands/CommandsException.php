@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console\Commands;
 
+use Exception;
+
 /**
  * Commands Exception
  */
-class CommandsException extends \Exception
+class CommandsException extends Exception
 {
 }
