@@ -505,7 +505,9 @@ class Generate
             /**
              * Aggregate column definition
              */
-            $definition[]      = $currentColumnName === null ? "'first' => true" : "'after' => '" . $currentColumnName . "'";
+            $definition[]      = $currentColumnName === null ?
+                "'first' => true" :
+                "'after' => '" . $currentColumnName . "'";
             $currentColumnName = $column->getName();
 
             yield $column->getName() => $definition;

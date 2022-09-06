@@ -67,18 +67,26 @@ class Migration implements CommandsInterface
     {
         return [
             'config=s'               => 'Configuration file',
-            'migrations=s'           => 'Migrations directory. Use comma separated string to specify multiple directories',
+            'migrations=s'           => 'Migrations directory. Use comma ' .
+                'separated string to specify multiple directories',
             'directory=s'            => 'Directory where the project was created',
-            'table=s'                => 'Table to migrate. Table name or table prefix with asterisk. Default: all',
+            'table=s'                => 'Table to migrate. Table name or table ' .
+                'prefix with asterisk. Default: all',
             'version=s'              => 'Version to migrate',
-            'descr=s'                => 'Migration description (used for timestamp based migration)',
-            'data=s'                 => 'Export data [always|oncreate] (Import data when run migration)',
-            'exportDataFromTables=s' => 'Export data from specific tables, use comma separated string.',
+            'descr=s'                => 'Migration description (used for ' .
+                'timestamp based migration)',
+            'data=s'                 => 'Export data [always|oncreate] (Import ' .
+                'data when run migration)',
+            'exportDataFromTables=s' => 'Export data from specific tables, use ' .
+                'comma separated string.',
             'force'                  => 'Forces to overwrite existing migrations',
             'ts-based'               => 'Timestamp based migration version',
-            'log-in-db'              => 'Keep migrations log in the database table rather than in file',
-            'dry'                    => 'Attempt requested operation without making changes to system (Generating only)',
-            'verbose'                => 'Output of debugging information during operation (Running only)',
+            'log-in-db'              => 'Keep migrations log in the database ' .
+                'table rather than in file',
+            'dry'                    => 'Attempt requested operation without ' .
+                'making changes to system (Generating only)',
+            'verbose'                => 'Output of debugging information ' .
+                'during operation (Running only)',
             'no-auto-increment'      => 'Disable auto increment (Generating only)',
             'help'                   => 'Shows this help [optional]',
         ];
@@ -345,7 +353,12 @@ class Migration implements CommandsInterface
 
         print Color::head('Options:') . PHP_EOL;
         foreach ($parameters as $parameter => $description) {
-            print Color::colorize(' --' . $parameter . str_repeat(' ', $length - strlen($parameter)), Color::FG_GREEN);
+            print Color::colorize(
+                ' --'
+                . $parameter
+                . str_repeat(' ', $length - strlen($parameter)),
+                Color::FG_GREEN
+            );
             print Color::colorize('    ' . $description) . PHP_EOL;
         }
     }
