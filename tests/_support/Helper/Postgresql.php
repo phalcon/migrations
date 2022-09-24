@@ -6,7 +6,7 @@ namespace Helper;
 
 use Codeception\Module;
 use Codeception\TestInterface;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
@@ -29,7 +29,10 @@ class Postgresql extends Module
      */
     public function _initialize()
     {
-        $options = $this->getMigrationsConfig()->get('database')->toArray();
+        $options = $this->getMigrationsConfig()
+                        ->get('database')
+                        ->toArray()
+        ;
         unset($options['adapter']);
 
         self::$defaultSchema = getenv('POSTGRES_TEST_DB_SCHEMA');
@@ -77,14 +80,14 @@ class Postgresql extends Module
     public function getMigrationsConfig(): Config
     {
         return new Config([
-            'database' => [
-                'adapter' => 'postgresql',
-                'host' => getenv('POSTGRES_TEST_DB_HOST'),
-                'port' => getenv('POSTGRES_TEST_DB_PORT'),
+            'database'    => [
+                'adapter'  => 'postgresql',
+                'host'     => getenv('POSTGRES_TEST_DB_HOST'),
+                'port'     => getenv('POSTGRES_TEST_DB_PORT'),
                 'username' => getenv('POSTGRES_TEST_DB_USER'),
                 'password' => getenv('POSTGRES_TEST_DB_PASSWORD'),
-                'dbname' => getenv('POSTGRES_TEST_DB_DATABASE'),
-                'schema' => getenv('POSTGRES_TEST_DB_SCHEMA'),
+                'dbname'   => getenv('POSTGRES_TEST_DB_DATABASE'),
+                'schema'   => getenv('POSTGRES_TEST_DB_SCHEMA'),
             ],
             'application' => [
                 'logInDb' => true,

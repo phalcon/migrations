@@ -14,6 +14,8 @@ class Cli extends Module
         /**
          * Cleanup tests output folders
          */
-        $this->getModule('\Helper\Integration')->removeDir(codecept_output_dir());
+        $this->getModule('\Helper\Integration')
+             ->removeDir(codecept_output_dir())
+        ;
     }
 }

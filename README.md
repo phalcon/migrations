@@ -15,8 +15,8 @@ Main idea of Phalcon migrations is to automatically detect changes and morphing 
 
 ## Requirements
 
-*  PHP >= 7.2
-*  Phalcon >= 4.0.5
+*  PHP >= 7.4
+*  Phalcon >= 5.0.0
 *  PHP ext-posix (Linux)
 
 ## Installing via Composer

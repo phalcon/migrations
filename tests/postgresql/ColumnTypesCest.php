@@ -26,7 +26,8 @@ final class ColumnTypesCest
      * @dataProvider columnsDataProvider
      *
      * @param PostgresqlTester $I
-     * @param Example $example
+     * @param Example          $example
+     *
      * @throws Exception
      * @throws ScriptException
      * @throws \Exception
@@ -35,14 +36,16 @@ final class ColumnTypesCest
     {
         list($columnName, $definition, $values) = $example;
 
-        $tableName = $columnName . '_test';
+        $tableName     = $columnName . '_test';
         $migrationsDir = codecept_output_dir(__FUNCTION__ . $columnName);
 
-        $created = $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
-            'columns' => [
-                new Column($columnName, $definition),
-            ],
-        ]);
+        $created = $I->getPhalconDb()
+                     ->createTable($tableName, $I->getDefaultSchema(), [
+                         'columns' => [
+                             new Column($columnName, $definition),
+                         ],
+                     ])
+        ;
 
         /**
          * Generate | Drop | Run
@@ -50,13 +53,15 @@ final class ColumnTypesCest
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => $tableName,
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => $tableName,
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
@@ -65,14 +70,17 @@ final class ColumnTypesCest
          * Insert values
          */
         foreach ($values as $value) {
-            $I->getPhalconDb()->insert($tableName, [$value], [$columnName]);
+            $I->getPhalconDb()
+              ->insert($tableName, [$value], [$columnName])
+            ;
         }
 
         $I->removeDir($migrationsDir);
 
         /** @var Column $column */
-        $column = $I->getPhalconDb()->describeColumns($tableName, $I->getDefaultSchema())[0];
-        $rows = $I->grabColumnFromDatabase($I->getDefaultSchema() . '.' . $tableName, $columnName);
+        $column = $I->getPhalconDb()
+                    ->describeColumns($tableName, $I->getDefaultSchema())[0];
+        $rows   = $I->grabColumnFromDatabase($I->getDefaultSchema() . '.' . $tableName, $columnName);
 
         $I->assertSame($definition['type'], $column->getType());
         $I->assertEquals($values, $rows);

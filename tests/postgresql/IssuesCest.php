@@ -26,19 +26,21 @@ final class IssuesCest
     {
         $I->wantToTest('Issue #1 - Primary key was created');
 
-        $tableName = 'table_primary_test';
+        $tableName     = 'table_primary_test';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'notNull' => true,
-                    'first' => true,
-                    'primary' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $I->getDefaultSchema(), [
+              'columns' => [
+                  new Column('id', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'notNull' => true,
+                      'first'   => true,
+                      'primary' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         /**
          * Generate | Drop | Run
@@ -46,18 +48,22 @@ final class IssuesCest
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => $tableName,
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => $tableName,
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $indexes = $I->getPhalconDb()->describeIndexes($tableName, $I->getDefaultSchema());
+        $indexes = $I->getPhalconDb()
+                     ->describeIndexes($tableName, $I->getDefaultSchema())
+        ;
 
         $I->assertSame(1, count($indexes));
     }
@@ -69,22 +75,24 @@ final class IssuesCest
     {
         $I->wantToTest('Issue #111 - Unrecognized PostgreSQL data type [FAIL]');
 
-        $tableName = 'pg_phalcon_double';
+        $tableName     = 'pg_phalcon_double';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
         $I->seeExceptionThrown(
             Phalcon\Db\Exception::class,
             function () use ($I, $tableName) {
-                $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
-                    'columns' => [
-                        new Column('point_double_column', [
-                            'type' => Column::TYPE_DOUBLE,
-                            'default' => 0,
-                            'notNull' => false,
-                            'comment' => "Double typed column",
-                        ]),
-                    ],
-                ]);
+                $I->getPhalconDb()
+                  ->createTable($tableName, $I->getDefaultSchema(), [
+                      'columns' => [
+                          new Column('point_double_column', [
+                              'type'    => Column::TYPE_DOUBLE,
+                              'default' => 0,
+                              'notNull' => false,
+                              'comment' => "Double typed column",
+                          ]),
+                      ],
+                  ])
+                ;
             }
         );
 
@@ -93,21 +101,27 @@ final class IssuesCest
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $indexes = $I->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $indexes = $I->getPhalconDb()
+                     ->describeIndexes(Migrations::MIGRATION_LOG_TABLE)
+        ;
 
-        $I->assertFalse($I->getPhalconDb()->tableExists($tableName, $I->getDefaultSchema()));
-        $I->assertTrue($I->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
+        $I->assertFalse($I->getPhalconDb()
+                          ->tableExists($tableName, $I->getDefaultSchema()));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
         $I->assertSame(1, count($indexes));
     }
 
@@ -118,39 +132,47 @@ final class IssuesCest
     {
         $I->wantToTest('Issue #111 - Unrecognized PostgreSQL data type [FIXED]');
 
-        $tableName = 'pg_phalcon_double';
+        $tableName     = 'pg_phalcon_double';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
-        $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
-            'columns' => [
-                new Column('point_double_column', [
-                    'type' => Column::TYPE_FLOAT,
-                    'default' => 0,
-                    'notNull' => false,
-                    'comment' => "Double typed column",
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $I->getDefaultSchema(), [
+              'columns' => [
+                  new Column('point_double_column', [
+                      'type'    => Column::TYPE_FLOAT,
+                      'default' => 0,
+                      'notNull' => false,
+                      'comment' => "Double typed column",
+                  ]),
+              ],
+          ])
+        ;
 
         ob_start();
         Migrations::generate([
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => '@',
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $indexes = $I->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $indexes = $I->getPhalconDb()
+                     ->describeIndexes(Migrations::MIGRATION_LOG_TABLE)
+        ;
 
-        $I->assertTrue($I->getPhalconDb()->tableExists($tableName, $I->getDefaultSchema()));
-        $I->assertTrue($I->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists($tableName, $I->getDefaultSchema()));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
         $I->assertSame(1, count($indexes));
     }
 
@@ -162,21 +184,25 @@ final class IssuesCest
         $I->wantToTest('Issue #112 - Index should be primary key, instead of Normal Index');
 
         $tableName = 'pg_phalcon_primary_index';
-        $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'notNull' => true,
-                    'first' => true,
-                ]),
-            ],
-            'indexes' => [
-                new Index('pk_id_0', ['id'], 'PRIMARY KEY'),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, $I->getDefaultSchema(), [
+              'columns' => [
+                  new Column('id', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'notNull' => true,
+                      'first'   => true,
+                  ]),
+              ],
+              'indexes' => [
+                  new Index('pk_id_0', ['id'], 'PRIMARY KEY'),
+              ],
+          ])
+        ;
 
-        $indexes = $I->getPhalconDb()->describeIndexes($tableName, $I->getDefaultSchema());
-        $index = array_shift($indexes);
+        $indexes = $I->getPhalconDb()
+                     ->describeIndexes($tableName, $I->getDefaultSchema())
+        ;
+        $index   = array_shift($indexes);
 
         $I->assertSame(PdoPostgresql::INDEX_TYPE_PRIMARY, $index->getType());
     }

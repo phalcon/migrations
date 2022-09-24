@@ -56,7 +56,7 @@ final class OptionStackTest extends Unit
     public function testGetAndSetOptions(): void
     {
         $options = [
-            'test' => 'foo',
+            'test'  => 'foo',
             'test2' => 'bar',
         ];
 

@@ -15,6 +15,11 @@ namespace Phalcon\Migrations\Version;
 
 use LogicException;
 
+use function array_values;
+use function krsort;
+use function ksort;
+use function preg_match;
+
 /**
  * The item collection lets you to work with an abstract ItemInterface.
  */
@@ -53,6 +58,7 @@ class ItemCollection
      * Create new version item
      *
      * @param null|string $version
+     *
      * @return IncrementalItem|TimestampedItem
      */
     public static function createItem($version = null)
@@ -74,6 +80,7 @@ class ItemCollection
      * Check if provided version is correct
      *
      * @param string $version
+     *
      * @return bool
      */
     public static function isCorrectVersion(string $version): bool
@@ -91,6 +98,7 @@ class ItemCollection
      * Get the maximum value from the list of version items
      *
      * @param array $versions
+     *
      * @return null|ItemInterface|IncrementalItem
      */
     public static function maximum(array $versions)
@@ -108,6 +116,7 @@ class ItemCollection
      * Sort items in the descending order
      *
      * @param ItemInterface[] $versions
+     *
      * @return ItemInterface[]
      */
     public static function sortDesc(array $versions): array
@@ -124,9 +133,10 @@ class ItemCollection
     /**
      * Get all the versions between two limitary version items
      *
-     * @param ItemInterface $initialVersion
-     * @param ItemInterface $finalVersion
+     * @param ItemInterface   $initialVersion
+     * @param ItemInterface   $finalVersion
      * @param ItemInterface[] $versions
+     *
      * @return ItemInterface[]|array
      */
     public static function between(ItemInterface $initialVersion, ItemInterface $finalVersion, array $versions): array
@@ -161,6 +171,7 @@ class ItemCollection
      * Sort items in the ascending order
      *
      * @param ItemInterface[] $versions
+     *
      * @return ItemInterface[]
      */
     public static function sortAsc(array $versions): array

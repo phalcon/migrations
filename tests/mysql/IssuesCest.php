@@ -16,6 +16,7 @@ namespace Phalcon\Migrations\Tests\Mysql;
 use MysqlTester;
 use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Script\ScriptException;
 
 use function codecept_data_dir;
 
@@ -23,8 +24,10 @@ class IssuesCest
 {
     /**
      * @see https://github.com/phalcon/migrations/issues/2
+     *
      * @param MysqlTester $I
-     * @throws \Phalcon\Migrations\Script\ScriptException
+     *
+     * @throws ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      * @throws Exception
      */
@@ -34,21 +37,26 @@ class IssuesCest
 
         ob_start();
         Migrations::run([
-            'migrationsDir' => codecept_data_dir('issues/2'),
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => codecept_data_dir('issues/2'),
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $I->assertTrue($I->getPhalconDb()->tableExists('accessToken'));
-        $I->assertTrue($I->getPhalconDb()->tableExists('client'));
-        $I->assertArrayHasKey('fk_accessToken_client_1', $I->getPhalconDb()->describeReferences('accessToken'));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists('accessToken'));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists('client'));
+        $I->assertArrayHasKey('fk_accessToken_client_1', $I->getPhalconDb()
+                                                           ->describeReferences('accessToken'));
     }
 
     /**
      * @see https://github.com/phalcon/migrations/issues/29
+     *
      * @param MysqlTester $I
-     * @throws \Phalcon\Migrations\Script\ScriptException
+     *
+     * @throws ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      * @throws Exception
      */
@@ -58,14 +66,17 @@ class IssuesCest
 
         ob_start();
         Migrations::run([
-            'migrationsDir' => codecept_data_dir('issues/29'),
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => codecept_data_dir('issues/29'),
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $I->assertTrue($I->getPhalconDb()->tableExists('tasks'));
-        $I->assertTrue($I->getPhalconDb()->tableExists('task_jobs'));
-        $I->assertArrayHasKey('task_jobs_tasks_id_fk', $I->getPhalconDb()->describeReferences('task_jobs'));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists('tasks'));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists('task_jobs'));
+        $I->assertArrayHasKey('task_jobs_tasks_id_fk', $I->getPhalconDb()
+                                                         ->describeReferences('task_jobs'));
     }
 }

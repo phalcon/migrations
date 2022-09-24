@@ -16,7 +16,7 @@ namespace Phalcon\Migrations\Mvc\Model;
 use DirectoryIterator;
 use Exception;
 use Nette\PhpGenerator\PsrPrinter;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
@@ -36,10 +36,27 @@ use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
-use Phalcon\Text;
+use Phalcon\Support\Helper\Str\Camelize;
 use Throwable;
 
+use function array_map;
+use function class_exists;
+use function fclose;
+use function fgetcsv;
+use function file_exists;
+use function fopen;
 use function get_called_class;
+use function implode;
+use function in_array;
+use function is_object;
+use function method_exists;
+use function preg_replace;
+use function rtrim;
+use function sprintf;
+use function stripslashes;
+use function strtolower;
+
+use const DIRECTORY_SEPARATOR;
 
 /**
  * Migrations of DML y DDL over databases
@@ -54,11 +71,11 @@ use function get_called_class;
 class Migration
 {
     public const DIRECTION_FORWARD = 1;
-    public const DIRECTION_BACK = -1;
+    public const DIRECTION_BACK    = -1;
 
-    public const DB_ADAPTER_MYSQL = 'mysql';
+    public const DB_ADAPTER_MYSQL      = 'mysql';
     public const DB_ADAPTER_POSTGRESQL = 'postgresql';
-    public const DB_ADAPTER_SQLITE = 'sqlite';
+    public const DB_ADAPTER_SQLITE     = 'sqlite';
 
     /**
      * Migration database connection
@@ -99,7 +116,8 @@ class Migration
      * Prepares component
      *
      * @param Config $database Database config
-     * @param bool $verbose array with settings
+     * @param bool   $verbose  array with settings
+     *
      * @throws DbException
      */
     public static function setup(Config $database, bool $verbose = false): void
@@ -130,8 +148,8 @@ class Migration
         unset($configArray['adapter']);
 
         /** @var AbstractAdapter $connection */
-        $connection = new $adapter($configArray);
-        self::$connection = $connection;
+        $connection           = new $adapter($configArray);
+        self::$connection     = $connection;
         self::$databaseConfig = $database;
 
         // Connection custom dialect Dialect/DialectMysql
@@ -178,9 +196,10 @@ class Migration
      * Generates all the class migration definitions for certain database setup
      *
      * @param ItemInterface $version
-     * @param string|null $exportData
-     * @param array $exportTables
-     * @param bool $skipRefSchema
+     * @param string|null   $exportData
+     * @param array         $exportTables
+     * @param bool          $skipRefSchema
+     *
      * @return array
      * @throws UnknownColumnTypeException
      */
@@ -191,7 +210,7 @@ class Migration
         bool $skipRefSchema = false
     ): array {
         $classDefinition = [];
-        $schema = self::resolveDbSchema(self::$databaseConfig);
+        $schema          = self::resolveDbSchema(self::$databaseConfig);
 
         foreach (self::$connection->listTables($schema) as $table) {
             $classDefinition[$table] = self::generate($version, $table, $exportData, $exportTables, $skipRefSchema);
@@ -204,10 +223,11 @@ class Migration
      * Generate specified table migration
      *
      * @param ItemInterface $version
-     * @param string $table
-     * @param mixed $exportData
-     * @param array $exportTables
-     * @param bool $skipRefSchema
+     * @param string        $table
+     * @param mixed         $exportData
+     * @param array         $exportTables
+     * @param bool          $skipRefSchema
+     *
      * @return string
      * @throws UnknownColumnTypeException
      */
@@ -218,33 +238,35 @@ class Migration
         array $exportTables = [],
         bool $skipRefSchema = false
     ): string {
-        $printer = new PsrPrinter();
-        $snippet = new Snippet();
-        $adapter = strtolower((string)self::$databaseConfig->path('adapter'));
+        $camelize      = new Camelize();
+        $printer       = new PsrPrinter();
+        $snippet       = new Snippet();
+        $adapter       = strtolower((string) self::$databaseConfig->path('adapter'));
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
-        $description = self::$connection->describeColumns($table, $defaultSchema);
-        $indexes = self::$connection->describeIndexes($table, $defaultSchema);
-        $references = self::$connection->describeReferences($table, $defaultSchema);
-        $tableOptions = self::$connection->tableOptions($table, $defaultSchema);
+        $description   = self::$connection->describeColumns($table, $defaultSchema);
+        $indexes       = self::$connection->describeIndexes($table, $defaultSchema);
+        $references    = self::$connection->describeReferences($table, $defaultSchema);
+        $tableOptions  = self::$connection->tableOptions($table, $defaultSchema);
 
-        $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string)$version->getStamp());
-        $className = Text::camelize($table) . 'Migration_' . $classVersion;
+        $classVersion              = preg_replace('/[^0-9A-Za-z]/', '', (string) $version->getStamp());
+        $className                 = $camelize->__invoke($table) . 'Migration_' . $classVersion;
         $shouldExportDataFromTable = self::shouldExportDataFromTable($table, $exportTables);
 
         $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
         $generateAction->createEntity($className)
-            ->addMorph($snippet, $table, $skipRefSchema, self::$skipAI)
-            ->addUp($table, $exportData, $shouldExportDataFromTable)
-            ->addDown($table, $exportData, $shouldExportDataFromTable)
-            ->addAfterCreateTable($table, $exportData)
-            ->createDumpFiles(
-                $table,
-                self::$migrationPath,
-                self::$connection,
-                $version,
-                $exportData,
-                $shouldExportDataFromTable
-            );
+                       ->addMorph($snippet, $table, $skipRefSchema, self::$skipAI)
+                       ->addUp($table, $exportData, $shouldExportDataFromTable)
+                       ->addDown($table, $exportData, $shouldExportDataFromTable)
+                       ->addAfterCreateTable($table, $exportData)
+                       ->createDumpFiles(
+                           $table,
+                           self::$migrationPath,
+                           self::$connection,
+                           $version,
+                           $exportData,
+                           $shouldExportDataFromTable
+                       )
+        ;
 
 
         return $printer->printFile($generateAction->getEntity());
@@ -258,10 +280,11 @@ class Migration
     /**
      * Migrate
      *
-     * @param string $tableName
+     * @param string             $tableName
      * @param ItemInterface|null $fromVersion
      * @param ItemInterface|null $toVersion
-     * @param bool $skipForeignChecks
+     * @param bool               $skipForeignChecks
+     *
      * @throws Exception
      */
     public static function migrate(
@@ -271,7 +294,7 @@ class Migration
         bool $skipForeignChecks = false
     ): void {
         $fromVersion = $fromVersion ?: VersionCollection::createItem($fromVersion);
-        $toVersion = $toVersion ?: VersionCollection::createItem($toVersion);
+        $toVersion   = $toVersion ?: VersionCollection::createItem($toVersion);
 
         if ($fromVersion->getStamp() === $toVersion->getStamp()) {
             return; // nothing to do
@@ -336,18 +359,20 @@ class Migration
      * Create migration object for specified version
      *
      * @param ItemInterface $version
-     * @param string $tableName
+     * @param string        $tableName
+     *
      * @return null|Migration
      * @throws Exception
      */
     private static function createClass(ItemInterface $version, string $tableName): ?Migration
     {
+        $camelize = new Camelize();
         $fileName = self::$migrationPath . $version->getVersion() . DIRECTORY_SEPARATOR . $tableName . '.php';
         if (!file_exists($fileName)) {
             return null;
         }
 
-        $className = Text::camelize($tableName) . 'Migration_' . $version->getStamp();
+        $className = $camelize->__invoke($tableName) . 'Migration_' . $version->getStamp();
 
         include_once $fileName;
         if (!class_exists($className)) {
@@ -355,7 +380,7 @@ class Migration
         }
 
         /** @var Migration $migration */
-        $migration = new $className($version);
+        $migration          = new $className($version);
         $migration->version = $version->__toString();
 
         return $migration;
@@ -365,7 +390,7 @@ class Migration
      * Find the last morph function in the previous migration files
      *
      * @param ItemInterface $toVersion
-     * @param string $tableName
+     * @param string        $tableName
      *
      * @return null|Migration
      * @throws Exception
@@ -374,7 +399,7 @@ class Migration
     private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, string $tableName): ?Migration
     {
         $prevVersions = [];
-        $versions = self::scanForVersions(self::$migrationPath);
+        $versions     = self::scanForVersions(self::$migrationPath);
         foreach ($versions as $prevVersion) {
             if ($prevVersion->getStamp() <= $toVersion->getStamp()) {
                 $prevVersions[] = $prevVersion;
@@ -396,6 +421,7 @@ class Migration
      * Scan for all versions
      *
      * @param string $dir Directory to scan
+     *
      * @return ItemInterface[]
      */
     public static function scanForVersions(string $dir): array
@@ -418,22 +444,22 @@ class Migration
      * Look for table definition modifications and apply to real table
      *
      * @param string $tableName
-     * @param array $definition
+     * @param array  $definition
      *
      * @throws DbException
      */
     public function morphTable(string $tableName, array $definition): void
     {
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
-        $tableExists = self::$connection->tableExists($tableName, $defaultSchema);
-        $tableSchema = (string)$defaultSchema;
+        $tableExists   = self::$connection->tableExists($tableName, $defaultSchema);
+        $tableSchema   = (string) $defaultSchema;
 
         if (isset($definition['columns'])) {
             if (count($definition['columns']) === 0) {
                 throw new DbException('Table must have at least one column');
             }
 
-            $fields = [];
+            $fields        = [];
             $previousField = null;
             /** @var ColumnInterface $tableColumn */
             foreach ($definition['columns'] as $tableColumn) {
@@ -455,9 +481,9 @@ class Migration
             }
 
             if ($tableExists) {
-                $localFields = [];
+                $localFields   = [];
                 $previousField = null;
-                $description = self::$connection->describeColumns($tableName, $defaultSchema);
+                $description   = self::$connection->describeColumns($tableName, $defaultSchema);
                 /** @var ColumnInterface $localColumn */
                 foreach ($description as $localColumn) {
                     $field = new FieldDefinition($localColumn);
@@ -559,14 +585,14 @@ class Migration
                 $references[$tableReference->getName()] = $tableReference;
             }
 
-            $localReferences = [];
+            $localReferences  = [];
             $activeReferences = self::$connection->describeReferences($tableName, $defaultSchema);
             /** @var ReferenceInterface $activeReference */
             foreach ($activeReferences as $activeReference) {
                 $localReferences[$activeReference->getName()] = [
-                    'columns' => $activeReference->getColumns(),
-                    'referencedTable' => $activeReference->getReferencedTable(),
-                    'referencedSchema' => $activeReference->getReferencedSchema(),
+                    'columns'           => $activeReference->getColumns(),
+                    'referencedTable'   => $activeReference->getReferencedTable(),
+                    'referencedSchema'  => $activeReference->getReferencedSchema(),
                     'referencedColumns' => $activeReference->getReferencedColumns(),
                 ];
             }
@@ -706,7 +732,7 @@ class Migration
                 $indexes[$tableIndex->getName()] = $tableIndex;
             }
 
-            $localIndexes = [];
+            $localIndexes  = [];
             $actualIndexes = self::$connection->describeIndexes($tableName, $defaultSchema);
             /** @var ReferenceInterface $actualIndex */
             foreach ($actualIndexes as $actualIndex) {
@@ -765,8 +791,8 @@ class Migration
      * Inserts data from a data migration file in a table
      *
      * @param string $tableName
-     * @param mixed $fields
-     * @param int $size Insert batch size
+     * @param mixed  $fields
+     * @param int    $size Insert batch size
      */
     public function batchInsert(string $tableName, $fields, int $size = 1024): void
     {
@@ -777,8 +803,8 @@ class Migration
 
         self::$connection->begin();
 
-        $str = '';
-        $pointer = 1;
+        $str          = '';
+        $pointer      = 1;
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
@@ -797,7 +823,7 @@ class Migration
                 $this->executeMultiInsert($tableName, $fields, $str);
 
                 unset($str);
-                $str = '';
+                $str     = '';
                 $pointer = 1;
             } else {
                 $pointer++;
@@ -861,7 +887,7 @@ class Migration
      * Execute Multi Insert
      *
      * @param string $table
-     * @param array $columns
+     * @param array  $columns
      * @param string $values
      */
     protected function executeMultiInsert(string $table, array $columns, string $values): void
@@ -881,6 +907,7 @@ class Migration
      * Resolves the DB Schema
      *
      * @param Config $config
+     *
      * @return null|string
      */
     public static function resolveDbSchema(Config $config): ?string
@@ -908,9 +935,10 @@ class Migration
     }
 
     /**
-     * @param string $tableName
-     * @param string $schemaName
+     * @param string         $tableName
+     * @param string         $schemaName
      * @param IndexInterface $index
+     *
      * @throw RuntimeException
      */
     private function addPrimaryKey(string $tableName, string $schemaName, IndexInterface $index): void
@@ -933,6 +961,7 @@ class Migration
     /**
      * @param string $tableName
      * @param string $schemaName
+     *
      * @throw RuntimeException
      */
     private function dropPrimaryKey(string $tableName, string $schemaName): void
@@ -952,9 +981,10 @@ class Migration
     }
 
     /**
-     * @param string $tableName
-     * @param string $schemaName
+     * @param string         $tableName
+     * @param string         $schemaName
      * @param IndexInterface $indexName
+     *
      * @throw RuntimeException
      */
     private function addIndex(string $tableName, string $schemaName, IndexInterface $indexName): void
@@ -978,6 +1008,7 @@ class Migration
      * @param string $tableName
      * @param string $schemaName
      * @param string $indexName
+     *
      * @throw RuntimeException
      */
     private function dropIndex(string $tableName, string $schemaName, string $indexName): void

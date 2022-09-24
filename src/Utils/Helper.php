@@ -17,6 +17,20 @@ use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Version\ItemInterface;
 
+use function dirname;
+use function fclose;
+use function fgets;
+use function file_exists;
+use function fopen;
+use function fwrite;
+use function is_array;
+use function is_writable;
+use function mkdir;
+use function rtrim;
+
+use const DIRECTORY_SEPARATOR;
+use const PHP_EOL;
+
 class Helper
 {
     public function getMigrationsDir($migrationsDirs)
@@ -30,7 +44,7 @@ class Helper
 
                 fwrite(STDOUT, Color::info($question));
                 $handle = fopen('php://stdin', 'r');
-                $line = (int)fgets($handle);
+                $line   = (int) fgets($handle);
                 if (!isset($migrationsDirs[$line])) {
                     echo "ABORTING!\n";
                     return false;

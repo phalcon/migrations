@@ -23,6 +23,7 @@ final class TimestampedVersionCest
 {
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      * @throws ScriptException
      * @throws \Exception
@@ -32,26 +33,32 @@ final class TimestampedVersionCest
         $options = $this->getOptions($I, codecept_output_dir('timestamp-single-version'));
 
         $tableName = 'timestamp-versions-1';
-        $I->getPhalconDb()->createTable($tableName, '', [
-            'columns' => [
-                new Column('name', [
-                    'type' => Column::TYPE_VARCHAR,
-                    'size' => 25,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, '', [
+              'columns' => [
+                  new Column('name', [
+                      'type' => Column::TYPE_VARCHAR,
+                      'size' => 25,
+                  ]),
+              ],
+          ])
+        ;
 
         ob_start();
         Migrations::generate($options);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run($options);
         ob_clean();
 
-        $I->assertTrue($I->getPhalconDb()->tableExists($tableName));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists($tableName));
     }
 
     /**
      * @param MysqlTester $I
+     *
      * @throws Exception
      * @throws ScriptException
      * @throws \Exception
@@ -64,14 +71,16 @@ final class TimestampedVersionCest
          * Generate first version
          */
         $tableName1 = 'timestamp-versions-2';
-        $I->getPhalconDb()->createTable($tableName1, '', [
-            'columns' => [
-                new Column('name', [
-                    'type' => Column::TYPE_VARCHAR,
-                    'size' => 25,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName1, '', [
+              'columns' => [
+                  new Column('name', [
+                      'type' => Column::TYPE_VARCHAR,
+                      'size' => 25,
+                  ]),
+              ],
+          ])
+        ;
 
         ob_start();
         Migrations::generate($options);
@@ -80,42 +89,51 @@ final class TimestampedVersionCest
          * Generate second version
          */
         $tableName2 = 'timestamp-versions-3';
-        $I->getPhalconDb()->createTable($tableName2, '', [
-            'columns' => [
-                new Column('name', [
-                    'type' => Column::TYPE_VARCHAR,
-                    'size' => 25,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName2, '', [
+              'columns' => [
+                  new Column('name', [
+                      'type' => Column::TYPE_VARCHAR,
+                      'size' => 25,
+                  ]),
+              ],
+          ])
+        ;
 
         Migrations::generate($options);
 
         /**
          * Drop tables and run migrations
          */
-        $I->getPhalconDb()->dropTable($tableName1);
-        $I->getPhalconDb()->dropTable($tableName2);
+        $I->getPhalconDb()
+          ->dropTable($tableName1)
+        ;
+        $I->getPhalconDb()
+          ->dropTable($tableName2)
+        ;
         Migrations::run($options);
         ob_clean();
 
-        $I->assertTrue($I->getPhalconDb()->tableExists($tableName1));
-        $I->assertTrue($I->getPhalconDb()->tableExists($tableName2));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists($tableName1));
+        $I->assertTrue($I->getPhalconDb()
+                         ->tableExists($tableName2));
     }
 
     /**
      * @param MysqlTester $I
-     * @param string $path
+     * @param string      $path
+     *
      * @return array
      */
     private function getOptions(MysqlTester $I, string $path): array
     {
         return [
-            'migrationsDir' => $path,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => '@',
-            'descr' => '1',
-            'tsBased' => true,
+            'migrationsDir'  => $path,
+            'config'         => $I->getMigrationsConfig(),
+            'tableName'      => '@',
+            'descr'          => '1',
+            'tsBased'        => true,
             'migrationsInDb' => true,
         ];
     }

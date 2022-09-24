@@ -23,12 +23,12 @@ use Phalcon\Db\ReferenceInterface;
 class PdoPostgresql extends Postgresql
 {
     public const INDEX_TYPE_PRIMARY = 'PRIMARY KEY';
-    public const INDEX_TYPE_UNIQUE = 'UNIQUE';
+    public const INDEX_TYPE_UNIQUE  = 'UNIQUE';
 
     /**
      * Lists table references
      *
-     * @param string $table
+     * @param string      $table
      * @param string|null $schema
      *
      * @return ReferenceInterface[]
@@ -37,7 +37,8 @@ class PdoPostgresql extends Postgresql
     {
         $references = [];
 
-        $rows = $this->fetchAll($this->getDialect()->describeReferences($table, $schema), Enum::FETCH_NUM);
+        $rows = $this->fetchAll($this->getDialect()
+                                     ->describeReferences($table, $schema), Enum::FETCH_NUM);
         foreach ($rows as $reference) {
             $constraintName = $reference[2];
             if (!isset($references[$constraintName])) {
@@ -56,7 +57,7 @@ class PdoPostgresql extends Postgresql
                 $referenceDelete   = $references[$constraintName]['onDelete'];
             }
 
-            $columns[] = $reference[1];
+            $columns[]           = $reference[1];
             $referencedColumns[] = $reference[5];
 
             $references[$constraintName] = [
@@ -85,19 +86,19 @@ class PdoPostgresql extends Postgresql
     }
 
     /**
-     * @param string $table
+     * @param string      $table
      * @param string|null $schema
      *
      * @return IndexInterface[]
      */
     public function describeIndexes(string $table, string $schema = null): array
     {
-        $indexes = [];
+        $indexes      = [];
         $indexObjects = [];
 
         $rows = $this->fetchAll($this->dialect->describeIndexes($table, $schema));
         foreach ($rows as $index) {
-            $keyName = $index['key_name'] ?? $index[2];
+            $keyName   = $index['key_name'] ?? $index[2];
             $nonUnique = $index['non_unique'] ?? true;
             $isPrimary = $index['is_primary'] ?? false;
 
@@ -109,11 +110,11 @@ class PdoPostgresql extends Postgresql
                 $indexType = '';
             }
 
-            $columns = $indexes[$keyName]['columns'] ?? [];
+            $columns   = $indexes[$keyName]['columns'] ?? [];
             $columns[] = $index['column_name'] ?? $index[4];
 
             $indexes[$keyName]['columns'] = $columns;
-            $indexes[$keyName]['type'] = $indexType;
+            $indexes[$keyName]['type']    = $indexType;
         }
 
         foreach ($indexes as $name => $index) {

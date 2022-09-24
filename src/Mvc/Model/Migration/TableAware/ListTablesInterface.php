@@ -20,8 +20,9 @@ interface ListTablesInterface
     /**
      * Get list table from prefix
      *
-     * @param string $tablePrefix Table prefix
+     * @param string                 $tablePrefix Table prefix
      * @param DirectoryIterator|null $iterator
+     *
      * @return string
      */
     public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string;

@@ -7,11 +7,10 @@ namespace Helper;
 use Codeception\Module;
 use Codeception\TestInterface;
 use PDO;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phalcon\Db\Adapter\PdoFactory;
-use Phalcon\Db\Exception;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
+use Phalcon\Db\Exception;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Migrations;
 
@@ -25,15 +24,20 @@ class Mysql extends Module
     public function _initialize()
     {
         /** @var AbstractPdo $db */
-        self::$phalconDb = new PdoMysql($this->getMigrationsConfig()->get('database')->toArray());
+        self::$phalconDb = new PdoMysql($this->getMigrationsConfig()
+                                             ->get('database')
+                                             ->toArray());
         self::$phalconDb->setDialect(new DialectMysql());
     }
 
     public function _before(TestInterface $test)
     {
         $this->setForeignKeys();
-        foreach ($this->getPhalconDb()->listTables() as $table) {
-            $this->getPhalconDb()->dropTable($table);
+        foreach ($this->getPhalconDb()
+                      ->listTables() as $table) {
+            $this->getPhalconDb()
+                 ->dropTable($table)
+            ;
         }
 
         $this->setForeignKeys(true);
@@ -42,8 +46,11 @@ class Mysql extends Module
     public function _after(TestInterface $test)
     {
         $this->setForeignKeys();
-        foreach ($this->getPhalconDb()->listTables() as $table) {
-            $this->getPhalconDb()->dropTable($table);
+        foreach ($this->getPhalconDb()
+                      ->listTables() as $table) {
+            $this->getPhalconDb()
+                 ->dropTable($table)
+            ;
         }
 
         $this->setForeignKeys(true);
@@ -60,7 +67,9 @@ class Mysql extends Module
      */
     public function getDb(): PDO
     {
-        return $this->getModule('Db')->_getDbh();
+        return $this->getModule('Db')
+                    ->_getDbh()
+        ;
     }
 
     /**
@@ -77,13 +86,13 @@ class Mysql extends Module
     public function getMigrationsConfig(): Config
     {
         return new Config([
-            'database' => [
-                'adapter' => 'mysql',
-                'host' => getenv('MYSQL_TEST_DB_HOST'),
-                'port' => getenv('MYSQL_TEST_DB_PORT'),
+            'database'    => [
+                'adapter'  => 'mysql',
+                'host'     => getenv('MYSQL_TEST_DB_HOST'),
+                'port'     => getenv('MYSQL_TEST_DB_PORT'),
                 'username' => getenv('MYSQL_TEST_DB_USER'),
                 'password' => getenv('MYSQL_TEST_DB_PASSWORD'),
-                'dbname' => getenv('MYSQL_TEST_DB_DATABASE'),
+                'dbname'   => getenv('MYSQL_TEST_DB_DATABASE'),
             ],
             'application' => [
                 'logInDb' => true,
@@ -96,8 +105,9 @@ class Mysql extends Module
      * @see https://github.com/phalcon/cphalcon/issues/14620
      *
      * @param string $table
-     * @param array $columns
-     * @param array $rows
+     * @param array  $columns
+     * @param array  $rows
+     *
      * @return void
      */
     public function batchInsert(string $table, array $columns, array $rows): void
@@ -111,14 +121,16 @@ class Mysql extends Module
                 }
 
                 if (is_string($val)) {
-                    $val = $this->getPhalconDb()->escapeString($val);
+                    $val = $this->getPhalconDb()
+                                ->escapeString($val)
+                    ;
                 }
             }
 
             $str .= sprintf('(%s),', implode(',', $values));
         }
 
-        $str = rtrim($str, ',') . ';';
+        $str   = rtrim($str, ',') . ';';
         $query = sprintf(
             "INSERT INTO `%s` (%s) VALUES %s",
             $table,
@@ -126,19 +138,22 @@ class Mysql extends Module
             $str
         );
 
-        $this->getPhalconDb()->execute($query);
+        $this->getPhalconDb()
+             ->execute($query)
+        ;
     }
 
     /**
      * @param string $directory
+     *
      * @throws Exception
      */
     public function silentRun(string $directory): void
     {
         ob_start();
         Migrations::run([
-            'migrationsDir' => codecept_data_dir($directory),
-            'config' => $this->getMigrationsConfig(),
+            'migrationsDir'  => codecept_data_dir($directory),
+            'config'         => $this->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
@@ -151,6 +166,8 @@ class Mysql extends Module
      */
     protected function setForeignKeys(bool $enabled = false): void
     {
-        $this->getPhalconDb()->execute('SET FOREIGN_KEY_CHECKS=' . intval($enabled));
+        $this->getPhalconDb()
+             ->execute('SET FOREIGN_KEY_CHECKS=' . intval($enabled))
+        ;
     }
 }

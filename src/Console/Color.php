@@ -13,46 +13,58 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console;
 
+use function defined;
+use function function_exists;
+use function getenv;
+use function posix_isatty;
+use function str_pad;
+use function strlen;
+use function strtoupper;
+use function substr;
+
+use const PHP_EOL;
+use const PHP_OS;
+
 /**
  * Allows to generate messages using colors on xterm, ddterm, linux, etc.
  */
 final class Color
 {
-    public const FG_BLACK = 1;
-    public const FG_DARK_GRAY = 2;
-    public const FG_BLUE = 3;
-    public const FG_LIGHT_BLUE = 4;
-    public const FG_GREEN = 5;
-    public const FG_LIGHT_GREEN = 6;
-    public const FG_CYAN = 7;
-    public const FG_LIGHT_CYAN = 8;
-    public const FG_RED = 9;
-    public const FG_LIGHT_RED = 10;
-    public const FG_PURPLE = 11;
+    public const FG_BLACK        = 1;
+    public const FG_DARK_GRAY    = 2;
+    public const FG_BLUE         = 3;
+    public const FG_LIGHT_BLUE   = 4;
+    public const FG_GREEN        = 5;
+    public const FG_LIGHT_GREEN  = 6;
+    public const FG_CYAN         = 7;
+    public const FG_LIGHT_CYAN   = 8;
+    public const FG_RED          = 9;
+    public const FG_LIGHT_RED    = 10;
+    public const FG_PURPLE       = 11;
     public const FG_LIGHT_PURPLE = 12;
-    public const FG_BROWN = 13;
-    public const FG_YELLOW = 14;
-    public const FG_LIGHT_GRAY = 15;
-    public const FG_WHITE = 16;
+    public const FG_BROWN        = 13;
+    public const FG_YELLOW       = 14;
+    public const FG_LIGHT_GRAY   = 15;
+    public const FG_WHITE        = 16;
 
-    public const BG_BLACK = 1;
-    public const BG_RED = 2;
-    public const BG_GREEN = 3;
-    public const BG_YELLOW = 4;
-    public const BG_BLUE = 5;
-    public const BG_MAGENTA = 6;
-    public const BG_CYAN = 7;
+    public const BG_BLACK      = 1;
+    public const BG_RED        = 2;
+    public const BG_GREEN      = 3;
+    public const BG_YELLOW     = 4;
+    public const BG_BLUE       = 5;
+    public const BG_MAGENTA    = 6;
+    public const BG_CYAN       = 7;
     public const BG_LIGHT_GRAY = 8;
 
-    public const AT_NORMAL = 1;
-    public const AT_BOLD = 2;
-    public const AT_ITALIC = 3;
+    public const AT_NORMAL    = 1;
+    public const AT_BOLD      = 2;
+    public const AT_ITALIC    = 3;
     public const AT_UNDERLINE = 4;
-    public const AT_BLINK = 5;
-    public const AT_OUTLINE = 6;
-    public const AT_REVERSE = 7;
-    public const AT_NONDISP = 8;
-    public const AT_STRIKE = 9;
+    public const AT_BLINK     = 5;
+    public const AT_OUTLINE   = 6;
+    public const AT_REVERSE   = 7;
+    public const AT_NONDISP   = 8;
+    public const AT_STRIKE    = 9;
 
     /**
      * @var array Map of supported foreground colors
@@ -123,7 +135,8 @@ final class Color
      * Colorizes the string using provided colors.
      *
      * @static
-     * @param string $string
+     *
+     * @param string       $string
      * @param null|integer $fg
      * @param null|integer $at
      * @param null|integer $bg
@@ -155,13 +168,14 @@ final class Color
         }
 
         // Add string and end coloring
-        $colored .=  $string . "\033[0m";
+        $colored .= $string . "\033[0m";
 
         return $colored;
     }
 
     /**
      * @param string $msg
+     *
      * @return string
      */
     public static function head(string $msg): string
@@ -173,17 +187,19 @@ final class Color
      * Color style for error messages.
      *
      * @static
+     *
      * @param string $msg
      * @param string $prefix
+     *
      * @return string
      */
     public static function error(string $msg, string $prefix = 'Error: '): string
     {
-        $msg = $prefix . $msg;
+        $msg   = $prefix . $msg;
         $space = self::tabSpaces($msg);
-        $out  = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
-        $out .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
-        $out .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out   = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out   .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out   .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
 
         return $out;
     }
@@ -192,17 +208,19 @@ final class Color
      * Color style for fatal error messages.
      *
      * @static
+     *
      * @param string $msg
      * @param string $prefix
+     *
      * @return string
      */
     public static function fatal(string $msg, string $prefix = 'Fatal Error: '): string
     {
-        $msg = $prefix . $msg;
+        $msg   = $prefix . $msg;
         $space = self::tabSpaces($msg);
-        $out  = static::colorize(str_pad(' ', $space), Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
-        $out .= static::colorize('  ' . $msg . '  ', Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
-        $out .= static::colorize(str_pad(' ', $space), Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out   = static::colorize(str_pad(' ', $space), Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out   .= static::colorize('  ' . $msg . '  ', Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
+        $out   .= static::colorize(str_pad(' ', $space), Color::FG_LIGHT_GRAY, Color::AT_BOLD, Color::BG_RED) . PHP_EOL;
 
         return $out;
     }
@@ -211,16 +229,18 @@ final class Color
      * Color style for success messages.
      *
      * @static
+     *
      * @param string $msg
+     *
      * @return string
      */
     public static function success(string $msg): string
     {
-        $msg = 'Success: ' . $msg;
+        $msg   = 'Success: ' . $msg;
         $space = self::tabSpaces($msg);
-        $out  = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_GREEN) . PHP_EOL;
-        $out .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_GREEN) . PHP_EOL;
-        $out .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_GREEN) . PHP_EOL;
+        $out   = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_GREEN) . PHP_EOL;
+        $out   .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_GREEN) . PHP_EOL;
+        $out   .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_GREEN) . PHP_EOL;
 
         return $out;
     }
@@ -229,16 +249,18 @@ final class Color
      * Color style for info messages.
      *
      * @static
+     *
      * @param string $msg
+     *
      * @return string
      */
     public static function info(string $msg): string
     {
-        $msg = 'Info: ' . $msg;
+        $msg   = 'Info: ' . $msg;
         $space = self::tabSpaces($msg);
-        $out  = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_BLUE) . PHP_EOL;
-        $out .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_BLUE) . PHP_EOL;
-        $out .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_BLUE) . PHP_EOL;
+        $out   = static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_BLUE) . PHP_EOL;
+        $out   .= static::colorize('  ' . $msg . '  ', Color::FG_WHITE, Color::AT_BOLD, Color::BG_BLUE) . PHP_EOL;
+        $out   .= static::colorize(str_pad(' ', $space), Color::FG_WHITE, Color::AT_BOLD, Color::BG_BLUE) . PHP_EOL;
 
         return $out;
     }
@@ -249,7 +271,8 @@ final class Color
      * Depending on length of string.
      *
      * @param string $string
-     * @param int $tabSize
+     * @param int    $tabSize
+     *
      * @return int
      */
     protected static function tabSpaces(string $string, int $tabSize = 4): int

@@ -36,15 +36,17 @@ final class ListCest
      */
     public function runList(CliTester $I): void
     {
-        $I->getPhalconDb()->createTable('cli-first-test', '', [
-            'columns' => [
-                new Column('id', [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
-                    'notNull' => true,
-                ]),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable('cli-first-test', '', [
+              'columns' => [
+                  new Column('id', [
+                      'type'    => Column::TYPE_INTEGER,
+                      'size'    => 10,
+                      'notNull' => true,
+                  ]),
+              ],
+          ])
+        ;
 
         $configPath = 'tests/_data/cli/migrations.php';
 

@@ -25,12 +25,13 @@ class Integration extends \Codeception\Module
 
     /**
      * @param string $path
+     *
      * @return void
      */
     public function removeDir(string $path)
     {
         $directoryIterator = new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS);
-        $iterator = new \RecursiveIteratorIterator($directoryIterator, \RecursiveIteratorIterator::CHILD_FIRST);
+        $iterator          = new \RecursiveIteratorIterator($directoryIterator, \RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($iterator as $file) {
             if ($file->getFileName() === '.gitignore') {
                 continue;

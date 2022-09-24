@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console;
 
+use function array_merge;
+
 /**
  * CLI options
  */
@@ -49,7 +51,7 @@ class OptionStack
      * Set option if value isn't exist
      *
      * @param string $key
-     * @param mixed $defaultValue
+     * @param mixed  $defaultValue
      */
     public function setDefaultOption(string $key, $defaultValue): void
     {
@@ -80,7 +82,9 @@ class OptionStack
 
     /**
      * Get option
+     *
      * @param string $key
+     *
      * @return mixed
      */
     public function getOption($key)
@@ -96,7 +100,8 @@ class OptionStack
      * Get option if existence or get default option
      *
      * @param string $key
-     * @param mixed $defaultOption
+     * @param mixed  $defaultOption
+     *
      * @return mixed
      */
     public function getValidOption($key, $defaultOption = '')
@@ -112,6 +117,7 @@ class OptionStack
      * Indicates whether the script was a particular option.
      *
      * @param string $key
+     *
      * @return bool
      */
     public function isReceivedOption($key): bool

@@ -17,10 +17,11 @@ use Codeception\Example;
 use Exception;
 use MysqlTester;
 use PDO;
-use Phalcon\Config;
+use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Script\ScriptException;
 
 /**
  * @method Config getMigrationsConfig()
@@ -36,20 +37,20 @@ final class ColumnTypesCest
             [
                 'column_int',
                 [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 10,
+                    'type'     => Column::TYPE_INTEGER,
+                    'size'     => 10,
                     'unsigned' => true,
-                    'notNull' => true,
-                    'first' => true,
+                    'notNull'  => true,
+                    'first'    => true,
                 ],
                 [0, 1, 123, 9000],
             ],
             [
                 'column_int_primary',
                 [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 11,
-                    'first' => true,
+                    'type'    => Column::TYPE_INTEGER,
+                    'size'    => 11,
+                    'first'   => true,
                     'primary' => true,
                 ],
                 [1, 2, 3, 4],
@@ -57,10 +58,10 @@ final class ColumnTypesCest
             [
                 'column_int_pri_inc',
                 [
-                    'type' => Column::TYPE_INTEGER,
-                    'size' => 11,
-                    'first' => true,
-                    'primary' => true,
+                    'type'          => Column::TYPE_INTEGER,
+                    'size'          => 11,
+                    'first'         => true,
+                    'primary'       => true,
                     'autoIncrement' => true,
                 ],
                 [1, 2, 3, 4],
@@ -68,7 +69,7 @@ final class ColumnTypesCest
             [
                 'column_time',
                 [
-                    'type' => Column::TYPE_TIME,
+                    'type'    => Column::TYPE_TIME,
                     'notNull' => false,
                 ],
                 ['00:00:00', '23:59:55', '12:00:12'],
@@ -76,7 +77,7 @@ final class ColumnTypesCest
             [
                 'column_json',
                 [
-                    'type' => Column::TYPE_JSON,
+                    'type'    => Column::TYPE_JSON,
                     'notNull' => true,
                 ],
                 ['{}', '{"type": "json"}', '{"random": 123, "is_true": false}'],
@@ -84,8 +85,8 @@ final class ColumnTypesCest
             [
                 'column_enum_not_null',
                 [
-                    'type' => Column::TYPE_ENUM,
-                    'size' => "'Y','N','D', ''",
+                    'type'    => Column::TYPE_ENUM,
+                    'size'    => "'Y','N','D', ''",
                     'notNull' => true,
                 ],
                 ['Y', 'N', 'D', ''],
@@ -93,9 +94,9 @@ final class ColumnTypesCest
             [
                 'column_decimal',
                 [
-                    'type' => Column::TYPE_DECIMAL,
-                    'size' => 10,
-                    'scale' => 2,
+                    'type'    => Column::TYPE_DECIMAL,
+                    'size'    => 10,
+                    'scale'   => 2,
                     'notNull' => true,
                 ],
                 [0, 1, 2.3, 4.56, 12345678.12],
@@ -107,8 +108,9 @@ final class ColumnTypesCest
      * @dataProvider columnsDataProvider
      *
      * @param MysqlTester $I
-     * @param Example $example
-     * @throws \Phalcon\Migrations\Script\ScriptException
+     * @param Example     $example
+     *
+     * @throws ScriptException
      * @throws \Phalcon\Mvc\Model\Exception
      * @throws Exception
      */
@@ -116,14 +118,16 @@ final class ColumnTypesCest
     {
         list($columnName, $definition, $values) = $example;
 
-        $tableName = $example[0] . '_test';
+        $tableName     = $example[0] . '_test';
         $migrationsDir = codecept_output_dir('tests/var/output/' . __FUNCTION__);
 
-        $I->getPhalconDb()->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
-            'columns' => [
-                new Column($columnName, $definition),
-            ],
-        ]);
+        $I->getPhalconDb()
+          ->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+              'columns' => [
+                  new Column($columnName, $definition),
+              ],
+          ])
+        ;
 
         /**
          * Generate | Drop | Run
@@ -131,13 +135,15 @@ final class ColumnTypesCest
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
-            'tableName' => $tableName,
+            'config'        => $I->getMigrationsConfig(),
+            'tableName'     => $tableName,
         ]);
-        $I->getPhalconDb()->dropTable($tableName);
+        $I->getPhalconDb()
+          ->dropTable($tableName)
+        ;
         Migrations::run([
-            'migrationsDir' => $migrationsDir,
-            'config' => $I->getMigrationsConfig(),
+            'migrationsDir'  => $migrationsDir,
+            'config'         => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
@@ -146,15 +152,18 @@ final class ColumnTypesCest
          * Insert values
          */
         foreach ($values as $value) {
-            $I->getPhalconDb()->insert($tableName, [$value], [$columnName]);
+            $I->getPhalconDb()
+              ->insert($tableName, [$value], [$columnName])
+            ;
         }
 
         Migrations::resetStorage();
         $I->removeDir($migrationsDir);
 
         /** @var Column $column */
-        $column = $I->getPhalconDb()->describeColumns($tableName)[0];
-        $rows = $I->grabColumnFromDatabase($tableName, $columnName);
+        $column = $I->getPhalconDb()
+                    ->describeColumns($tableName)[0];
+        $rows   = $I->grabColumnFromDatabase($tableName, $columnName);
 
         $I->assertSame($definition['type'], $column->getType());
         $I->assertSame($definition['notNull'] ?? true, $column->isNotNull());
