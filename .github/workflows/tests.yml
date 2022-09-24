@@ -28,7 +28,7 @@ jobs:
       matrix:
         php-versions: ['7.4', '8.0', '8.1']
         # There is no 4.1.1 version due release bug
-        phalcon-versions: ['5.0.0RC4']
+        phalcon-versions: ['5.0.1']
     steps:
       - uses: actions/checkout@v1
       - name: Setup cache environment
