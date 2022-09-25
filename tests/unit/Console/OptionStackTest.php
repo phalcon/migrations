@@ -18,7 +18,6 @@ use Phalcon\Migrations\Console\OptionStack;
 
 final class OptionStackTest extends Unit
 {
-
     /**
      * @see testSetOptionAndGetOption11
      */
