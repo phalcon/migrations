@@ -63,6 +63,7 @@ class OptionStack implements ArrayAccess
      * @param mixed $offset
      * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->options[$offset] ?? '';
