@@ -21,7 +21,7 @@ class UnknownColumnTypeException extends Exception
     /**
      * @var ColumnInterface
      */
-    protected $column;
+    protected ColumnInterface $column;
 
     public function __construct(ColumnInterface $column)
     {

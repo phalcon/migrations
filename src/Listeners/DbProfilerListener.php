@@ -21,7 +21,7 @@ use Phalcon\Migrations\Observer\Profiler;
  */
 class DbProfilerListener
 {
-    protected $profiler;
+    protected Profiler $profiler;
 
     public function __construct()
     {

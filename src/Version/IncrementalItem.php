@@ -37,22 +37,22 @@ class IncrementalItem implements ItemInterface
     /**
      * @var string
      */
-    private $path;
+    private string $path;
 
     /**
      * @var string
      */
-    private $version;
+    private string $version;
 
     /**
      * @var int
      */
-    private $versionStamp = 0;
+    private int $versionStamp = 0;
 
     /**
      * @var array
      */
-    private $parts;
+    private array $parts;
 
     /**
      * @param string $version
@@ -89,9 +89,9 @@ class IncrementalItem implements ItemInterface
      *
      * @return null|IncrementalItem
      */
-    public static function maximum(array $versions)
+    public static function maximum(array $versions): ?IncrementalItem
     {
-        if (count($versions) == 0) {
+        if (count($versions) === 0) {
             return null;
         }
 
@@ -117,15 +117,15 @@ class IncrementalItem implements ItemInterface
     }
 
     /**
-     * Allows to check whether a version is in a range between two values.
+     * Allows checking whether a version is in a range between two values.
      *
      * @param IncrementalItem|string $initialVersion
      * @param IncrementalItem|string $finalVersion
-     * @param ItemInterface[]        $versions
+     * @param ItemInterface[] $versions
      *
      * @return ItemInterface[]
      */
-    public static function between($initialVersion, $finalVersion, $versions)
+    public static function between($initialVersion, $finalVersion, array $versions): array
     {
         $versions = self::sortAsc($versions);
 
@@ -191,7 +191,7 @@ class IncrementalItem implements ItemInterface
      *
      * @return IncrementalItem
      */
-    public function addMinor(int $number)
+    public function addMinor(int $number): IncrementalItem
     {
         $parts = array_reverse($this->parts);
         if (isset($parts[0])) {
@@ -241,12 +241,12 @@ class IncrementalItem implements ItemInterface
      *
      * @param string $path
      */
-    public function setPath($path): void
+    public function setPath(string $path): void
     {
         $this->path = $path;
     }
 
-    protected function regenerateVersionStamp()
+    protected function regenerateVersionStamp(): IncrementalItem
     {
         $n            = 2;
         $versionStamp = 0;
@@ -266,7 +266,7 @@ class IncrementalItem implements ItemInterface
         return $this;
     }
 
-    protected function setParts(array $parts)
+    protected function setParts(array $parts): IncrementalItem
     {
         $this->parts = array_map(function ($v) {
             return strval($v);

@@ -22,22 +22,22 @@ class FieldDefinition
     /**
      * @var string
      */
-    private $name;
+    private string $name;
 
     /**
      * @var ColumnInterface
      */
-    private $currentColumn;
+    private ColumnInterface $currentColumn;
 
     /**
      * @var FieldDefinition|null
      */
-    private $previousField;
+    private ?FieldDefinition $previousField;
 
     /**
      * @var FieldDefinition|null
      */
-    private $nextField;
+    private ?FieldDefinition $nextField;
 
     public function __construct(
         ColumnInterface $column,
@@ -98,6 +98,7 @@ class FieldDefinition
                 $possiblePairedField = $prevField->getNext();
             }
         }
+
         if (null === $possiblePairedField && null !== $this->nextField) {
             $nextField = $externalFieldset[$this->nextField->getName()] ?? null;
             if (null !== $nextField) {

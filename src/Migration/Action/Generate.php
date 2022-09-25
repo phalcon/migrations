@@ -54,7 +54,7 @@ class Generate
     /**
      * @var array
      */
-    protected $supportedColumnTypes = [
+    protected array $supportedColumnTypes = [
         Column::TYPE_BIGINTEGER    => 'TYPE_BIGINTEGER',
         Column::TYPE_INTEGER       => 'TYPE_INTEGER',
         Column::TYPE_MEDIUMINTEGER => 'TYPE_MEDIUMINTEGER',
@@ -91,21 +91,21 @@ class Generate
     /**
      * @var array
      */
-    protected $supportedColumnTypesPgsql = [
+    protected array $supportedColumnTypesPgsql = [
         Column::TYPE_DOUBLE => 'TYPE_FLOAT',
     ];
 
     /**
      * @var array
      */
-    protected $supportedColumnTypesMysql = [
+    protected array $supportedColumnTypesMysql = [
         Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
     ];
 
     /**
      * @var array
      */
-    protected $numericColumnTypes = [
+    protected array $numericColumnTypes = [
         Column::TYPE_INTEGER,
         Column::TYPE_MEDIUMINTEGER,
         Column::TYPE_SMALLINTEGER,
@@ -118,7 +118,7 @@ class Generate
      *
      * @var array
      */
-    protected $noSizeColumnTypes = [
+    protected array $noSizeColumnTypes = [
         Column::TYPE_DATE,
         Column::TYPE_DATETIME,
 
@@ -143,7 +143,7 @@ class Generate
      *
      * @var array
      */
-    protected $noSizeColumnTypesPostgreSQL = [
+    protected array $noSizeColumnTypesPostgreSQL = [
         Column::TYPE_BOOLEAN,
         Column::TYPE_INTEGER,
         Column::TYPE_BIGINTEGER,
@@ -187,21 +187,21 @@ class Generate
     /**
      * Table foreign keys and another references
      *
-     * @var array|ReferenceInterface[]
+     * @var ReferenceInterface[]
      */
-    protected $references;
+    protected array $references;
 
     /**
      * Table options
      *
      * @var array
      */
-    protected $options;
+    protected array $options;
 
     /**
      * @var string|null
      */
-    protected $primaryColumnName = null;
+    protected ?string $primaryColumnName = null;
 
     /**
      * Numeric columns
@@ -210,14 +210,14 @@ class Generate
      *
      * @var array
      */
-    protected $numericColumns = [];
+    protected array $numericColumns = [];
 
     /**
      * Table columns wrapped with "'" single quote symbol
      *
      * @var array
      */
-    protected $quoteWrappedColumns = [];
+    protected array $quoteWrappedColumns = [];
 
     /**
      * Generate constructor.

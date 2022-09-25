@@ -96,21 +96,21 @@ class Migration
      *
      * @var string
      */
-    private static $migrationPath = '';
+    private static string $migrationPath = '';
 
     /**
      * Skip auto increment
      *
      * @var bool
      */
-    private static $skipAI = true;
+    private static bool $skipAI = true;
 
     /**
      * Version of the migration file
      *
      * @var string|null
      */
-    protected $version = null;
+    protected ?string $version = null;
 
     /**
      * Prepares component

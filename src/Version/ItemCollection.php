@@ -21,7 +21,7 @@ use function ksort;
 use function preg_match;
 
 /**
- * The item collection lets you to work with an abstract ItemInterface.
+ * The item collection lets you work with an abstract ItemInterface.
  */
 class ItemCollection
 {
@@ -42,14 +42,14 @@ class ItemCollection
     /**
      * @var int
      */
-    public static $type = self::TYPE_INCREMENTAL;
+    public static int $type = self::TYPE_INCREMENTAL;
 
     /**
      * Set collection type
      *
      * @param int $type
      */
-    public static function setType($type)
+    public static function setType(int $type)
     {
         self::$type = $type;
     }
@@ -61,7 +61,7 @@ class ItemCollection
      *
      * @return IncrementalItem|TimestampedItem
      */
-    public static function createItem($version = null)
+    public static function createItem(string $version = null)
     {
         if (self::TYPE_INCREMENTAL === self::$type) {
             $version = $version ?: '0.0.0';
@@ -99,17 +99,17 @@ class ItemCollection
      *
      * @param array $versions
      *
-     * @return null|ItemInterface|IncrementalItem
+     * @return ItemInterface|null
      */
-    public static function maximum(array $versions)
+    public static function maximum(array $versions): ?ItemInterface
     {
-        if (count($versions) == 0) {
+        if (count($versions) === 0) {
             return null;
         }
 
         $versions = self::sortDesc($versions);
 
-        return $versions[0];
+        return $versions[0] ?? null;
     }
 
     /**
