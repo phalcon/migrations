@@ -78,8 +78,8 @@ class OptionStack implements ArrayAccess
     }
 
     /**
-     * @param mixed $offset
-     * @param null  $default
+     * @param mixed       $offset
+     * @param mixed|null  $default
      */
     public function offsetSetDefault($offset, $default = null): void
     {
@@ -89,9 +89,9 @@ class OptionStack implements ArrayAccess
     }
 
     /**
-     * @param mixed $offset
-     * @param null  $value
-     * @param null  $default
+     * @param mixed       $offset
+     * @param mixed|null  $value
+     * @param mixed|null  $default
      */
     public function offsetSetOrDefault($offset, $value = null, $default = null): void
     {
