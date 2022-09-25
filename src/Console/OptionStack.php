@@ -95,7 +95,7 @@ class OptionStack implements ArrayAccess
      */
     public function offsetSetOrDefault($offset, $value = null, $default = null): void
     {
-        $this->options[$offset] = !empty($value) ? $value : $default;
+        $this->options[$offset] = $value ?: $default;
     }
 
     /**
