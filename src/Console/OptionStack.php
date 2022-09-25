@@ -78,8 +78,8 @@ class OptionStack implements ArrayAccess
     }
 
     /**
-     * @param $offset
-     * @param null $default
+     * @param mixed $offset
+     * @param null  $default
      */
     public function offsetSetDefault($offset, $default = null): void
     {
@@ -89,13 +89,13 @@ class OptionStack implements ArrayAccess
     }
 
     /**
-     * @param $offset
-     * @param null $value
-     * @param null $default
+     * @param mixed $offset
+     * @param null  $value
+     * @param null  $default
      */
     public function offsetSetOrDefault($offset, $value = null, $default = null): void
     {
-        $this->options[$offset] = $value !== null ? $value : $default;
+        $this->options[$offset] = !empty($value) ? $value : $default;
     }
 
     /**
@@ -127,6 +127,8 @@ class OptionStack implements ArrayAccess
 
     /**
      * Get version name to generate migration
+     *
+     * @return ItemInterface
      */
     public function getVersionNameGeneratingMigration(): ItemInterface
     {

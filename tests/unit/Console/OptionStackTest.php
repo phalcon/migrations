@@ -26,7 +26,7 @@ final class OptionStackTest extends Unit
     {
         return [
             ['foo-bar', 'bar-foo', 'foo-bar'],
-            ['', 'bar-foo', 'bar-foo'],
+            [null, 'bar-foo', 'bar-foo'],
         ];
     }
 
@@ -64,7 +64,7 @@ final class OptionStackTest extends Unit
     {
         $key = 'set-test';
         $options = new OptionStack();
-        $options->offsetSet($key, $option, $defaultValue);
+        $options->offsetSetOrDefault($key, $option, $defaultValue);
 
         $this->assertSame($expected, $options->offsetGet($key));
     }
