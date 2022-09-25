@@ -68,7 +68,7 @@ trait OptionParserTrait
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
             $versionItem = VersionCollection::createItem($this->options['version'] . '_' . $this->options['descr']);
 
-            // Elsewhere use old-style incremental versioning
+            // Elsewhere, use old-style incremental versioning
             // The version is specified
         } elseif ($this->options['version']) {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);

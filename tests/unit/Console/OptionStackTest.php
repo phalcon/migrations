@@ -14,22 +14,10 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Tests\Unit\Console;
 
 use Codeception\Test\Unit;
-use Phalcon\Migrations\Console\OptionParserTrait;
 use Phalcon\Migrations\Console\OptionStack;
 
 final class OptionStackTest extends Unit
 {
-    use OptionParserTrait;
-
-    /**
-     * @var OptionStack
-     */
-    public $options;
-
-    public function setUp(): void
-    {
-        $this->options = new OptionStack();
-    }
 
     /**
      * @see testSetOptionAndGetOption11
@@ -55,14 +43,14 @@ final class OptionStackTest extends Unit
 
     public function testGetAndSetOptions(): void
     {
-        $options = [
+        $data = [
             'test'  => 'foo',
             'test2' => 'bar',
         ];
 
-        $this->options->setOptions($options);
+        $options = new OptionStack($data);
 
-        $this->assertSame($options, $this->options->getOptions());
+        $this->assertSame($data, $options->getOptions());
     }
 
     /**
@@ -75,9 +63,10 @@ final class OptionStackTest extends Unit
     public function testSetOptionAndGetOption11($option, $defaultValue, $expected): void
     {
         $key = 'set-test';
-        $this->options->setOption($key, $option, $defaultValue);
+        $options = new OptionStack();
+        $options->offsetSet($key, $option, $defaultValue);
 
-        $this->assertSame($expected, $this->options->getOption($key));
+        $this->assertSame($expected, $options->offsetGet($key));
     }
 
     /**
@@ -89,44 +78,27 @@ final class OptionStackTest extends Unit
      */
     public function testSetDefaultOptionIfOptionDidntExist($key, $defaultValue, $expected): void
     {
-        $this->options->setOption('test', 'bar');
-        $this->options->setDefaultOption($key, $defaultValue);
+        $options = new OptionStack();
 
-        $this->assertSame($expected, $this->options->getOption($key));
-    }
+        $options->offsetSet('test', 'bar');
+        $options->offsetSetDefault($key, $defaultValue);
 
-    public function testCheckingReceivedOption(): void
-    {
-        $this->options->setOption('true-option', 'foo-bar');
-
-        $option1 = $this->options->isReceivedOption('true-option');
-        $option2 = $this->options->isReceivedOption('false-option');
-
-        $this->assertTrue($option1);
-        $this->assertFalse($option2);
-    }
-
-    public function testReturnValidOptionOrSetDefault(): void
-    {
-        $this->options->setOptions(['test' => 'foo', 'test2' => 'bar']);
-
-        $this->assertSame('foo', $this->options->getValidOption('test', 'bar'));
-        $this->assertSame('bar', $this->options->getValidOption('false-option', 'bar'));
+        $this->assertSame($expected, $options->offsetGet($key));
     }
 
     public function testReturnPrefixFromOptionWithoutSetPrefix(): void
     {
-        $this->options->setOptions(['test' => 'foo', 'test2' => 'bar']);
+        $options = new OptionStack(['test' => 'foo', 'test2' => 'bar']);
 
-        $this->assertSame('foo', $this->options->getPrefixOption('foo*'));
-        $this->assertSame('bar', $this->options->getPrefixOption('bar*'));
+        $this->assertSame('foo', $options->getPrefixOption('foo*'));
+        $this->assertSame('bar', $options->getPrefixOption('bar*'));
     }
 
     public function testReturnPrefixFromOptionWithSetPrefix(): void
     {
-        $this->options->setOptions(['test' => 'foo', 'test2' => 'bar']);
+        $options = new OptionStack(['test' => 'foo', 'test2' => 'bar']);
 
-        $this->assertSame('foo', $this->getPrefixOption('foo^', '^'));
-        $this->assertSame('bar', $this->getPrefixOption('bar?', '?'));
+        $this->assertSame('foo', $options->getPrefixOption('foo^', '^'));
+        $this->assertSame('bar', $options->getPrefixOption('bar?', '?'));
     }
 }
