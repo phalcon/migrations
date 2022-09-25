@@ -14,20 +14,23 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Console;
 
 use ArrayAccess;
+use LogicException;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
+use Phalcon\Migrations\Version\IncrementalItem as IncrementalVersion;
+use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
+use Phalcon\Migrations\Version\ItemInterface;
 
 /**
  * CLI options
  */
 class OptionStack implements ArrayAccess
 {
-    use OptionParserTrait;
-
     /**
      * Parameters received by the script.
      *
      * @var array
      */
-    protected $options = [];
+    protected array $options = [];
 
     /**
      * @param array $options
@@ -103,5 +106,85 @@ class OptionStack implements ArrayAccess
         if (array_key_exists($offset, $this->options)) {
             unset($this->options[$offset]);
         }
+    }
+
+    /**
+     * Get prefix from the option
+     *
+     * @param string $prefix
+     * @param mixed  $prefixEnd
+     *
+     * @return mixed
+     */
+    public function getPrefixOption(string $prefix, $prefixEnd = '*')
+    {
+        if (substr($prefix, -1) != $prefixEnd) {
+            return '';
+        }
+
+        return substr($prefix, 0, -1);
+    }
+
+    /**
+     * Get version name to generate migration
+     */
+    public function getVersionNameGeneratingMigration(): ItemInterface
+    {
+        /**
+         * Use timestamped version if description is provided.
+         */
+        if (isset($this->options['descr'])) {
+            $this->options['version'] = (string) (int) (microtime(true) * pow(10, 6));
+            VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
+
+            return VersionCollection::createItem($this->options['version'] . '_' . $this->options['descr']);
+        }
+
+        VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
+        $migrationsDirList = is_array($this->options['migrationsDir']) ? $this->options['migrationsDir'] : [];
+
+        /**
+         * Elsewhere, use old-style incremental versioning.
+         * The version is specified.
+         */
+        if (isset($this->options['version'])) {
+            $versionItem = VersionCollection::createItem($this->options['version']);
+            // Check version if exists.
+            foreach ($migrationsDirList as $migrationsDir) {
+                $migrationsSubDirList = ModelMigration::scanForVersions($migrationsDir);
+
+                foreach ($migrationsSubDirList as $item) {
+                    if ($item->getVersion() != $versionItem->getVersion()) {
+                        continue;
+                    }
+
+                    if (!$this->options['force']) {
+                        throw new LogicException('Version ' . $item->getVersion() . ' already exists');
+                    } else {
+                        rmdir(rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion());
+                    }
+                }
+            }
+
+            return $versionItem;
+        }
+
+        /**
+         * The version is guessed automatically
+         */
+        $versionItems = [];
+        foreach ($migrationsDirList as $migrationsDir) {
+            $versionItems = $versionItems + ModelMigration::scanForVersions($migrationsDir);
+        }
+
+        if (!isset($versionItems[0])) {
+            $versionItem = VersionCollection::createItem('1.0.0');
+        } else {
+            /** @var IncrementalVersion $versionItem */
+            $versionItem = VersionCollection::maximum($versionItems);
+            $versionItem = $versionItem->addMinor(1);
+        }
+
+        return $versionItem;
     }
 }
