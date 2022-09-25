@@ -41,9 +41,9 @@ class TimestampedItem implements ItemInterface
     protected array $parts = [];
 
     /**
-     * @var string|null
+     * @var string
      */
-    private ?string $path = null;
+    private string $path = '';
 
     /**
      * @param string $version String representation of the version

@@ -61,7 +61,7 @@ class OptionStack implements ArrayAccess
 
     /**
      * @param mixed $offset
-     * @return mixed|string
+     * @return mixed
      */
     public function offsetGet($offset)
     {
