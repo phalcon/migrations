@@ -13,115 +13,181 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Console;
 
-use function array_merge;
+use ArrayAccess;
+use LogicException;
+use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
+use Phalcon\Migrations\Version\IncrementalItem as IncrementalVersion;
+use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
+use Phalcon\Migrations\Version\ItemInterface;
 
 /**
  * CLI options
  */
-class OptionStack
+class OptionStack implements ArrayAccess
 {
-    use OptionParserTrait;
-
     /**
      * Parameters received by the script.
      *
      * @var array
      */
-    protected $options = [];
+    protected array $options = [];
 
     /**
-     * Add option to array
-     *
-     * @param mixed $key
-     * @param mixed $option
-     * @param mixed $defaultValue
+     * @param array $options
      */
-    public function setOption($key, $option, $defaultValue = ''): void
+    public function __construct(array $options = [])
     {
-        if (!empty($option)) {
-            $this->options[$key] = $option;
-
-            return;
-        }
-
-        $this->options[$key] = $defaultValue;
-    }
-
-    /**
-     * Set option if value isn't exist
-     *
-     * @param string $key
-     * @param mixed  $defaultValue
-     */
-    public function setDefaultOption(string $key, $defaultValue): void
-    {
-        if (!isset($this->options[$key])) {
-            $this->options[$key] = $defaultValue;
-        }
+        $this->options = $options;
     }
 
     /**
      * Get received options
      *
-     * @return mixed
+     * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
 
     /**
-     * Set received options
-     *
-     * @param array $options
+     * @param mixed $offset
+     * @return bool
      */
-    public function setOptions(array $options): void
+    public function offsetExists($offset): bool
     {
-        $this->options = array_merge($this->options, $options);
+        return isset($this->options[$offset]);
     }
 
     /**
-     * Get option
+     * @param mixed $offset
+     * @return mixed
+     */
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
+    {
+        return $this->options[$offset] ?? '';
+    }
+
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->options[$offset] = $value;
+    }
+
+    /**
+     * @param mixed       $offset
+     * @param mixed|null  $default
+     */
+    public function offsetSetDefault($offset, $default = null): void
+    {
+        if (!array_key_exists($offset, $this->options)) {
+            $this->options[$offset] = $default;
+        }
+    }
+
+    /**
+     * @param mixed       $offset
+     * @param mixed|null  $value
+     * @param mixed|null  $default
+     */
+    public function offsetSetOrDefault($offset, $value = null, $default = null): void
+    {
+        $this->options[$offset] = $value ?: $default;
+    }
+
+    /**
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset): void
+    {
+        if (array_key_exists($offset, $this->options)) {
+            unset($this->options[$offset]);
+        }
+    }
+
+    /**
+     * Get prefix from the option
      *
-     * @param string $key
+     * @param string $prefix
+     * @param mixed  $prefixEnd
      *
      * @return mixed
      */
-    public function getOption($key)
+    public function getPrefixOption(string $prefix, $prefixEnd = '*')
     {
-        if (!isset($this->options[$key])) {
+        if (substr($prefix, -1) != $prefixEnd) {
             return '';
         }
 
-        return $this->options[$key];
+        return substr($prefix, 0, -1);
     }
 
     /**
-     * Get option if existence or get default option
+     * Get version name to generate migration
      *
-     * @param string $key
-     * @param mixed  $defaultOption
-     *
-     * @return mixed
+     * @return ItemInterface
      */
-    public function getValidOption($key, $defaultOption = '')
+    public function getVersionNameGeneratingMigration(): ItemInterface
     {
-        if (isset($this->options[$key])) {
-            return $this->options[$key];
+        /**
+         * Use timestamped version if description is provided.
+         */
+        if (isset($this->options['descr'])) {
+            $this->options['version'] = (string) (int) (microtime(true) * pow(10, 6));
+            VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
+
+            return VersionCollection::createItem($this->options['version'] . '_' . $this->options['descr']);
         }
 
-        return $defaultOption;
-    }
+        VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
+        $migrationsDirList = is_array($this->options['migrationsDir']) ? $this->options['migrationsDir'] : [];
 
-    /**
-     * Indicates whether the script was a particular option.
-     *
-     * @param string $key
-     *
-     * @return bool
-     */
-    public function isReceivedOption($key): bool
-    {
-        return isset($this->options[$key]);
+        /**
+         * Elsewhere, use old-style incremental versioning.
+         * The version is specified.
+         */
+        if (isset($this->options['version'])) {
+            $versionItem = VersionCollection::createItem($this->options['version']);
+            // Check version if exists.
+            foreach ($migrationsDirList as $migrationsDir) {
+                $migrationsSubDirList = ModelMigration::scanForVersions($migrationsDir);
+
+                foreach ($migrationsSubDirList as $item) {
+                    if ($item->getVersion() != $versionItem->getVersion()) {
+                        continue;
+                    }
+
+                    if (!$this->options['force']) {
+                        throw new LogicException('Version ' . $item->getVersion() . ' already exists');
+                    } else {
+                        rmdir(rtrim($migrationsDir, '\\/') . DIRECTORY_SEPARATOR . $versionItem->getVersion());
+                    }
+                }
+            }
+
+            return $versionItem;
+        }
+
+        /**
+         * The version is guessed automatically
+         */
+        $versionItems = [];
+        foreach ($migrationsDirList as $migrationsDir) {
+            $versionItems = $versionItems + ModelMigration::scanForVersions($migrationsDir);
+        }
+
+        if (!isset($versionItems[0])) {
+            $versionItem = VersionCollection::createItem('1.0.0');
+        } else {
+            /** @var IncrementalVersion $versionItem */
+            $versionItem = VersionCollection::maximum($versionItems);
+            $versionItem = $versionItem->addMinor(1);
+        }
+
+        return $versionItem;
     }
 }

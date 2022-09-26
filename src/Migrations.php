@@ -111,42 +111,42 @@ class Migrations
     public static function generate(array $options)
     {
         $helper      = new Helper();
-        $optionStack = new OptionStack();
+        $optionStack = new OptionStack($options);
         $listTables  = new ListTablesDb();
-        $optionStack->setOptions($options);
-        $optionStack->setDefaultOption('version', null);
-        $optionStack->setDefaultOption('descr', null);
-        $optionStack->setDefaultOption('noAutoIncrement', null);
-        $optionStack->setDefaultOption('verbose', false);
-        $optionStack->setDefaultOption('skip-ref-schema', false);
+
+        $optionStack->offsetSetDefault('version');
+        $optionStack->offsetSetDefault('descr');
+        $optionStack->offsetSetDefault('noAutoIncrement');
+        $optionStack->offsetSetDefault('verbose', false);
+        $optionStack->offsetSetDefault('skip-ref-schema', false);
 
         // Migrations directory
-        $migrationsDirs = $optionStack->getOption('migrationsDir');
+        $migrationsDirs = $optionStack->offsetGet('migrationsDir');
         $migrationsDir  = $helper->getMigrationsDir($migrationsDirs);
 
         $versionItem = $optionStack->getVersionNameGeneratingMigration();
-        $verbose     = $optionStack->getOption('verbose');
-        $force       = $optionStack->getOption('force');
+        $verbose     = $optionStack->offsetGet('verbose');
+        $force       = $optionStack->offsetGet('force');
 
         // Path to migration dir
         $migrationPath = $helper->getMigrationsPath($versionItem, $migrationsDir, $verbose, $force);
 
         // Try to connect to the DB
-        if (!isset($optionStack->getOption('config')->database)) {
+        if (!isset($optionStack->offsetGet('config')->database)) {
             throw new RuntimeException('Cannot load database configuration');
         }
 
-        ModelMigration::setup($optionStack->getOption('config')->database, $verbose);
-        ModelMigration::setSkipAutoIncrement((bool) $optionStack->getOption('noAutoIncrement'));
+        ModelMigration::setup($optionStack->offsetGet('config')->database, $verbose);
+        ModelMigration::setSkipAutoIncrement((bool) $optionStack->offsetGet('noAutoIncrement'));
         ModelMigration::setMigrationPath($migrationsDir);
 
         $wasMigrated = false;
-        if ($optionStack->getOption('tableName') === '@') {
+        if ($optionStack->offsetGet('tableName') === '@') {
             $migrations = ModelMigration::generateAll(
                 $versionItem,
-                $optionStack->getOption('exportData'),
-                $optionStack->getOption('exportDataFromTables') ?: [],
-                $optionStack->getOption('skip-ref-schema')
+                $optionStack->offsetGet('exportData'),
+                $optionStack->offsetGet('exportDataFromTables') ?: [],
+                $optionStack->offsetGet('skip-ref-schema')
             );
 
             if (!$verbose) {
@@ -160,24 +160,24 @@ class Migrations
                 }
             }
         } else {
-            $prefix = $optionStack->getPrefixOption($optionStack->getOption('tableName'));
+            $prefix = $optionStack->getPrefixOption($optionStack->offsetGet('tableName'));
             if (!empty($prefix)) {
-                $optionStack->setOption('tableName', $listTables->listTablesForPrefix($prefix));
+                $optionStack->offsetSet('tableName', $listTables->listTablesForPrefix($prefix));
             }
 
-            if ($optionStack->getOption('tableName') === '') {
+            if ($optionStack->offsetGet('tableName') === '') {
                 print Color::info('No one table is created. You should create tables first.') . PHP_EOL;
                 return;
             }
 
-            $tables = explode(',', $optionStack->getOption('tableName'));
+            $tables = explode(',', $optionStack->offsetGet('tableName'));
             foreach ($tables as $table) {
                 $migration = ModelMigration::generate(
                     $versionItem,
                     $table,
-                    $optionStack->getOption('exportData'),
-                    $optionStack->getOption('exportDataFromTables') ?: [],
-                    $optionStack->getOption('skip-ref-schema')
+                    $optionStack->offsetGet('exportData'),
+                    $optionStack->offsetGet('exportDataFromTables') ?: [],
+                    $optionStack->offsetGet('skip-ref-schema')
                 );
                 if (!$verbose) {
                     $tableFile   = $migrationPath . DIRECTORY_SEPARATOR . $table . '.php';
@@ -208,25 +208,25 @@ class Migrations
      */
     public static function run(array $options)
     {
-        $optionStack = new OptionStack();
+        $optionStack = new OptionStack($options);
         $listTables  = new ListTablesIterator();
-        $optionStack->setOptions($options);
-        $optionStack->setDefaultOption('verbose', false);
-        $optionStack->setDefaultOption('skip-foreign-checks', false);
+
+        $optionStack->offsetSetDefault('verbose', false);
+        $optionStack->offsetSetDefault('skip-foreign-checks', false);
 
         // Define versioning type to be used
-        if (!empty($options['tsBased']) || $optionStack->getOption('tsBased')) {
+        if (!empty($options['tsBased']) || $optionStack->offsetGet('tsBased')) {
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
         } else {
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
         }
 
-        if (!$optionStack->getOption('config') instanceof Config) {
+        if (!$optionStack->offsetGet('config') instanceof Config) {
             throw new RuntimeException('Internal error. Config should be an instance of ' . Config::class);
         }
 
         // Init ModelMigration
-        if (!isset($optionStack->getOption('config')->database)) {
+        if (!isset($optionStack->offsetGet('config')->database)) {
             throw new RuntimeException('Cannot load database configuration');
         }
 
@@ -234,7 +234,7 @@ class Migrations
         $initialVersion    = self::getCurrentVersion($optionStack->getOptions());
         $completedVersions = self::getCompletedVersions($optionStack->getOptions());
         $versionItems      = [];
-        $migrationsDirList = $optionStack->getOption('migrationsDir');
+        $migrationsDirList = $optionStack->offsetGet('migrationsDir');
         if (is_array($migrationsDirList)) {
             foreach ($migrationsDirList as $migrationsDir) {
                 $migrationsDir = rtrim($migrationsDir, '\\/');
@@ -259,11 +259,11 @@ class Migrations
         }
 
         $finalVersion = null;
-        if (isset($options['version']) && $optionStack->getOption('version') !== null) {
+        if (isset($options['version']) && $optionStack->offsetGet('version') !== null) {
             $finalVersion = VersionCollection::createItem($options['version']);
         }
 
-        $optionStack->setOption('tableName', $options['tableName'] ?? null, '@');
+        $optionStack->offsetSetOrDefault('tableName', $options['tableName'] ?? null, '@');
 
         if (empty($versionItems)) {
             $migrationsPath = is_array($migrationsDirList) ?
@@ -283,7 +283,7 @@ class Migrations
             return;
         }
 
-        ModelMigration::setup($optionStack->getOption('config')->database, $optionStack->getOption('verbose'));
+        ModelMigration::setup($optionStack->offsetGet('config')->database, $optionStack->offsetGet('verbose'));
         self::connectionSetup($optionStack->getOptions());
 
         /**
@@ -320,7 +320,7 @@ class Migrations
 
         // Run migration
         $versionsBetween = VersionCollection::between($initialVersion, $finalVersion, $versionItems);
-        $prefix          = $optionStack->getPrefixOption($optionStack->getOption('tableName'));
+        $prefix          = $optionStack->getPrefixOption($optionStack->offsetGet('tableName'));
 
         /** @var IncrementalItem $versionItem */
         foreach ($versionsBetween as $versionItem) {
@@ -378,7 +378,7 @@ class Migrations
 
             $migrationStartTime = date('Y-m-d H:i:s');
 
-            if ($optionStack->getOption('tableName') === '@') {
+            if ($optionStack->offsetGet('tableName') === '@') {
                 /** @var SplFileInfo $fileInfo */
                 foreach ($iterator as $fileInfo) {
                     if (!$fileInfo->isFile() || 0 !== strcasecmp($fileInfo->getExtension(), 'php')) {
@@ -389,21 +389,21 @@ class Migrations
                         $fileInfo->getBasename('.php'),
                         $initialVersion,
                         $versionItem,
-                        $optionStack->getOption('skip-foreign-checks')
+                        $optionStack->offsetGet('skip-foreign-checks')
                     );
                 }
             } else {
                 if (!empty($prefix)) {
-                    $optionStack->setOption('tableName', $listTables->listTablesForPrefix($prefix, $iterator));
+                    $optionStack->offsetSet('tableName', $listTables->listTablesForPrefix($prefix, $iterator));
                 }
 
-                $tables = explode(',', $optionStack->getOption('tableName'));
+                $tables = explode(',', $optionStack->offsetGet('tableName'));
                 foreach ($tables as $tableName) {
                     ModelMigration::migrate(
                         $tableName,
                         $initialVersion,
                         $versionItem,
-                        $optionStack->getOption('skip-foreign-checks')
+                        $optionStack->offsetGet('skip-foreign-checks')
                     );
                 }
             }
@@ -604,8 +604,8 @@ class Migrations
             $query             = 'SELECT * FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC LIMIT 1';
             $lastGoodMigration = $connection->query($query);
 
-            if (0 == $lastGoodMigration->numRows()) {
-                return VersionCollection::createItem(null);
+            if (0 === $lastGoodMigration->numRows()) {
+                return VersionCollection::createItem();
             }
 
             $lastGoodMigration = $lastGoodMigration->fetchArray();

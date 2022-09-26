@@ -28,22 +28,22 @@ class TimestampedItem implements ItemInterface
     /**
      * @var string
      */
-    protected $version;
+    protected string $version;
 
     /**
-     * @var boolean
+     * @var bool
      */
-    protected $isFullVersion;
+    protected bool $isFullVersion;
 
     /**
      * @var array
      */
-    protected $parts = [];
+    protected array $parts = [];
 
     /**
      * @var string
      */
-    private $path;
+    private string $path = '';
 
     /**
      * @param string $version String representation of the version
