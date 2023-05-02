@@ -270,7 +270,8 @@ class Migrations
                 join(PHP_EOL, $migrationsDirList) :
                 $migrationsDirList;
 
-            throw new RuntimeException('Migrations were not found at:' . PHP_EOL . PHP_EOL . $migrationsPath);
+            echo Color::error('Migrations were not found at:' . $migrationsPath, 'Warning: ');
+            return;
         }
 
         // Set default final version
