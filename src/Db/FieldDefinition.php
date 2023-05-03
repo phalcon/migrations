@@ -132,7 +132,7 @@ class FieldDefinition
     public function isChangedData(FieldDefinition $comparingFieldDefinition): bool
     {
         $paramsToCheck = get_class_methods(ColumnInterface::class);
-        unset($paramsToCheck['getName']);
+        //unset($paramsToCheck['getName']); // TODO: Validate if this even needed.
 
         $comparingFieldColumn = $comparingFieldDefinition->getColumn();
         foreach ($paramsToCheck as $method) {
