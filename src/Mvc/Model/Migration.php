@@ -55,6 +55,7 @@ use function rtrim;
 use function sprintf;
 use function stripslashes;
 use function strtolower;
+use function time;
 
 use const DIRECTORY_SEPARATOR;
 
@@ -812,7 +813,9 @@ class Migration
                     if (null === $value || $value === 'NULL') {
                         return 'NULL';
                     }
-
+                    if ($value == 'time()') {
+                        return time();
+                    }
                     return self::$connection->escapeString(stripslashes($value));
                 },
                 $line
