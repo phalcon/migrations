@@ -136,11 +136,12 @@ class OptionStack implements ArrayAccess
         /**
          * Use timestamped version if description is provided.
          */
-        if (isset($this->options['descr'])) {
+        if (isset($this->options['descr']) || !empty($this->options['tsBased'] ?? false)) {
             $this->options['version'] = (string) (int) (microtime(true) * pow(10, 6));
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
 
-            return VersionCollection::createItem($this->options['version'] . '_' . $this->options['descr']);
+            $versionName = $this->options['version'] . ($this->options['descr'] ? '_' . $this->options['descr'] : '');
+            return VersionCollection::createItem($versionName);
         }
 
         VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
