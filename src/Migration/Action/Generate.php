@@ -75,6 +75,7 @@ class Generate
         Column::TYPE_DECIMAL   => 'TYPE_DECIMAL',
 
         Column::TYPE_BOOLEAN  => 'TYPE_BOOLEAN',
+        Column::TYPE_BIT      => 'TYPE_BIT',
         Column::TYPE_FLOAT    => 'TYPE_FLOAT',
         Column::TYPE_DOUBLE   => 'TYPE_DOUBLE',
         Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
