@@ -37,7 +37,7 @@ class IncrementalItem implements ItemInterface
     /**
      * @var string
      */
-    private string $path;
+    private string $path = '';
 
     /**
      * @var string
