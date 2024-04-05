@@ -1,6 +1,6 @@
 # Phalcon Migrations
 
-[![Discord](https://img.shields.io/discord/310910488152375297?label=Discord)](http://phalcon.link/discord)
+[![Discord](https://img.shields.io/discord/310910488152375297?label=Discord)](http://phalcon.io/discord)
 [![Packagist Version](https://img.shields.io/packagist/v/phalcon/migrations)](https://packagist.org/packages/phalcon/migrations)
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/phalcon/migrations)](https://packagist.org/packages/phalcon/migrations)
 [![codecov](https://codecov.io/gh/phalcon/migrations/branch/master/graph/badge.svg)](https://codecov.io/gh/phalcon/migrations)
