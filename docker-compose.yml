@@ -1,12 +1,10 @@
 # For local development only.
 
-version: '3'
-
 services:
   migrations-8.0:
     container_name: migrations-8.0
     hostname: migrations-80
-    build: docker/8.0
+    build: .docker/8.0
     working_dir: /srv
     volumes:
       - .:/srv
@@ -14,7 +12,7 @@ services:
   migrations-8.1:
     container_name: migrations-8.1
     hostname: migrations-81
-    build: docker/8.1
+    build: .docker/8.1
     working_dir: /srv
     volumes:
       - .:/srv
@@ -22,7 +20,7 @@ services:
   migrations-8.2:
     container_name: migrations-8.2
     hostname: migrations-82
-    build: docker/8.2
+    build: .docker/8.2
     working_dir: /srv
     volumes:
       - .:/srv
@@ -30,7 +28,7 @@ services:
   migrations-8.3:
     container_name: migrations-8.3
     hostname: migrations-83
-    build: docker/8.3
+    build: .docker/8.3
     working_dir: /srv
     volumes:
       - .:/srv
