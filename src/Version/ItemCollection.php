@@ -27,29 +27,20 @@ class ItemCollection
 {
     /**
      * Incremental version item
-     *
-     * @const int
      */
     public const TYPE_INCREMENTAL = 1;
 
     /**
      * Timestamp prefixed version item
-     *
-     * @const int
      */
     public const TYPE_TIMESTAMPED = 2;
 
-    /**
-     * @var int
-     */
     public static int $type = self::TYPE_INCREMENTAL;
 
     /**
      * Set collection type
-     *
-     * @param int $type
      */
-    public static function setType(int $type)
+    public static function setType(int $type): void
     {
         self::$type = $type;
     }
@@ -78,10 +69,6 @@ class ItemCollection
 
     /**
      * Check if provided version is correct
-     *
-     * @param string $version
-     *
-     * @return bool
      */
     public static function isCorrectVersion(string $version): bool
     {
@@ -96,10 +83,6 @@ class ItemCollection
 
     /**
      * Get the maximum value from the list of version items
-     *
-     * @param array $versions
-     *
-     * @return ItemInterface|null
      */
     public static function maximum(array $versions): ?ItemInterface
     {

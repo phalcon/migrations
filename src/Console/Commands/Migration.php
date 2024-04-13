@@ -273,20 +273,6 @@ class Migration implements CommandsInterface
             }
         }
 
-        /**
-         * TODO
-         * Re-think current approach
-         * as it scans whole project like that
-         * Which is unacceptable
-         */
-        /*$directory = new \RecursiveDirectoryIterator('.');
-        $iterator = new \RecursiveIteratorIterator($directory);
-        foreach ($iterator as $f) {
-            if (preg_match('/config\.(php|ini|json|yaml|yml)$/i', $f->getPathName())) {
-                return $this->loadConfig($f->getPathName());
-            }
-        }*/
-
         throw new CommandsException("Can't locate the configuration file.");
     }
 
@@ -335,8 +321,6 @@ class Migration implements CommandsInterface
 
     /**
      * Prints the available options in the script
-     *
-     * @param array $parameters
      */
     protected function printParameters(array $parameters): void
     {
@@ -365,10 +349,6 @@ class Migration implements CommandsInterface
 
     /**
      * Check if a path is absolute
-     *
-     * @param string $path Path to check
-     *
-     * @return bool
      */
     protected function isAbsolutePath(string $path): bool
     {

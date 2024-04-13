@@ -51,9 +51,6 @@ use function strtoupper;
  */
 class Generate
 {
-    /**
-     * @var array
-     */
     protected array $supportedColumnTypes = [
         Column::TYPE_BIGINTEGER    => 'TYPE_BIGINTEGER',
         Column::TYPE_INTEGER       => 'TYPE_INTEGER',
@@ -88,23 +85,14 @@ class Generate
         Column::TYPE_ENUM  => 'TYPE_ENUM',
     ];
 
-    /**
-     * @var array
-     */
     protected array $supportedColumnTypesPgsql = [
         Column::TYPE_DOUBLE => 'TYPE_FLOAT',
     ];
 
-    /**
-     * @var array
-     */
     protected array $supportedColumnTypesMysql = [
         Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
     ];
 
-    /**
-     * @var array
-     */
     protected array $numericColumnTypes = [
         Column::TYPE_INTEGER,
         Column::TYPE_MEDIUMINTEGER,
@@ -115,8 +103,6 @@ class Generate
 
     /**
      * Column types without size (MySQL / SQLite)
-     *
-     * @var array
      */
     protected array $noSizeColumnTypes = [
         Column::TYPE_DATE,
@@ -140,8 +126,6 @@ class Generate
 
     /**
      * Column types without size (PostgreSQL)
-     *
-     * @var array
      */
     protected array $noSizeColumnTypesPostgreSQL = [
         Column::TYPE_BOOLEAN,
@@ -151,71 +135,50 @@ class Generate
 
     /**
      * Migration file entity
-     *
-     * @var PhpFile
      */
-    private $file;
+    private ?PhpFile $file = null;
 
     /**
      * Migration class entity
-     *
-     * @var ClassType
      */
-    private $class;
+    private ?ClassType $class = null;
 
     /**
      * SQL Adapter Name
-     *
-     * @var string
      */
-    private $adapter;
+    private string $adapter;
 
     /**
      * Table columns
-     *
-     * @var array|ColumnInterface[]
      */
-    protected $columns;
+    protected array $columns;
 
     /**
      * Table indexes
-     *
-     * @var array|IndexInterface[]
      */
-    protected $indexes;
+    protected array $indexes;
 
     /**
      * Table foreign keys and another references
-     *
-     * @var ReferenceInterface[]
      */
     protected array $references;
 
     /**
      * Table options
-     *
-     * @var array
      */
     protected array $options;
 
-    /**
-     * @var string|null
-     */
     protected ?string $primaryColumnName = null;
 
     /**
      * Numeric columns
      *
      * Used during exporting of data from table
-     *
-     * @var array
      */
     protected array $numericColumns = [];
 
     /**
      * Table columns wrapped with "'" single quote symbol
-     *
-     * @var array
      */
     protected array $quoteWrappedColumns = [];
 
@@ -514,9 +477,6 @@ class Generate
         }
     }
 
-    /**
-     * @return Generator
-     */
     public function getIndexes(): Generator
     {
         foreach ($this->indexes as $name => $index) {
@@ -535,11 +495,6 @@ class Generate
         }
     }
 
-    /**
-     * @param bool $skipRefSchema
-     *
-     * @return Generator
-     */
     public function getReferences(bool $skipRefSchema = false): Generator
     {
         foreach ($this->references as $constraintName => $reference) {
@@ -572,11 +527,6 @@ class Generate
         }
     }
 
-    /**
-     * @param bool $skipAI Skip Auto Increment
-     *
-     * @return array
-     */
     public function getOptions(bool $skipAI): array
     {
         $options = [];
@@ -597,25 +547,17 @@ class Generate
 
     /**
      * Get Primary column name (if exists)
-     *
-     * @return string|null
      */
     public function getPrimaryColumnName(): ?string
     {
         return $this->primaryColumnName;
     }
 
-    /**
-     * @return array
-     */
     public function getNumericColumns(): array
     {
         return $this->numericColumns;
     }
 
-    /**
-     * @return string
-     */
     public function getAdapter(): string
     {
         return $this->adapter;
@@ -634,9 +576,6 @@ class Generate
         return $quote . $columnName . $quote;
     }
 
-    /**
-     * @return array
-     */
     public function getQuoteWrappedColumns(): array
     {
         return $this->quoteWrappedColumns;

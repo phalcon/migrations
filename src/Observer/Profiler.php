@@ -25,17 +25,11 @@ use const PHP_EOL;
  */
 class Profiler extends DbProfiler
 {
-    /**
-     * @param Item $profile
-     */
     public function beforeStartProfile(Item $profile): void
     {
         echo $profile->getInitialTime(), ': ', str_replace(["\n", "\t"], " ", $profile->getSqlStatement());
     }
 
-    /**
-     * @param Item $profile
-     */
     public function afterEndProfile(Item $profile): void
     {
         echo '  => ', $profile->getFinalTime(), ' (', ($profile->getTotalElapsedSeconds()), ')', PHP_EOL;

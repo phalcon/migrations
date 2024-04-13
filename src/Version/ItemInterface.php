@@ -20,36 +20,26 @@ interface ItemInterface
 {
     /**
      * Get integer payload of the version
-     *
-     * @return integer
      */
     public function getStamp(): int;
 
     /**
      * Get the string representation of the version
-     *
-     * @return string
      */
     public function getVersion(): string;
 
     /**
      * Get the string representation of the version
-     *
-     * @return string
      */
     public function __toString(): string;
 
     /**
      * Set migrations directory of incremental item
-     *
-     * @param string $path
      */
     public function setPath(string $path): void;
 
     /**
      * Get migrations directory of incremental item
-     *
-     * @return string
      */
     public function getPath(): string;
 }
