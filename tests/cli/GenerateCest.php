@@ -21,10 +21,8 @@ final class GenerateCest
 {
     /**
      * Path to migrations config
-     *
-     * @var string
      */
-    private $configPath = 'tests/_data/cli/migrations.php';
+    private string $configPath = 'tests/_data/cli/migrations.php';
 
     /**
      * @param CliTester $I
@@ -82,7 +80,7 @@ final class GenerateCest
     {
         $I->wantToTest('generate with --skip-ref-schema option');
 
-        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
 
         $this->createFKTables($I);
 
@@ -103,7 +101,7 @@ final class GenerateCest
     {
         $I->wantToTest('generate with referencedSchema');
 
-        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
 
         $this->createFKTables($I);
 
@@ -122,7 +120,7 @@ final class GenerateCest
      */
     protected function createFKTables(CliTester $I): void
     {
-        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $I->getPhalconDb()
           ->createTable('client', $schema, [
               'columns' => [
