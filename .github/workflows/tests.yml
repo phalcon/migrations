@@ -9,9 +9,10 @@ jobs:
     env:
       extensions: mbstring, intl, json, phalcon-${{ matrix.phalcon-versions }}, mysql, pgsql
       key: cache-v2.2~17.05.2020
+
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.0
         env:
           MYSQL_DATABASE: phalcon-migrations
           MYSQL_ROOT_PASSWORD: root
@@ -23,13 +24,15 @@ jobs:
         ports:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 2
+
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.4', '8.0', '8.1']
-        phalcon-versions: ['5.0.1', '5.0.2', '5.0.3', '5.0.4', '5.0.5']
+        php-versions: ['8.0', '8.1', '8.2', '8.3']
+        phalcon-versions: ['5.5.0', '5.6.0', '5.6.1', '5.6.2']
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
+
       - name: Setup cache environment
         id: cache-env
         uses: shivammathur/cache-extensions@v1
@@ -63,8 +66,7 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-suggest
+      - run: composer install --prefer-dist --no-suggest
 
       - name: Copy .env file
         run: cp tests/.env.example tests/.env

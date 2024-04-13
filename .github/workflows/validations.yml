@@ -5,10 +5,9 @@ jobs:
     name: PSR-12 Code style
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
 
-      - name: Validate composer.json and composer.lock
-        run: composer validate
+      - run: composer validate
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -38,9 +37,9 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['7.4', '8.0', '8.1']
+
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v4
 
       - name: Setup cache environment
         id: cache-env
