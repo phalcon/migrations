@@ -19,24 +19,12 @@ use function get_class_methods;
 
 class FieldDefinition
 {
-    /**
-     * @var string
-     */
     private string $name;
 
-    /**
-     * @var ColumnInterface
-     */
     private ColumnInterface $currentColumn;
 
-    /**
-     * @var FieldDefinition|null
-     */
     private ?FieldDefinition $previousField;
 
-    /**
-     * @var FieldDefinition|null
-     */
     private ?FieldDefinition $nextField;
 
     public function __construct(
@@ -124,16 +112,12 @@ class FieldDefinition
 
     public function isChangedName(FieldDefinition $comparingFieldDefinition): bool
     {
-        return $this->currentColumn->getName() !== $comparingFieldDefinition->getColumn()
-                                                                            ->getName()
-        ;
+        return $this->currentColumn->getName() !== $comparingFieldDefinition->getColumn()->getName();
     }
 
     public function isChangedData(FieldDefinition $comparingFieldDefinition): bool
     {
         $paramsToCheck = get_class_methods(ColumnInterface::class);
-        //unset($paramsToCheck['getName']); // TODO: Validate if this even needed.
-
         $comparingFieldColumn = $comparingFieldDefinition->getColumn();
         foreach ($paramsToCheck as $method) {
             if ($this->currentColumn->$method() !== $comparingFieldColumn->$method()) {
