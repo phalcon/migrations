@@ -3,14 +3,6 @@
 version: '3'
 
 services:
-  migrations-7.4:
-    container_name: migrations-7.4
-    hostname: migrations-74
-    build: docker/7.4
-    working_dir: /srv
-    volumes:
-      - .:/srv
-
   migrations-8.0:
     container_name: migrations-8.0
     hostname: migrations-80
@@ -27,9 +19,25 @@ services:
     volumes:
       - .:/srv
 
+  migrations-8.2:
+    container_name: migrations-8.2
+    hostname: migrations-82
+    build: docker/8.2
+    working_dir: /srv
+    volumes:
+      - .:/srv
+
+  migrations-8.3:
+    container_name: migrations-8.3
+    hostname: migrations-83
+    build: docker/8.3
+    working_dir: /srv
+    volumes:
+      - .:/srv
+
   mysql:
     container_name: migrations-mysql
-    image: mysql:5.7
+    image: mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=secret
       - MYSQL_USER=phalcon

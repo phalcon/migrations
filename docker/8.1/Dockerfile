@@ -5,7 +5,7 @@ LABEL vendor="Phalcon" \
       maintainer="Phalcon Team <team@phalcon.io>" \
       description="Phalcon Migrations working environment"
 
-ENV PHALCON_VERSION="5.0.1" \
+ENV PHALCON_VERSION="5.5.0" \
     PHP_VERSION="8.1"
 
 ADD ./extra.ini /usr/local/etc/php/conf.d/
