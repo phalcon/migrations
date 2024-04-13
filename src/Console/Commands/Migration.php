@@ -47,22 +47,10 @@ use const PHP_OS;
  */
 class Migration implements CommandsInterface
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
-
-    /**
-     * @param Parser $parser
-     */
-    final public function __construct(Parser $parser)
+    final public function __construct(protected Parser $parser)
     {
-        $this->parser = $parser;
     }
 
-    /**
-     * @return array
-     */
     public function getPossibleParams(): array
     {
         return [
@@ -208,8 +196,6 @@ class Migration implements CommandsInterface
 
     /**
      * Print Help information
-     *
-     * @return void
      */
     public function getHelp(): void
     {
@@ -232,12 +218,7 @@ class Migration implements CommandsInterface
         $this->printParameters($this->getPossibleParams());
     }
 
-    /**
-     * @param mixed $config
-     *
-     * @return array
-     */
-    protected function exportFromTables($config): array
+    protected function exportFromTables(Config $config): array
     {
         $tables      = [];
         $application = $config->get('application') ?? [];
@@ -261,6 +242,7 @@ class Migration implements CommandsInterface
      *
      * @return Config
      * @throws CommandsException
+     * @throws \Phalcon\Config\Exception
      */
     protected function getConfig(string $path): Config
     {
@@ -280,10 +262,8 @@ class Migration implements CommandsInterface
      * Determines correct adapter by file name
      * and load config
      *
-     * @param string $fileName Config file name
-     *
-     * @return Config
      * @throws CommandsException
+     * @throws \Phalcon\Config\Exception
      */
     protected function loadConfig(string $fileName): Config
     {

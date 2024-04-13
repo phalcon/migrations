@@ -25,17 +25,13 @@ use function codecept_data_dir;
 class Issue104Cest
 {
     /**
-     * @param PostgresqlTester $I
-     *
      * @throws Exception
      */
     public function normalRun(PostgresqlTester $I): void
     {
         $I->wantToTest('Issue #104 - Disable foreign keys');
 
-        $I->getPhalconDb()
-          ->execute("SET session_replication_role = 'replica';")
-        ;
+        $I->getPhalconDb()->execute("SET session_replication_role = 'replica';");
 
         ob_start();
         Migrations::run([
@@ -51,11 +47,8 @@ class Issue104Cest
 
         $schema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
 
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists('phalcon_migrations', $schema));
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists('foreign_keys_table1', $schema));
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists('foreign_keys_table2', $schema));
+        $I->assertTrue($I->getPhalconDb()->tableExists('phalcon_migrations', $schema));
+        $I->assertTrue($I->getPhalconDb()->tableExists('foreign_keys_table1', $schema));
+        $I->assertTrue($I->getPhalconDb()->tableExists('foreign_keys_table2', $schema));
     }
 }

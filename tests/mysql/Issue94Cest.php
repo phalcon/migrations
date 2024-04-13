@@ -26,15 +26,13 @@ final class Issue94Cest
 
         ob_start();
         Migrations::run([
-            'migrationsDir'  => codecept_data_dir('issues/94'),
-            'config'         => $I->getMigrationsConfig(),
+            'migrationsDir' => codecept_data_dir('issues/94'),
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $options = $I->getPhalconDb()
-                     ->tableOptions('memory_table')
-        ;
+        $options = $I->getPhalconDb()->tableOptions('memory_table');
 
         $I->assertSame('MEMORY', $options['engine']);
     }
@@ -48,30 +46,29 @@ final class Issue94Cest
     {
         $I->wantToTest('Issue #94 - Correct options generation case (uppercase)');
 
-        $engine        = 'MyISAM';
-        $tableName     = 'options_uppercase';
+        $engine = 'MyISAM';
+        $tableName = 'options_uppercase';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
         $I->getPhalconDb()
-          ->createTable($tableName, '', [
-              'columns' => [
-                  new Column('id', [
-                      'type'          => Column::TYPE_INTEGER,
-                      'size'          => 20,
-                      'notNull'       => true,
-                      'autoIncrement' => true,
-                  ]),
-              ],
-              'indexes' => [
-                  new Index('PRIMARY', ['id'], 'PRIMARY')
-              ],
-              'options' => [
-                  'TABLE_TYPE'      => 'BASE TABLE',
-                  'ENGINE'          => $engine,
-                  'TABLE_COLLATION' => 'utf8mb4_general_ci',
-              ],
-          ])
-        ;
+            ->createTable($tableName, '', [
+                'columns' => [
+                    new Column('id', [
+                        'type' => Column::TYPE_INTEGER,
+                        'size' => 20,
+                        'notNull' => true,
+                        'autoIncrement' => true,
+                    ]),
+                ],
+                'indexes' => [
+                    new Index('PRIMARY', ['id'], 'PRIMARY')
+                ],
+                'options' => [
+                    'TABLE_TYPE' => 'BASE TABLE',
+                    'ENGINE' => $engine,
+                    'TABLE_COLLATION' => 'utf8mb4_general_ci',
+                ],
+            ]);
 
         /**
          * Generate | Drop | Run
@@ -79,20 +76,17 @@ final class Issue94Cest
         ob_start();
         Migrations::generate([
             'migrationsDir' => $migrationsDir,
-            'config'        => $I->getMigrationsConfig(),
-            'tableName'     => $tableName,
+            'config' => $I->getMigrationsConfig(),
+            'tableName' => $tableName,
         ]);
-        $I->getPhalconDb()
-          ->dropTable($tableName)
-        ;
+        $I->getPhalconDb()->dropTable($tableName);
         Migrations::run([
-            'migrationsDir'  => $migrationsDir,
-            'config'         => $I->getMigrationsConfig(),
+            'migrationsDir' => $migrationsDir,
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $I->assertSame($engine, $I->getPhalconDb()
-                                  ->tableOptions($tableName)['engine']);
+        $I->assertSame($engine, $I->getPhalconDb()->tableOptions($tableName)['engine']);
     }
 }

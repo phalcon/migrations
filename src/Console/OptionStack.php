@@ -25,19 +25,8 @@ use Phalcon\Migrations\Version\ItemInterface;
  */
 class OptionStack implements ArrayAccess
 {
-    /**
-     * Parameters received by the script.
-     *
-     * @var array
-     */
-    protected array $options = [];
-
-    /**
-     * @param array $options
-     */
-    public function __construct(array $options = [])
+    public function __construct(protected array $options = [])
     {
-        $this->options = $options;
     }
 
     /**

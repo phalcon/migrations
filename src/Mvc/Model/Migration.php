@@ -146,12 +146,12 @@ class Migration
         self::$connection     = $connection;
         self::$databaseConfig = $database;
 
-        // Connection custom dialect Dialect/DialectMysql
+        // Connection custom Dialect/DialectMysql
         if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
             self::$connection->setDialect(new DialectMysql());
         }
 
-        // Connection custom dialect Dialect/DialectPostgresql
+        // Connection custom Dialect/DialectPostgresql
         if ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
             self::$connection->setDialect(new DialectPostgresql());
         }

@@ -39,9 +39,7 @@ class ListTablesDb implements ListTablesInterface
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
         }
 
-        $tablesList = (new ModelMigration())->getConnection()
-                                            ->listTables()
-        ;
+        $tablesList = (new ModelMigration())->getConnection()->listTables();
         if (empty($tablesList)) {
             return '';
         }

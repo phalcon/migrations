@@ -22,9 +22,7 @@ use Phalcon\Db\ColumnInterface;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Exception;
 use Phalcon\Db\Index;
-use Phalcon\Db\IndexInterface;
 use Phalcon\Db\Reference;
-use Phalcon\Db\ReferenceInterface;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
@@ -143,31 +141,6 @@ class Generate
      */
     private ?ClassType $class = null;
 
-    /**
-     * SQL Adapter Name
-     */
-    private string $adapter;
-
-    /**
-     * Table columns
-     */
-    protected array $columns;
-
-    /**
-     * Table indexes
-     */
-    protected array $indexes;
-
-    /**
-     * Table foreign keys and another references
-     */
-    protected array $references;
-
-    /**
-     * Table options
-     */
-    protected array $options;
-
     protected ?string $primaryColumnName = null;
 
     /**
@@ -182,27 +155,13 @@ class Generate
      */
     protected array $quoteWrappedColumns = [];
 
-    /**
-     * Generate constructor.
-     *
-     * @param string                     $adapter
-     * @param array|ColumnInterface[]    $columns
-     * @param array|IndexInterface[]     $indexes
-     * @param array|ReferenceInterface[] $references
-     * @param array                      $options
-     */
     public function __construct(
-        string $adapter,
-        array $columns = [],
-        array $indexes = [],
-        array $references = [],
-        array $options = []
+        private string $adapter,
+        protected array $columns = [],
+        protected array $indexes = [],
+        protected array $references = [],
+        protected array $options = []
     ) {
-        $this->adapter    = $adapter;
-        $this->columns    = $columns;
-        $this->indexes    = $indexes;
-        $this->references = $references;
-        $this->options    = $options;
     }
 
     public function getEntity(): PhpFile
@@ -565,11 +524,6 @@ class Generate
 
     /**
      * Just wrap string with single quotes
-     *
-     * @param string $columnName
-     * @param string $quote
-     *
-     * @return string
      */
     public function wrapWithQuotes(string $columnName, string $quote = "'"): string
     {

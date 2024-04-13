@@ -36,13 +36,11 @@ class IncrementalItem implements ItemInterface
 
     private string $path = '';
 
-    private string $version;
-
     private int $versionStamp = 0;
 
     private array $parts;
 
-    public function __construct(string $version, int $numberParts = 3)
+    public function __construct(private string $version, int $numberParts = 3)
     {
         $version     = trim($version);
         $this->parts = explode('.', $version);
