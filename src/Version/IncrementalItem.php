@@ -34,30 +34,14 @@ class IncrementalItem implements ItemInterface
 {
     use VersionAwareTrait;
 
-    /**
-     * @var string
-     */
     private string $path = '';
 
-    /**
-     * @var string
-     */
     private string $version;
 
-    /**
-     * @var int
-     */
     private int $versionStamp = 0;
 
-    /**
-     * @var array
-     */
     private array $parts;
 
-    /**
-     * @param string $version
-     * @param int    $numberParts
-     */
     public function __construct(string $version, int $numberParts = 3)
     {
         $version     = trim($version);
@@ -86,8 +70,6 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
-     *
-     * @return null|IncrementalItem
      */
     public static function maximum(array $versions): ?IncrementalItem
     {
@@ -102,8 +84,6 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
-     *
-     * @return array
      */
     public static function sortDesc(array $versions): array
     {
@@ -178,19 +158,11 @@ class IncrementalItem implements ItemInterface
         return array_values($sortData);
     }
 
-    /**
-     * @return int
-     */
     public function getStamp(): int
     {
         return $this->versionStamp;
     }
 
-    /**
-     * @param int $number
-     *
-     * @return IncrementalItem
-     */
     public function addMinor(int $number): IncrementalItem
     {
         $parts = array_reverse($this->parts);
@@ -213,9 +185,6 @@ class IncrementalItem implements ItemInterface
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return $this->version;
@@ -228,8 +197,6 @@ class IncrementalItem implements ItemInterface
 
     /**
      * Get migrations directory of incremental item
-     *
-     * @return string
      */
     public function getPath(): string
     {
@@ -238,8 +205,6 @@ class IncrementalItem implements ItemInterface
 
     /**
      * Set migrations directory of incremental item
-     *
-     * @param string $path
      */
     public function setPath(string $path): void
     {
