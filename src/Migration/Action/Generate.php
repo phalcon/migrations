@@ -50,37 +50,37 @@ use function strtoupper;
 class Generate
 {
     protected array $supportedColumnTypes = [
-        Column::TYPE_BIGINTEGER    => 'TYPE_BIGINTEGER',
-        Column::TYPE_INTEGER       => 'TYPE_INTEGER',
+        Column::TYPE_BIGINTEGER => 'TYPE_BIGINTEGER',
+        Column::TYPE_INTEGER => 'TYPE_INTEGER',
         Column::TYPE_MEDIUMINTEGER => 'TYPE_MEDIUMINTEGER',
-        Column::TYPE_SMALLINTEGER  => 'TYPE_SMALLINTEGER',
-        Column::TYPE_TINYINTEGER   => 'TYPE_TINYINTEGER',
+        Column::TYPE_SMALLINTEGER => 'TYPE_SMALLINTEGER',
+        Column::TYPE_TINYINTEGER => 'TYPE_TINYINTEGER',
 
-        Column::TYPE_VARCHAR    => 'TYPE_VARCHAR',
-        Column::TYPE_CHAR       => 'TYPE_CHAR',
-        Column::TYPE_TEXT       => 'TYPE_TEXT',
+        Column::TYPE_VARCHAR => 'TYPE_VARCHAR',
+        Column::TYPE_CHAR => 'TYPE_CHAR',
+        Column::TYPE_TEXT => 'TYPE_TEXT',
         Column::TYPE_MEDIUMTEXT => 'TYPE_MEDIUMTEXT',
-        Column::TYPE_LONGTEXT   => 'TYPE_LONGTEXT',
-        Column::TYPE_TINYTEXT   => 'TYPE_TINYTEXT',
+        Column::TYPE_LONGTEXT => 'TYPE_LONGTEXT',
+        Column::TYPE_TINYTEXT => 'TYPE_TINYTEXT',
 
-        Column::TYPE_TIME      => 'TYPE_TIME',
-        Column::TYPE_DATE      => 'TYPE_DATE',
-        Column::TYPE_DATETIME  => 'TYPE_DATETIME',
+        Column::TYPE_TIME => 'TYPE_TIME',
+        Column::TYPE_DATE => 'TYPE_DATE',
+        Column::TYPE_DATETIME => 'TYPE_DATETIME',
         Column::TYPE_TIMESTAMP => 'TYPE_TIMESTAMP',
-        Column::TYPE_DECIMAL   => 'TYPE_DECIMAL',
+        Column::TYPE_DECIMAL => 'TYPE_DECIMAL',
 
-        Column::TYPE_BOOLEAN  => 'TYPE_BOOLEAN',
-        Column::TYPE_FLOAT    => 'TYPE_FLOAT',
-        Column::TYPE_DOUBLE   => 'TYPE_DOUBLE',
+        Column::TYPE_BOOLEAN => 'TYPE_BOOLEAN',
+        Column::TYPE_FLOAT => 'TYPE_FLOAT',
+        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
         Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
 
-        Column::TYPE_BLOB       => 'TYPE_BLOB',
+        Column::TYPE_BLOB => 'TYPE_BLOB',
         Column::TYPE_MEDIUMBLOB => 'TYPE_MEDIUMBLOB',
-        Column::TYPE_LONGBLOB   => 'TYPE_LONGBLOB',
+        Column::TYPE_LONGBLOB => 'TYPE_LONGBLOB',
 
-        Column::TYPE_JSON  => 'TYPE_JSON',
+        Column::TYPE_JSON => 'TYPE_JSON',
         Column::TYPE_JSONB => 'TYPE_JSONB',
-        Column::TYPE_ENUM  => 'TYPE_ENUM',
+        Column::TYPE_ENUM => 'TYPE_ENUM',
     ];
 
     protected array $supportedColumnTypesPgsql = [
@@ -156,7 +156,7 @@ class Generate
     protected array $quoteWrappedColumns = [];
 
     public function __construct(
-        private string $adapter,
+        private string  $adapter,
         protected array $columns = [],
         protected array $indexes = [],
         protected array $references = [],
@@ -176,17 +176,15 @@ class Generate
         if (null === $this->class || $recreate) {
             $this->file = new PhpFile();
             $this->file->addUse(Column::class)
-                       ->addUse(Exception::class)
-                       ->addUse(Index::class)
-                       ->addUse(Reference::class)
-                       ->addUse(Migration::class)
-            ;
+                ->addUse(Exception::class)
+                ->addUse(Index::class)
+                ->addUse(Reference::class)
+                ->addUse(Migration::class);
 
             $this->class = $this->file->addClass($className);
             $this->class
                 ->setExtends(Migration::class)
-                ->addComment("Class {$className}")
-            ;
+                ->addComment("Class {$className}");
         }
 
         return $this;
@@ -202,20 +200,20 @@ class Generate
         $columns = [];
         foreach ($this->getColumns() as $columnName => $columnDefinition) {
             $definitions = implode(",\n                ", $columnDefinition);
-            $columns[]   = sprintf($snippet->getColumnTemplate(), $columnName, $definitions);
+            $columns[] = sprintf($snippet->getColumnTemplate(), $columnName, $definitions);
         }
 
         $indexes = [];
         foreach ($this->getIndexes() as $indexName => $indexDefinition) {
             [$fields, $indexType] = $indexDefinition;
             $definitions = implode(", ", $fields);
-            $type        = $indexType ? "'$indexType'" : "''";
-            $indexes[]   = sprintf($snippet->getIndexTemplate(), $indexName, $definitions, $type);
+            $type = $indexType ? "'$indexType'" : "''";
+            $indexes[] = sprintf($snippet->getIndexTemplate(), $indexName, $definitions, $type);
         }
 
         $references = [];
         foreach ($this->getReferences($skipRefSchema) as $constraintName => $referenceDefinition) {
-            $definitions  = implode(",\n                ", $referenceDefinition);
+            $definitions = implode(",\n                ", $referenceDefinition);
             $references[] = sprintf($snippet->getReferenceTemplate(), $constraintName, $definitions);
         }
 
@@ -234,12 +232,11 @@ class Generate
         );
 
         $this->class->addMethod('morph')
-                    ->addComment("Define the table structure\n")
-                    ->addComment('@return void')
-                    ->addComment('@throws Exception')
-                    ->setReturnType('void')
-                    ->setBody($body)
-        ;
+            ->addComment("Define the table structure\n")
+            ->addComment('@return void')
+            ->addComment('@throws Exception')
+            ->setReturnType('void')
+            ->setBody($body);
 
         return $this;
     }
@@ -258,11 +255,10 @@ class Generate
         }
 
         $this->class->addMethod('up')
-                    ->addComment("Run the migrations\n")
-                    ->addComment('@return void')
-                    ->setReturnType('void')
-                    ->setBody($body)
-        ;
+            ->addComment("Run the migrations\n")
+            ->addComment('@return void')
+            ->setReturnType('void')
+            ->setBody($body);
 
         return $this;
     }
@@ -277,11 +273,10 @@ class Generate
         }
 
         $this->class->addMethod('down')
-                    ->addComment("Reverse the migrations\n")
-                    ->addComment('@return void')
-                    ->setReturnType('void')
-                    ->setBody($body)
-        ;
+            ->addComment("Reverse the migrations\n")
+            ->addComment('@return void')
+            ->setReturnType('void')
+            ->setBody($body);
 
         return $this;
     }
@@ -298,28 +293,28 @@ class Generate
             $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
 
             $this->class->addMethod('afterCreateTable')
-                        ->addComment("This method is called after the table was created\n")
-                        ->addComment('@return void')
-                        ->setReturnType('void')
-                        ->setBody($body)
-            ;
+                ->addComment("This method is called after the table was created\n")
+                ->addComment('@return void')
+                ->setReturnType('void')
+                ->setBody($body);
         }
 
         return $this;
     }
 
     public function createDumpFiles(
-        string $table,
-        string $migrationPath,
+        string          $table,
+        string          $migrationPath,
         AbstractAdapter $connection,
-        ItemInterface $version,
-        $exportData = null,
-        bool $shouldExportDataFromTable = false
-    ): self {
+        ItemInterface   $version,
+                        $exportData = null,
+        bool            $shouldExportDataFromTable = false
+    ): self
+    {
         $numericColumns = $this->getNumericColumns();
         if ($exportData === 'always' || $exportData === 'oncreate' || $shouldExportDataFromTable) {
             $fileHandler = fopen($migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
-            $cursor      = $connection->query('SELECT * FROM ' . $connection->escapeIdentifier($table));
+            $cursor = $connection->query('SELECT * FROM ' . $connection->escapeIdentifier($table));
             $cursor->setFetchMode(Enum::FETCH_ASSOC);
             while ($row = $cursor->fetchArray()) {
                 $data = [];
@@ -387,7 +382,7 @@ class Generate
             }
 
             if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && $column->isPrimary()) {
-                $definition[]            = "'primary' => true";
+                $definition[] = "'primary' => true";
                 $this->primaryColumnName = $column->getName();
             }
 
@@ -427,7 +422,7 @@ class Generate
             /**
              * Aggregate column definition
              */
-            $definition[]      = $currentColumnName === null ?
+            $definition[] = $currentColumnName === null ?
                 "'first' => true" :
                 "'after' => '" . $currentColumnName . "'";
             $currentColumnName = $column->getName();
@@ -468,7 +463,7 @@ class Generate
             }
 
             $referencesOptions = [];
-            $referencedSchema  = $reference->getReferencedSchema();
+            $referencedSchema = $reference->getReferencedSchema();
             if ($skipRefSchema === false && $referencedSchema !== null) {
                 $referencesOptions[] = sprintf(
                     "'referencedSchema' => %s",
@@ -498,7 +493,7 @@ class Generate
                 $value = '';
             }
 
-            $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string) $value));
+            $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
         }
 
         return $options;
@@ -544,7 +539,7 @@ class Generate
      */
     protected function getColumnSize(ColumnInterface $column)
     {
-        $columnType  = $column->getType();
+        $columnType = $column->getType();
         $columnsSize = $column->getSize();
 
         /**
@@ -563,7 +558,7 @@ class Generate
         }
 
         if ($columnType === Column::TYPE_ENUM) {
-            $size = $this->wrapWithQuotes((string) $columnsSize, '"');
+            $size = $this->wrapWithQuotes((string)$columnsSize, '"');
         } else {
             $size = $columnsSize ?: 1;
         }
