@@ -93,22 +93,16 @@ class Migration
 
     /**
      * Path where to save the migration
-     *
-     * @var string
      */
     private static string $migrationPath = '';
 
     /**
      * Skip auto increment
-     *
-     * @var bool
      */
     private static bool $skipAI = true;
 
     /**
      * Version of the migration file
-     *
-     * @var string|null
      */
     protected ?string $version = null;
 
@@ -174,8 +168,6 @@ class Migration
 
     /**
      * Set the skip auto increment value
-     *
-     * @param bool $skip
      */
     public static function setSkipAutoIncrement(bool $skip): void
     {
@@ -184,8 +176,6 @@ class Migration
 
     /**
      * Set the migration directory path
-     *
-     * @param string $path
      */
     public static function setMigrationPath(string $path): void
     {
@@ -250,7 +240,7 @@ class Migration
 
         $classVersion              = preg_replace('/[^0-9A-Za-z]/', '', (string) $version->getStamp());
         $className                 = $camelize->__invoke($table) . 'Migration_' . $classVersion;
-        $shouldExportDataFromTable = self::shouldExportDataFromTable($table, $exportTables);
+        $shouldExportDataFromTable = in_array($table, $exportTables);
 
         $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
         $generateAction->createEntity($className)
@@ -270,11 +260,6 @@ class Migration
 
 
         return $printer->printFile($generateAction->getEntity());
-    }
-
-    public static function shouldExportDataFromTable(string $table, array $exportTables): bool
-    {
-        return in_array($table, $exportTables);
     }
 
     /**
@@ -843,8 +828,6 @@ class Migration
 
     /**
      * Delete the migration datasets from the table
-     *
-     * @param string $tableName
      */
     public function batchDelete(string $tableName): void
     {
@@ -875,8 +858,6 @@ class Migration
 
     /**
      * Get db connection
-     *
-     * @return AbstractAdapter
      */
     public function getConnection(): AbstractAdapter
     {
@@ -885,10 +866,6 @@ class Migration
 
     /**
      * Execute Multi Insert
-     *
-     * @param string $table
-     * @param array  $columns
-     * @param string $values
      */
     protected function executeMultiInsert(string $table, array $columns, string $values): void
     {
@@ -935,10 +912,6 @@ class Migration
     }
 
     /**
-     * @param string         $tableName
-     * @param string         $schemaName
-     * @param IndexInterface $index
-     *
      * @throw RuntimeException
      */
     private function addPrimaryKey(string $tableName, string $schemaName, IndexInterface $index): void
@@ -959,9 +932,6 @@ class Migration
     }
 
     /**
-     * @param string $tableName
-     * @param string $schemaName
-     *
      * @throw RuntimeException
      */
     private function dropPrimaryKey(string $tableName, string $schemaName): void
@@ -981,10 +951,6 @@ class Migration
     }
 
     /**
-     * @param string         $tableName
-     * @param string         $schemaName
-     * @param IndexInterface $indexName
-     *
      * @throw RuntimeException
      */
     private function addIndex(string $tableName, string $schemaName, IndexInterface $indexName): void
@@ -1005,10 +971,6 @@ class Migration
     }
 
     /**
-     * @param string $tableName
-     * @param string $schemaName
-     * @param string $indexName
-     *
      * @throw RuntimeException
      */
     private function dropIndex(string $tableName, string $schemaName, string $indexName): void
