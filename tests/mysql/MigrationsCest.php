@@ -175,7 +175,7 @@ final class MigrationsCest
         for ($id = 1; $id <= 10000; $id++) {
             $data[] = [
                 'id'          => $id,
-                'name'        => $faker->name,
+                'name'        => $faker->name(),
                 'create_date' => $faker->date(),
             ];
         }
