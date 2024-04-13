@@ -23,11 +23,11 @@ Dotenv::createImmutable(realpath('tests'))->load();
 return new Config([
     'database' => [
         'adapter' => 'mysql',
-        'host' => getenv('MYSQL_TEST_DB_HOST'),
-        'port' => getenv('MYSQL_TEST_DB_PORT'),
-        'username' => getenv('MYSQL_TEST_DB_USER'),
-        'password' => getenv('MYSQL_TEST_DB_PASSWORD'),
-        'dbname' => getenv('MYSQL_TEST_DB_DATABASE'),
+        'host' => $_ENV['MYSQL_TEST_DB_HOST'],
+        'port' => $_ENV['MYSQL_TEST_DB_PORT'],
+        'username' => $_ENV['MYSQL_TEST_DB_USER'],
+        'password' => $_ENV['MYSQL_TEST_DB_PASSWORD'],
+        'dbname' => $_ENV['MYSQL_TEST_DB_DATABASE'],
     ],
     'application' => [
         'logInDb' => true,

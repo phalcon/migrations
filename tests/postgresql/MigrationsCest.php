@@ -78,7 +78,7 @@ final class MigrationsCest
      */
     public function generateWithExportOnCreate(PostgresqlTester $I): void
     {
-        $dbName        = getenv('POSTGRES_TEST_DB_SCHEMA');
+        $dbName        = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
         $tableName     = 'on_create';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
