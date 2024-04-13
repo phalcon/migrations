@@ -122,7 +122,7 @@ final class ColumnTypesCest
         $migrationsDir = codecept_output_dir('tests/var/output/' . __FUNCTION__);
 
         $I->getPhalconDb()
-          ->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+          ->createTable($tableName, $_ENV['MYSQL_TEST_DB_DATABASE'], [
               'columns' => [
                   new Column($columnName, $definition),
               ],

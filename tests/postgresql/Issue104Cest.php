@@ -49,7 +49,7 @@ class Issue104Cest
           ->execute("SET session_replication_role = 'origin';")
         ;
 
-        $schema = getenv('POSTGRES_TEST_DB_SCHEMA');
+        $schema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
 
         $I->assertTrue($I->getPhalconDb()
                          ->tableExists('phalcon_migrations', $schema));

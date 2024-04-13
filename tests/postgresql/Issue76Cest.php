@@ -41,7 +41,7 @@ class Issue76Cest
         ]);
         ob_clean();
 
-        $schema = getenv('POSTGRES_TEST_DB_SCHEMA');
+        $schema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
         $query1 = "SELECT COUNT(*) cnt FROM $schema.user_details WHERE user_id = 62 AND last_name IS NULL";
 
         $I->assertTrue($I->getPhalconDb()
