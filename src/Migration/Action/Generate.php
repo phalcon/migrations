@@ -164,7 +164,7 @@ class Generate
     ) {
     }
 
-    public function getEntity(): PhpFile
+    public function getEntity(): ?PhpFile
     {
         $this->checkEntityExists();
 
@@ -231,7 +231,7 @@ class Generate
             . $snippet->definitionToString('options', $options)
         );
 
-        $this->class->addMethod('morph')
+        $this->class?->addMethod('morph')
             ->addComment("Define the table structure\n")
             ->addComment('@return void')
             ->addComment('@throws Exception')
@@ -254,7 +254,7 @@ class Generate
             $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
         }
 
-        $this->class->addMethod('up')
+        $this->class?->addMethod('up')
             ->addComment("Run the migrations\n")
             ->addComment('@return void')
             ->setReturnType('void')
@@ -272,7 +272,7 @@ class Generate
             $body = "\$this->batchDelete('$table');";
         }
 
-        $this->class->addMethod('down')
+        $this->class?->addMethod('down')
             ->addComment("Reverse the migrations\n")
             ->addComment('@return void')
             ->setReturnType('void')
@@ -292,7 +292,7 @@ class Generate
             }
             $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
 
-            $this->class->addMethod('afterCreateTable')
+            $this->class?->addMethod('afterCreateTable')
                 ->addComment("This method is called after the table was created\n")
                 ->addComment('@return void')
                 ->setReturnType('void')
