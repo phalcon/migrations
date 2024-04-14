@@ -156,7 +156,7 @@ class Generate
     protected array $quoteWrappedColumns = [];
 
     public function __construct(
-        private string  $adapter,
+        private string $adapter,
         protected array $columns = [],
         protected array $indexes = [],
         protected array $references = [],
@@ -303,14 +303,13 @@ class Generate
     }
 
     public function createDumpFiles(
-        string          $table,
-        string          $migrationPath,
+        string $table,
+        string $migrationPath,
         AbstractAdapter $connection,
-        ItemInterface   $version,
-                        $exportData = null,
-        bool            $shouldExportDataFromTable = false
-    ): self
-    {
+        ItemInterface $version,
+        $exportData = null,
+        bool $shouldExportDataFromTable = false
+    ): self {
         $numericColumns = $this->getNumericColumns();
         if ($exportData === 'always' || $exportData === 'oncreate' || $shouldExportDataFromTable) {
             $fileHandler = fopen($migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
