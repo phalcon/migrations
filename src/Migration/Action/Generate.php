@@ -532,12 +532,8 @@ class Generate
 
     /**
      * Get column size basing on its type
-     *
-     * @param ColumnInterface $column
-     *
-     * @return int|string|null
      */
-    protected function getColumnSize(ColumnInterface $column)
+    protected function getColumnSize(ColumnInterface $column): null|int|string
     {
         $columnType = $column->getType();
         $columnsSize = $column->getSize();
@@ -545,8 +541,10 @@ class Generate
         /**
          * Check Postgres
          */
-        $noSizePostgres = $this->noSizeColumnTypesPostgreSQL;
-        if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && in_array($columnType, $noSizePostgres)) {
+        if (
+            $this->adapter === Migration::DB_ADAPTER_POSTGRESQL &&
+            in_array($columnType, $this->noSizeColumnTypesPostgreSQL)
+        ) {
             return null;
         }
 
