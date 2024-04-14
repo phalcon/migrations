@@ -173,11 +173,7 @@ class IncrementalItem implements ItemInterface
         }
 
         $parts = array_reverse($parts);
-
-        $this->setParts($parts)
-             ->regenerateVersionStamp()
-        ;
-
+        $this->setParts($parts)->regenerateVersionStamp();
         $this->version = join('.', $parts);
 
         return $this;

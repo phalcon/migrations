@@ -347,7 +347,6 @@ class Generate
     /**
      * Prepare table columns
      *
-     * @return Generator
      * @throws UnknownColumnTypeException
      */
     public function getColumns(): Generator

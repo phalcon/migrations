@@ -16,9 +16,7 @@ namespace Phalcon\Migrations\Db\Adapter\Pdo;
 use Phalcon\Db\Adapter\Pdo\Postgresql;
 use Phalcon\Db\Enum;
 use Phalcon\Db\Index;
-use Phalcon\Db\IndexInterface;
 use Phalcon\Db\Reference;
-use Phalcon\Db\ReferenceInterface;
 
 class PdoPostgresql extends Postgresql
 {
@@ -27,18 +25,12 @@ class PdoPostgresql extends Postgresql
 
     /**
      * Lists table references
-     *
-     * @param string      $table
-     * @param string|null $schema
-     *
-     * @return ReferenceInterface[]
      */
     public function describeReferences(string $table, string $schema = null): array
     {
         $references = [];
 
-        $rows = $this->fetchAll($this->getDialect()
-                                     ->describeReferences($table, $schema), Enum::FETCH_NUM);
+        $rows = $this->fetchAll($this->getDialect()->describeReferences($table, $schema), Enum::FETCH_NUM);
         foreach ($rows as $reference) {
             $constraintName = $reference[2];
             if (!isset($references[$constraintName])) {
@@ -85,12 +77,6 @@ class PdoPostgresql extends Postgresql
         return $referenceObjects;
     }
 
-    /**
-     * @param string      $table
-     * @param string|null $schema
-     *
-     * @return IndexInterface[]
-     */
     public function describeIndexes(string $table, string $schema = null): array
     {
         $indexes      = [];
@@ -121,7 +107,7 @@ class PdoPostgresql extends Postgresql
             $indexObjects[$name] = new Index(
                 $name,
                 $index['columns'],
-                $index['type']
+                $index['type'],
             );
         }
 
