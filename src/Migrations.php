@@ -102,13 +102,10 @@ class Migrations
     /**
      * Generate migrations
      *
-     * @param array $options
-     *
-     * @return bool|void
      * @throws Exception
      * @throws RuntimeException
      */
-    public static function generate(array $options)
+    public static function generate(array $options): void
     {
         $helper      = new Helper();
         $optionStack = new OptionStack($options);
@@ -193,20 +190,16 @@ class Migrations
                 print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
             }
         }
-
-        return true;
     }
 
     /**
      * Run migrations
      *
-     * @param array $options
-     *
      * @throws DbException
      * @throws RuntimeException
      * @throws Exception
      */
-    public static function run(array $options)
+    public static function run(array $options): void
     {
         $optionStack = new OptionStack($options);
         $listTables  = new ListTablesIterator();
@@ -424,8 +417,6 @@ class Migrations
     /**
      * List migrations along with statuses
      *
-     * @param array $options
-     *
      * @throws Exception
      * @throws RuntimeException
      */
@@ -504,8 +495,6 @@ class Migrations
     /**
      * Initialize migrations log storage
      *
-     * @param array $options Applications options
-     *
      * @throws RuntimeException
      */
     private static function connectionSetup(array $options): void
@@ -514,7 +503,7 @@ class Migrations
             return;
         }
 
-        if (isset($options['migrationsInDb']) && (bool) $options['migrationsInDb']) {
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var Config $database */
             $database = $options['config']['database'];
 
@@ -591,15 +580,13 @@ class Migrations
     /**
      * Get latest completed migration version
      *
-     * @param array $options Applications options
-     *
      * @return IncrementalItem|TimestampedItem
      */
     public static function getCurrentVersion(array $options)
     {
         self::connectionSetup($options);
 
-        if (isset($options['migrationsInDb']) && (bool) $options['migrationsInDb']) {
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var AdapterInterface $connection */
             $connection        = self::$storage;
             $query             = 'SELECT * FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC LIMIT 1';
@@ -638,13 +625,10 @@ class Migrations
     {
         self::connectionSetup($options);
 
-        if ($startTime === null) {
-            $startTime = date('Y-m-d H:i:s');
-        }
-
+        $startTime = $startTime === null ? date('Y-m-d H:i:s') : $startTime;
         $endTime = date('Y-m-d H:i:s');
 
-        if (isset($options['migrationsInDb']) && (bool) $options['migrationsInDb']) {
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var AdapterInterface $connection */
             $connection = self::$storage;
             $connection->insert(
@@ -671,7 +655,7 @@ class Migrations
     {
         self::connectionSetup($options);
 
-        if (isset($options['migrationsInDb']) && (bool) $options['migrationsInDb']) {
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var AdapterInterface $connection */
             $connection = self::$storage;
             $connection->execute('DELETE FROM ' . self::MIGRATION_LOG_TABLE . ' WHERE version=\'' . $version . '\'');
@@ -686,16 +670,12 @@ class Migrations
 
     /**
      * Scan $storage for all completed versions
-     *
-     * @param array $options Applications options
-     *
-     * @return array
      */
     public static function getCompletedVersions(array $options): array
     {
         self::connectionSetup($options);
 
-        if (isset($options['migrationsInDb']) && (bool) $options['migrationsInDb']) {
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var AdapterInterface $connection */
             $connection        = self::$storage;
             $query             = 'SELECT version FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC';

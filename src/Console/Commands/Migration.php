@@ -47,22 +47,10 @@ use const PHP_OS;
  */
 class Migration implements CommandsInterface
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
-
-    /**
-     * @param Parser $parser
-     */
-    final public function __construct(Parser $parser)
+    final public function __construct(protected Parser $parser)
     {
-        $this->parser = $parser;
     }
 
-    /**
-     * @return array
-     */
     public function getPossibleParams(): array
     {
         return [
@@ -208,8 +196,6 @@ class Migration implements CommandsInterface
 
     /**
      * Print Help information
-     *
-     * @return void
      */
     public function getHelp(): void
     {
@@ -232,12 +218,7 @@ class Migration implements CommandsInterface
         $this->printParameters($this->getPossibleParams());
     }
 
-    /**
-     * @param mixed $config
-     *
-     * @return array
-     */
-    protected function exportFromTables($config): array
+    protected function exportFromTables(Config $config): array
     {
         $tables      = [];
         $application = $config->get('application') ?? [];
@@ -261,6 +242,7 @@ class Migration implements CommandsInterface
      *
      * @return Config
      * @throws CommandsException
+     * @throws \Phalcon\Config\Exception
      */
     protected function getConfig(string $path): Config
     {
@@ -273,20 +255,6 @@ class Migration implements CommandsInterface
             }
         }
 
-        /**
-         * TODO
-         * Re-think current approach
-         * as it scans whole project like that
-         * Which is unacceptable
-         */
-        /*$directory = new \RecursiveDirectoryIterator('.');
-        $iterator = new \RecursiveIteratorIterator($directory);
-        foreach ($iterator as $f) {
-            if (preg_match('/config\.(php|ini|json|yaml|yml)$/i', $f->getPathName())) {
-                return $this->loadConfig($f->getPathName());
-            }
-        }*/
-
         throw new CommandsException("Can't locate the configuration file.");
     }
 
@@ -294,10 +262,8 @@ class Migration implements CommandsInterface
      * Determines correct adapter by file name
      * and load config
      *
-     * @param string $fileName Config file name
-     *
-     * @return Config
      * @throws CommandsException
+     * @throws \Phalcon\Config\Exception
      */
     protected function loadConfig(string $fileName): Config
     {
@@ -335,8 +301,6 @@ class Migration implements CommandsInterface
 
     /**
      * Prints the available options in the script
-     *
-     * @param array $parameters
      */
     protected function printParameters(array $parameters): void
     {
@@ -365,10 +329,6 @@ class Migration implements CommandsInterface
 
     /**
      * Check if a path is absolute
-     *
-     * @param string $path Path to check
-     *
-     * @return bool
      */
     protected function isAbsolutePath(string $path): bool
     {

@@ -82,7 +82,7 @@ class Migration
      *
      * @var AbstractAdapter
      */
-    protected static $connection;
+    protected static AbstractAdapter $connection;
 
     /**
      * Database configuration
@@ -146,12 +146,12 @@ class Migration
         self::$connection     = $connection;
         self::$databaseConfig = $database;
 
-        // Connection custom dialect Dialect/DialectMysql
+        // Connection custom Dialect/DialectMysql
         if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
             self::$connection->setDialect(new DialectMysql());
         }
 
-        // Connection custom dialect Dialect/DialectPostgresql
+        // Connection custom Dialect/DialectPostgresql
         if ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
             self::$connection->setDialect(new DialectPostgresql());
         }
@@ -343,10 +343,6 @@ class Migration
     /**
      * Create migration object for specified version
      *
-     * @param ItemInterface $version
-     * @param string        $tableName
-     *
-     * @return null|Migration
      * @throws Exception
      */
     private static function createClass(ItemInterface $version, string $tableName): ?Migration
@@ -374,12 +370,7 @@ class Migration
     /**
      * Find the last morph function in the previous migration files
      *
-     * @param ItemInterface $toVersion
-     * @param string        $tableName
-     *
-     * @return null|Migration
      * @throws Exception
-     * @internal param ItemInterface $version
      */
     private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, string $tableName): ?Migration
     {
@@ -404,10 +395,6 @@ class Migration
 
     /**
      * Scan for all versions
-     *
-     * @param string $dir Directory to scan
-     *
-     * @return ItemInterface[]
      */
     public static function scanForVersions(string $dir): array
     {
@@ -427,11 +414,6 @@ class Migration
 
     /**
      * Look for table definition modifications and apply to real table
-     *
-     * @param string $tableName
-     * @param array  $definition
-     *
-     * @throws DbException
      */
     public function morphTable(string $tableName, array $definition): void
     {
@@ -774,12 +756,8 @@ class Migration
 
     /**
      * Inserts data from a data migration file in a table
-     *
-     * @param string $tableName
-     * @param mixed  $fields
-     * @param int    $size Insert batch size
      */
-    public function batchInsert(string $tableName, $fields, int $size = 1024): void
+    public function batchInsert(string $tableName, array $fields, int $size = 1024): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
@@ -882,10 +860,6 @@ class Migration
 
     /**
      * Resolves the DB Schema
-     *
-     * @param Config $config
-     *
-     * @return null|string
      */
     public static function resolveDbSchema(Config $config): ?string
     {

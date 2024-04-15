@@ -1,6 +1,7 @@
 {
     "name": "phalcon/migrations",
     "description": "Run and Generate DB Migrations with Phalcon Framework",
+    "version": "4.0.0",
     "keywords": [
         "framework",
         "phalcon",
@@ -26,24 +27,23 @@
         "forum": "https://forum.phalcon.io"
     },
     "require": {
-        "php": ">=7.4",
-        "ext-phalcon": ">=5.0.1",
-        "phalcon/cli-options-parser": "^1.2",
-        "nette/php-generator": "^3.5"
+        "php": ">=8.0",
+        "ext-phalcon": ">=5.5",
+        "phalcon/cli-options-parser": "^2.0",
+        "nette/php-generator": "^4.0"
     },
     "require-dev": {
         "ext-pdo": "*",
-        "phalcon/ide-stubs": "^5.0.1",
+        "phalcon/ide-stubs": "^5.5",
         "squizlabs/php_codesniffer": "^3.5",
         "fakerphp/faker": "^1.15",
         "humbug/box": "^3.8",
-        "codeception/codeception": "^4.1",
-        "codeception/module-asserts": "^1.0.0",
-        "codeception/module-cli": "^1.0",
-        "codeception/module-phpbrowser": "^1.0.0",
-        "codeception/module-db": "^1.0",
+        "codeception/codeception": "^5.1",
+        "codeception/module-asserts": "^3.0.0",
+        "codeception/module-cli": "^2.0",
+        "codeception/module-db": "^3.0",
         "vimeo/psalm": "^4.6",
-        "vlucas/phpdotenv": "^4.1",
+        "vlucas/phpdotenv": "^5.6",
         "phpstan/phpstan": "^1.8"
     },
     "autoload": {
@@ -75,7 +75,6 @@
             "codeception.yml",
             "phpcs.xml.dist",
             "phpstan.neon.dist",
-            "phpunit.xml.dist",
             "psalm.xml.dist"
         ]
     },

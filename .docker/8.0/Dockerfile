@@ -1,12 +1,12 @@
 FROM composer:latest as composer
-FROM php:7.4-fpm
+FROM php:8.0-fpm
 
 LABEL vendor="Phalcon" \
       maintainer="Phalcon Team <team@phalcon.io>" \
       description="Phalcon Migrations working environment"
 
-ENV PHALCON_VERSION="5.0.1" \
-    PHP_VERSION="7.4"
+ENV PHALCON_VERSION="5.5.0" \
+    PHP_VERSION="8.0"
 
 ADD ./extra.ini /usr/local/etc/php/conf.d/
 

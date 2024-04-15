@@ -67,9 +67,9 @@ final class Color
     public const AT_STRIKE    = 9;
 
     /**
-     * @var array Map of supported foreground colors
+     * Map of supported foreground colors
      */
-    private static $fg = [
+    private static array $fg = [
         self::FG_BLACK        => '0;30',
         self::FG_DARK_GRAY    => '1;30',
         self::FG_RED          => '0;31',
@@ -89,9 +89,9 @@ final class Color
     ];
 
     /**
-     * @var array Map of supported background colors
+     * Map of supported background colors
      */
-    private static $bg = [
+    private static array $bg = [
         self::BG_BLACK      => '40',
         self::BG_RED        => '41',
         self::BG_GREEN      => '42',
@@ -103,9 +103,9 @@ final class Color
     ];
 
     /**
-     * @var array Map of supported attributes
+     * Map of supported attributes
      */
-    private static $at = [
+    private static array $at = [
         self::AT_NORMAL    => '0',
         self::AT_BOLD      => '1',
         self::AT_ITALIC    => '3',
@@ -119,8 +119,6 @@ final class Color
 
     /**
      * Identify if console supports colors
-     *
-     * @return bool
      */
     public static function isSupportedShell(): bool
     {
@@ -133,15 +131,6 @@ final class Color
 
     /**
      * Colorizes the string using provided colors.
-     *
-     * @static
-     *
-     * @param string       $string
-     * @param null|integer $fg
-     * @param null|integer $at
-     * @param null|integer $bg
-     *
-     * @return string
      */
     public static function colorize(string $string, int $fg = null, int $at = null, int $bg = null): string
     {
@@ -173,25 +162,13 @@ final class Color
         return $colored;
     }
 
-    /**
-     * @param string $msg
-     *
-     * @return string
-     */
     public static function head(string $msg): string
     {
-        return static::colorize($msg, Color::FG_BROWN);
+        return Color::colorize($msg, Color::FG_BROWN);
     }
 
     /**
      * Color style for error messages.
-     *
-     * @static
-     *
-     * @param string $msg
-     * @param string $prefix
-     *
-     * @return string
      */
     public static function error(string $msg, string $prefix = 'Error: '): string
     {
@@ -206,13 +183,6 @@ final class Color
 
     /**
      * Color style for fatal error messages.
-     *
-     * @static
-     *
-     * @param string $msg
-     * @param string $prefix
-     *
-     * @return string
      */
     public static function fatal(string $msg, string $prefix = 'Fatal Error: '): string
     {
@@ -227,12 +197,6 @@ final class Color
 
     /**
      * Color style for success messages.
-     *
-     * @static
-     *
-     * @param string $msg
-     *
-     * @return string
      */
     public static function success(string $msg): string
     {
@@ -247,12 +211,6 @@ final class Color
 
     /**
      * Color style for info messages.
-     *
-     * @static
-     *
-     * @param string $msg
-     *
-     * @return string
      */
     public static function info(string $msg): string
     {
@@ -269,11 +227,6 @@ final class Color
      * Output tab space
      *
      * Depending on length of string.
-     *
-     * @param string $string
-     * @param int    $tabSize
-     *
-     * @return int
      */
     protected static function tabSpaces(string $string, int $tabSize = 4): int
     {

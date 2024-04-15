@@ -25,29 +25,15 @@ class TimestampedItem implements ItemInterface
 {
     use VersionAwareTrait;
 
-    /**
-     * @var string
-     */
     protected string $version;
 
-    /**
-     * @var bool
-     */
     protected bool $isFullVersion;
 
-    /**
-     * @var array
-     */
     protected array $parts = [];
 
-    /**
-     * @var string
-     */
     private string $path = '';
 
     /**
-     * @param string $version String representation of the version
-     *
      * @throws InvalidArgumentException
      */
     public function __construct(string $version)
@@ -63,8 +49,6 @@ class TimestampedItem implements ItemInterface
 
     /**
      * Get integer payload of the version
-     *
-     * @return int
      */
     public function getStamp(): int
     {
@@ -73,8 +57,6 @@ class TimestampedItem implements ItemInterface
 
     /**
      * Get version description
-     *
-     * @return string
      */
     public function getDescription(): string
     {
@@ -83,8 +65,6 @@ class TimestampedItem implements ItemInterface
 
     /**
      * Full version has both parts: number and description
-     *
-     * @return bool
      */
     public function isFullVersion(): bool
     {
@@ -93,8 +73,6 @@ class TimestampedItem implements ItemInterface
 
     /**
      * Get migrations directory of incremental item
-     *
-     * @return string
      */
     public function getPath(): string
     {
@@ -103,8 +81,6 @@ class TimestampedItem implements ItemInterface
 
     /**
      * Set migrations directory of incremental item
-     *
-     * @param string $path
      */
     public function setPath(string $path): void
     {

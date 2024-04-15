@@ -26,11 +26,6 @@ class ListTablesIterator implements ListTablesInterface
 {
     /**
      * Get table names with prefix for running migration
-     *
-     * @param string                 $tablePrefix
-     * @param DirectoryIterator|null $iterator
-     *
-     * @return string
      */
     public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
     {

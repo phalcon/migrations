@@ -27,10 +27,6 @@ class ListTablesDb implements ListTablesInterface
     /**
      * Get table names with prefix for running migration
      *
-     * @param string                 $tablePrefix
-     * @param DirectoryIterator|null $iterator
-     *
-     * @return string
      * @throws DbException
      */
     public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
@@ -39,9 +35,7 @@ class ListTablesDb implements ListTablesInterface
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
         }
 
-        $tablesList = (new ModelMigration())->getConnection()
-                                            ->listTables()
-        ;
+        $tablesList = (new ModelMigration())->getConnection()->listTables();
         if (empty($tablesList)) {
             return '';
         }

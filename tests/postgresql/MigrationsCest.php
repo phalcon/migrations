@@ -25,49 +25,41 @@ final class MigrationsCest
      */
     public function postgresPhalconMigrationsTable(PostgresqlTester $I): void
     {
-        $tableName     = 'pg_phalcon_migrations';
+        $tableName = 'pg_phalcon_migrations';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
-        $I->getPhalconDb()
-          ->createTable($tableName, $I->getDefaultSchema(), [
-              'columns' => [
-                  new Column('column_name', [
-                      'type'     => Column::TYPE_INTEGER,
-                      'size'     => 10,
-                      'unsigned' => true,
-                      'notNull'  => true,
-                      'first'    => true,
-                  ]),
-              ],
-          ])
-        ;
+        $I->getPhalconDb()->createTable($tableName, $I->getDefaultSchema(), [
+            'columns' => [
+                new Column('column_name', [
+                    'type' => Column::TYPE_INTEGER,
+                    'size' => 10,
+                    'unsigned' => true,
+                    'notNull' => true,
+                    'first' => true,
+                ]),
+            ],
+        ]);
 
         ob_start();
         Migrations::generate([
             'migrationsDir' => [
                 $migrationsDir,
             ],
-            'config'        => $I->getMigrationsConfig(),
-            'tableName'     => '@',
+            'config' => $I->getMigrationsConfig(),
+            'tableName' => '@',
         ]);
-        $I->getPhalconDb()
-          ->dropTable($tableName)
-        ;
+        $I->getPhalconDb()->dropTable($tableName);
         Migrations::run([
-            'migrationsDir'  => $migrationsDir,
-            'config'         => $I->getMigrationsConfig(),
+            'migrationsDir' => $migrationsDir,
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
-        $indexes = $I->getPhalconDb()
-                     ->describeIndexes(Migrations::MIGRATION_LOG_TABLE)
-        ;
+        $indexes = $I->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
 
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists($tableName, $I->getDefaultSchema()));
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
+        $I->assertTrue($I->getPhalconDb()->tableExists($tableName, $I->getDefaultSchema()));
+        $I->assertTrue($I->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $I->getDefaultSchema()));
         $I->assertSame(1, count($indexes));
     }
 
@@ -78,43 +70,36 @@ final class MigrationsCest
      */
     public function generateWithExportOnCreate(PostgresqlTester $I): void
     {
-        $dbName        = getenv('POSTGRES_TEST_DB_SCHEMA');
-        $tableName     = 'on_create';
+        $dbName = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
+        $tableName = 'on_create';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
         $I->getPhalconDb()
-          ->createTable($tableName, $dbName, [
-              'columns' => [
-                  new Column('id', [
-                      'type'          => Column::TYPE_INTEGER,
-                      'size'          => 10,
-                      'unsigned'      => true,
-                      'notNull'       => true,
-                      'first'         => true,
-                      'primary'       => true,
-                      'autoIncrement' => true,
-                  ]),
-              ],
-          ])
-        ;
+            ->createTable($tableName, $dbName, [
+                'columns' => [
+                    new Column('id', [
+                        'type' => Column::TYPE_INTEGER,
+                        'size' => 10,
+                        'unsigned' => true,
+                        'notNull' => true,
+                        'first' => true,
+                        'primary' => true,
+                        'autoIncrement' => true,
+                    ]),
+                ],
+            ]);
 
-        $I->getPhalconDb()
-          ->insert($tableName, [1], ['id'])
-        ;
-        $I->getPhalconDb()
-          ->insert($tableName, [2], ['id'])
-        ;
-        $I->getPhalconDb()
-          ->insert($tableName, [3], ['id'])
-        ;
+        $I->getPhalconDb()->insert($tableName, [1], ['id']);
+        $I->getPhalconDb()->insert($tableName, [2], ['id']);
+        $I->getPhalconDb()->insert($tableName, [3], ['id']);
 
         ob_start();
         Migrations::generate([
-            'migrationsDir'   => $migrationsDir,
-            'config'          => $I->getMigrationsConfig(),
-            'tableName'       => '@',
+            'migrationsDir' => $migrationsDir,
+            'config' => $I->getMigrationsConfig(),
+            'tableName' => '@',
             'noAutoIncrement' => true,
-            'exportData'      => 'oncreate',
+            'exportData' => 'oncreate',
         ]);
         ob_clean();
 

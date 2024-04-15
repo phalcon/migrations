@@ -19,13 +19,7 @@ use Phalcon\Db\ReferenceInterface;
 class DialectMysql extends Mysql
 {
     /**
-     * Generates SQL to add an foreign key to a table.
-     *
-     * @param string             $tableName
-     * @param string             $schemaName
-     * @param ReferenceInterface $reference
-     *
-     * @return string
+     * Generates SQL to add a foreign key to a table.
      */
     public function addForeignKey(string $tableName, string $schemaName, ReferenceInterface $reference): string
     {
@@ -52,8 +46,6 @@ class DialectMysql extends Mysql
 
     /**
      * Generates SQL to check DB parameter FOREIGN_KEY_CHECKS.
-     *
-     * @return string
      */
     public function getForeignKeyChecks(): string
     {

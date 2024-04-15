@@ -35,18 +35,16 @@ class Issue76Cest
 
         ob_start();
         Migrations::run([
-            'migrationsDir'  => codecept_data_dir('issues/76'),
-            'config'         => $I->getMigrationsConfig(),
+            'migrationsDir' => codecept_data_dir('issues/76'),
+            'config' => $I->getMigrationsConfig(),
             'migrationsInDb' => true,
         ]);
         ob_clean();
 
         $query1 = 'SELECT COUNT(*) cnt FROM user_details WHERE user_id = 62 AND last_name IS NULL';
 
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists('user_details'));
+        $I->assertTrue($I->getPhalconDb()->tableExists('user_details'));
         $I->canSeeNumRecords(2363, 'user_details');
-        $I->assertEquals(1, $I->getPhalconDb()
-                              ->fetchOne($query1)['cnt']);
+        $I->assertEquals(1, $I->getPhalconDb()->fetchOne($query1)['cnt']);
     }
 }

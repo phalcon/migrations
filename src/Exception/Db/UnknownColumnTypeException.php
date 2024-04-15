@@ -18,15 +18,8 @@ use Phalcon\Db\Exception;
 
 class UnknownColumnTypeException extends Exception
 {
-    /**
-     * @var ColumnInterface
-     */
-    protected ColumnInterface $column;
-
-    public function __construct(ColumnInterface $column)
+    public function __construct(protected ColumnInterface $column)
     {
-        $this->column = $column;
-
         $message = sprintf(
             'Unrecognized data type "%s" for column "%s".',
             $column->getType(),
@@ -36,9 +29,6 @@ class UnknownColumnTypeException extends Exception
         parent::__construct($message, 0);
     }
 
-    /**
-     * @return ColumnInterface
-     */
     public function getColumn(): ColumnInterface
     {
         return $this->column;

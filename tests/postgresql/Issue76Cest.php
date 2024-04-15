@@ -25,8 +25,6 @@ use function codecept_data_dir;
 class Issue76Cest
 {
     /**
-     * @param PostgresqlTester $I
-     *
      * @throws Exception
      */
     public function normalRun(PostgresqlTester $I): void
@@ -41,13 +39,11 @@ class Issue76Cest
         ]);
         ob_clean();
 
-        $schema = getenv('POSTGRES_TEST_DB_SCHEMA');
+        $schema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
         $query1 = "SELECT COUNT(*) cnt FROM $schema.user_details WHERE user_id = 62 AND last_name IS NULL";
 
-        $I->assertTrue($I->getPhalconDb()
-                         ->tableExists('user_details', $schema));
+        $I->assertTrue($I->getPhalconDb()->tableExists('user_details', $schema));
         $I->canSeeNumRecords(2363, $schema . '.user_details');
-        $I->assertEquals(1, $I->getPhalconDb()
-                              ->fetchOne($query1)['cnt']);
+        $I->assertEquals(1, $I->getPhalconDb()->fetchOne($query1)['cnt']);
     }
 }

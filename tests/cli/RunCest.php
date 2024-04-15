@@ -132,7 +132,7 @@ final class RunCest
      */
     protected function createTablesWithForeignKey(CliTester $I, string $table1, string $table2): void
     {
-        $schema = getenv('MYSQL_TEST_DB_DATABASE');
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
 
         $I->getPhalconDb()
           ->createTable($table1, $schema, [

@@ -35,13 +35,13 @@ class Postgresql extends Module
         ;
         unset($options['adapter']);
 
-        self::$defaultSchema = getenv('POSTGRES_TEST_DB_SCHEMA');
+        self::$defaultSchema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
         /** @var AbstractPdo $db */
         self::$phalconDb = new PdoPostgresql($options);
         self::$phalconDb->setDialect(new DialectPostgresql());
     }
 
-    public function _before(TestInterface $test)
+    public function _before(TestInterface $test): void
     {
         self::$phalconDb->execute('DROP SCHEMA IF EXISTS "' . self::$defaultSchema . '" CASCADE');
         self::$phalconDb->execute('CREATE SCHEMA "' . self::$defaultSchema . '";');
@@ -53,7 +53,7 @@ class Postgresql extends Module
      *
      * @param TestInterface $test
      */
-    public function _after(TestInterface $test)
+    public function _after(TestInterface $test): void
     {
         /**
          * Cleanup Database
@@ -66,9 +66,6 @@ class Postgresql extends Module
         Migrations::resetStorage();
     }
 
-    /**
-     * @return AbstractPdo
-     */
     public function getPhalconDb(): AbstractPdo
     {
         return self::$phalconDb;
@@ -82,12 +79,12 @@ class Postgresql extends Module
         return new Config([
             'database'    => [
                 'adapter'  => 'postgresql',
-                'host'     => getenv('POSTGRES_TEST_DB_HOST'),
-                'port'     => getenv('POSTGRES_TEST_DB_PORT'),
-                'username' => getenv('POSTGRES_TEST_DB_USER'),
-                'password' => getenv('POSTGRES_TEST_DB_PASSWORD'),
-                'dbname'   => getenv('POSTGRES_TEST_DB_DATABASE'),
-                'schema'   => getenv('POSTGRES_TEST_DB_SCHEMA'),
+                'host'     => $_ENV['POSTGRES_TEST_DB_HOST'],
+                'port'     => $_ENV['POSTGRES_TEST_DB_PORT'],
+                'username' => $_ENV['POSTGRES_TEST_DB_USER'],
+                'password' => $_ENV['POSTGRES_TEST_DB_PASSWORD'],
+                'dbname'   => $_ENV['POSTGRES_TEST_DB_DATABASE'],
+                'schema'   => $_ENV['POSTGRES_TEST_DB_SCHEMA'],
             ],
             'application' => [
                 'logInDb' => true,
@@ -95,9 +92,6 @@ class Postgresql extends Module
         ]);
     }
 
-    /**
-     * @return string
-     */
     public function getDefaultSchema(): string
     {
         return self::$defaultSchema;

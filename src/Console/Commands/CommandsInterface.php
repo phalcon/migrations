@@ -22,15 +22,11 @@ interface CommandsInterface
 {
     /**
      * Executes the command.
-     *
-     * @return mixed
      */
-    public function run();
+    public function run(): void;
 
     /**
      * Prints help on the usage of the command.
-     *
-     * @return void
      */
     public function getHelp(): void;
 
@@ -40,8 +36,6 @@ interface CommandsInterface
      * This method returns a list of available parameters for the current command.
      * The list must be represented as pairs key-value.
      * Where key is the parameter name and value is the short description.
-     *
-     * @return array
      */
     public function getPossibleParams(): array;
 }

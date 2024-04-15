@@ -20,8 +20,6 @@ trait VersionAwareTrait
 {
     /**
      * Get the string representation of the version
-     *
-     * @return string
      */
     public function getVersion(): string
     {
@@ -30,8 +28,6 @@ trait VersionAwareTrait
 
     /**
      * Get the string representation of the version
-     *
-     * @return string
      */
     public function __toString(): string
     {

@@ -15,9 +15,6 @@ namespace Phalcon\Migrations\Console\Commands;
 
 use Exception;
 
-/**
- * Commands Exception
- */
 class CommandsException extends Exception
 {
 }

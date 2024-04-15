@@ -79,7 +79,7 @@ final class MigrationsCest
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
         $I->getPhalconDb()
-          ->createTable('test', getenv('MYSQL_TEST_DB_DATABASE'), [
+          ->createTable('test', $_ENV['MYSQL_TEST_DB_DATABASE'], [
               'columns' => [
                   new Column('column_name', [
                       'type'     => Column::TYPE_INTEGER,
@@ -149,7 +149,7 @@ final class MigrationsCest
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
         $I->getPhalconDb()
-          ->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+          ->createTable($tableName, $_ENV['MYSQL_TEST_DB_DATABASE'], [
               'columns' => [
                   new Column('id', [
                       'type'     => Column::TYPE_INTEGER,
@@ -175,7 +175,7 @@ final class MigrationsCest
         for ($id = 1; $id <= 10000; $id++) {
             $data[] = [
                 'id'          => $id,
-                'name'        => $faker->name,
+                'name'        => $faker->name(),
                 'create_date' => $faker->date(),
             ];
         }
@@ -254,7 +254,7 @@ final class MigrationsCest
      */
     public function generateWithAutoIncrement(MysqlTester $I): void
     {
-        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $dbName        = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $tableName     = 'generate_ai';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
@@ -306,7 +306,7 @@ final class MigrationsCest
      */
     public function generateWithoutAutoIncrement(MysqlTester $I): void
     {
-        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $dbName        = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $tableName     = 'generate_no_ai';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
@@ -391,7 +391,7 @@ final class MigrationsCest
      */
     public function generateWithExportOnCreate(MysqlTester $I): void
     {
-        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $dbName        = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $tableName     = 'on_create';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
@@ -438,7 +438,7 @@ final class MigrationsCest
 
     public function updateColumnUnsigned(MysqlTester $mysqlTester): void
     {
-        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $dbName        = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $tableName     = 'update_unsigned_column';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
@@ -483,7 +483,7 @@ final class MigrationsCest
 
     public function nullableTimestamp(MysqlTester $I): void
     {
-        $dbName        = getenv('MYSQL_TEST_DB_DATABASE');
+        $dbName        = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $tableName     = 'nullable_timestamp';
         $migrationsDir = codecept_output_dir(__FUNCTION__);
 
@@ -631,7 +631,7 @@ final class MigrationsCest
     protected function createSingleColumnTable(MysqlTester $I, string $tableName = 'test'): void
     {
         $I->getPhalconDb()
-          ->createTable($tableName, getenv('MYSQL_TEST_DB_DATABASE'), [
+          ->createTable($tableName, $_ENV['MYSQL_TEST_DB_DATABASE'], [
               'columns' => [
                   new Column('column_name', [
                       'type'     => Column::TYPE_INTEGER,
