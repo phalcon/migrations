@@ -26,7 +26,7 @@ class PdoPostgresql extends Postgresql
     /**
      * Lists table references
      */
-    public function describeReferences(string $table, string $schema = null): array
+    public function describeReferences(string $table, ?string $schema = null): array
     {
         $references = [];
 
@@ -77,7 +77,7 @@ class PdoPostgresql extends Postgresql
         return $referenceObjects;
     }
 
-    public function describeIndexes(string $table, string $schema = null): array
+    public function describeIndexes(string $table, ?string $schema = null): array
     {
         $indexes      = [];
         $indexObjects = [];

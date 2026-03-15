@@ -48,7 +48,7 @@ class ItemCollection
     /**
      * Create new version item
      */
-    public static function createItem(string $version = null): TimestampedItem|IncrementalItem
+    public static function createItem(?string $version = null): TimestampedItem|IncrementalItem
     {
         if (self::TYPE_INCREMENTAL === self::$type) {
             $version = $version ?: '0.0.0';
