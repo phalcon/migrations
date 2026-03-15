@@ -552,14 +552,7 @@ class Generate
             $this->adapter === Migration::DB_ADAPTER_MYSQL &&
             in_array($columnType, $this->numericColumnTypes)
         ) {
-            return $columnsSize ?: match ($columnType) {
-                Column::TYPE_BIGINTEGER => 8,
-                Column::TYPE_INTEGER => 4,
-                Column::TYPE_MEDIUMINTEGER => 3,
-                Column::TYPE_SMALLINTEGER => 2,
-                Column::TYPE_TINYINTEGER => 1,
-                Column::TYPE_DECIMAL => null
-            };
+            return $columnsSize ?: null;
         }
 
         /**

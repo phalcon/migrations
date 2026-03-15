@@ -34,7 +34,7 @@ final class ColumnTypesCest
     {
         return [
             [
-                'column_int',
+                'column_uint',
                 [
                     'type' => Column::TYPE_INTEGER,
                     'size' => 10,
@@ -45,6 +45,13 @@ final class ColumnTypesCest
                 [0, 1, 123, 9000],
             ],
             [
+                'column_bigint',
+                [
+                    'type' => Column::TYPE_BIGINTEGER,
+                ],
+                [PHP_INT_MIN, PHP_INT_MIN + 1, 0, PHP_INT_MAX - 1, PHP_INT_MAX],
+            ],
+            [
                 'column_int_primary',
                 [
                     'type' => Column::TYPE_INTEGER,
@@ -52,7 +59,77 @@ final class ColumnTypesCest
                     'first' => true,
                     'primary' => true,
                 ],
+                [-2147483648, 0, 2147483647],
+            ],
+            [
+                'column_mediumint_size',
+                [
+                    'type' => Column::TYPE_MEDIUMINTEGER,
+                    'size' => 1,
+                ],
+                [8388607, 0, -8388608],
+            ],
+            [
+                'column_mediumint',
+                [
+                    'type' => Column::TYPE_MEDIUMINTEGER,
+                ],
+                [8388607, 0, -8388608],
+            ],
+            [
+                'column_mediumint_small_display_size',
+                [
+                    'type' => Column::TYPE_MEDIUMINTEGER,
+                    'size' => 1,
+                ],
+                [8388607, 0, -8388608],
+            ],
+            [
+                'column_medium_uint',
+                [
+                    'type' => Column::TYPE_MEDIUMINTEGER,
+                    'size' => 123,
+                    'unsigned' => true,
+                ],
+                [16777215, 0],
+            ],
+            [
+                'column_smallint',
+                [
+                    'type' => Column::TYPE_SMALLINTEGER,
+                    'size' => 11,
+                    'first' => true,
+                    'primary' => true,
+                ],
                 [1, 2, 3, 4],
+            ],
+            [
+                'column_tinyint_big_display_size',
+                [
+                    'type' => Column::TYPE_TINYINTEGER,
+                    'size' => 255,
+                    'first' => true,
+                    'primary' => true,
+                ],
+                [-128, 0, 127],
+            ],
+            [
+                'column_tiny_uint',
+                [
+                    'type' => Column::TYPE_TINYINTEGER,
+                    'unsigned' => true,
+                ],
+                [255, 0],
+            ],
+            [
+                'column_bigint_primary',
+                [
+                    'type' => Column::TYPE_BIGINTEGER,
+                    'size' => 7,
+                    'first' => true,
+                    'primary' => true,
+                ],
+                [PHP_INT_MIN, PHP_INT_MIN + 1, 0, PHP_INT_MAX - 1, PHP_INT_MAX],
             ],
             [
                 'column_int_pri_inc',
@@ -143,20 +220,23 @@ final class ColumnTypesCest
         ]);
         ob_clean();
 
-        /**
-         * Insert values
-         */
-        foreach ($values as $value) {
-            $I->getPhalconDb()->insert($tableName, [$value], [$columnName]);
+        try {
+            /**
+             * Insert values
+             */
+            foreach ($values as $value) {
+                $I->getPhalconDb()->insert($tableName, [$value], [$columnName]);
+            }
+        } finally {
+            Migrations::resetStorage();
+            $I->removeDir($migrationsDir);
         }
-
-        Migrations::resetStorage();
-        $I->removeDir($migrationsDir);
 
         /** @var Column $column */
         $column = $I->getPhalconDb()->describeColumns($tableName)[0];
         $rows = $I->grabColumnFromDatabase($tableName, $columnName);
 
+        $I->assertSame($definition['unsigned'] ?? false, $column->isUnsigned());
         $I->assertSame($definition['type'], $column->getType());
         $I->assertSame($definition['notNull'] ?? true, $column->isNotNull());
         $I->assertEquals($values, $rows);

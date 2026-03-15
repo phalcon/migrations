@@ -64,11 +64,37 @@ final class RunCest
     }
 
     /**
-     * @skip Some strange behavior with MySQL Server in Github Actions. Back to this test in some future
-     *
      * @param CliTester $I
      */
-    public function expectForeignKeyDbError(CliTester $I): void
+    public function expectForeignKeyDbError1822(CliTester $I): void
+    {
+        $table1 = 'z-client';
+        $table2 = 'skip-foreign-keys';
+
+        $this->createTablesWithForeignKey($I, $table1, $table2);
+
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
+        $I->seeResultCodeIs(0);
+
+        $migrationContent = file_get_contents(codecept_output_dir('1.0.0/' . $table2 . '.php'));
+        $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
+
+        $I->getPhalconDb()
+            ->dropTable($table2)
+        ;
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+        $I->getPhalconDb()->dropPrimaryKey($table1, $schema);
+
+        $I->runShellCommand('php phalcon-migrations run --config=' . $this->configPath, false);
+        $I->seeInShellOutput('SQLSTATE[HY000]: General error: 1822 Failed to add the foreign key constraint');
+        $I->seeResultCodeIs(1);
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    public function expectForeignKeyDbError1824(CliTester $I): void
     {
         $table1 = 'z-client';
         $table2 = 'skip-foreign-keys';
@@ -90,7 +116,36 @@ final class RunCest
         ;
 
         $I->runShellCommand('php phalcon-migrations run --config=' . $this->configPath, false);
-        $I->seeInShellOutput('Fatal Error: SQLSTATE[HY000]: General error: 1215 Cannot add foreign key constraint');
+        $I->seeInShellOutput('SQLSTATE[HY000]: General error: 1824 Failed to open the referenced table');
+        $I->seeResultCodeIs(1);
+    }
+
+    /**
+     * @param CliTester $I
+     */
+    public function expectForeignKeyDbError3734(CliTester $I): void
+    {
+        $table1 = 'z-client';
+        $table2 = 'skip-foreign-keys';
+
+        $this->createTablesWithForeignKey($I, $table1, $table2);
+
+        $I->runShellCommand('php phalcon-migrations generate --config=' . $this->configPath);
+        $I->seeInShellOutput('Success: Version 1.0.0 was successfully generated');
+        $I->seeResultCodeIs(0);
+
+        $migrationContent = file_get_contents(codecept_output_dir('1.0.0/' . $table2 . '.php'));
+        $I->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
+
+        $I->getPhalconDb()
+            ->dropTable($table2)
+        ;
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+        $I->getPhalconDb()->addColumn($table1, $schema, new Column('stub', ['type' => Column::TYPE_INTEGER]));
+        $I->getPhalconDb()->dropColumn($table1, $schema, 'id');
+
+        $I->runShellCommand('php phalcon-migrations run --config=' . $this->configPath, false);
+        $I->seeInShellOutput('SQLSTATE[HY000]: General error: 3734 Failed to add the foreign key constraint');
         $I->seeResultCodeIs(1);
     }
 
