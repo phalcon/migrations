@@ -10,7 +10,7 @@ jobs:
     name: Compile and upload Phar
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compile phalcon-migrations.phar
         run: |
