@@ -373,14 +373,21 @@ class Migrations
             $migrationStartTime = date('Y-m-d H:i:s');
 
             if ($optionStack->offsetGet('tableName') === '@') {
+                $migrationFiles = [];
                 /** @var SplFileInfo $fileInfo */
                 foreach ($iterator as $fileInfo) {
                     if (!$fileInfo->isFile() || 0 !== strcasecmp($fileInfo->getExtension(), 'php')) {
                         continue;
                     }
 
+                    $migrationFiles[] = $fileInfo->getBasename('.php');
+                }
+
+                sort($migrationFiles);
+
+                foreach ($migrationFiles as $migrationFile) {
                     ModelMigration::migrate(
-                        $fileInfo->getBasename('.php'),
+                        $migrationFile,
                         $initialVersion,
                         $versionItem,
                         $optionStack->offsetGet('skip-foreign-checks')
