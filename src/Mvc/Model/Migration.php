@@ -195,7 +195,7 @@ class Migration
      */
     public static function generateAll(
         ItemInterface $version,
-        string $exportData = null,
+        ?string $exportData = null,
         array $exportTables = [],
         bool $skipRefSchema = false
     ): array {
@@ -274,8 +274,8 @@ class Migration
      */
     public static function migrate(
         string $tableName,
-        ItemInterface $fromVersion = null,
-        ItemInterface $toVersion = null,
+        ?ItemInterface $fromVersion = null,
+        ?ItemInterface $toVersion = null,
         bool $skipForeignChecks = false
     ): void {
         $fromVersion = $fromVersion ?: VersionCollection::createItem($fromVersion);

@@ -25,7 +25,7 @@ class DialectPostgresql extends Postgresql
      *
      * @return string
      */
-    public function describeReferences(string $table, string $schema = null): string
+    public function describeReferences(string $table, ?string $schema = null): string
     {
         $sql = "
             SELECT DISTINCT
@@ -59,7 +59,7 @@ class DialectPostgresql extends Postgresql
         return $sql;
     }
 
-    public function describeIndexes(string $table, string $schema = null): string
+    public function describeIndexes(string $table, ?string $schema = null): string
     {
         return "
             SELECT 

@@ -27,7 +27,7 @@ class ListTablesIterator implements ListTablesInterface
     /**
      * Get table names with prefix for running migration
      */
-    public function listTablesForPrefix(string $tablePrefix, DirectoryIterator $iterator = null): string
+    public function listTablesForPrefix(string $tablePrefix, ?DirectoryIterator $iterator = null): string
     {
         if (empty($tablePrefix) || $iterator === null) {
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
