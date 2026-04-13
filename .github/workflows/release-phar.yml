@@ -21,6 +21,6 @@ jobs:
         run: test -e phalcon-migrations.phar && exit 0 || exit 10
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: phalcon-migrations.phar
