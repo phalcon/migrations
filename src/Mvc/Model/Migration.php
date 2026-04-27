@@ -125,7 +125,7 @@ class Migration
          *
          * @see: Phalcon\Db\Dialect\PdoMysql The extended and fixed dialect class for MySQL
          */
-        $dbAdapter = strtolower((string) $config->adapter);
+        $dbAdapter = strtolower($config->adapter);
         if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
             $adapter = PdoMysql::class;
         } elseif ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {

@@ -527,7 +527,7 @@ class Migrations
             unset($configArray['adapter']);
             self::$storage = new $adapter($configArray);
 
-            $dbAdapter = strtolower((string) $config->adapter);
+            $dbAdapter = strtolower($config->adapter);
             if ($dbAdapter === ModelMigration::DB_ADAPTER_MYSQL) {
                 self::$storage->setDialect(new DialectMysql());
                 self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
