@@ -6,7 +6,7 @@ namespace Helper;
 
 use Codeception\Module;
 use Codeception\TestInterface;
-use Phalcon\Config\Config;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
@@ -29,10 +29,7 @@ class Postgresql extends Module
      */
     public function _initialize()
     {
-        $options = $this->getMigrationsConfig()
-                        ->get('database')
-                        ->toArray()
-        ;
+        $options = $this->getMigrationsConfig()->toArray();
         unset($options['adapter']);
 
         self::$defaultSchema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
@@ -76,7 +73,7 @@ class Postgresql extends Module
      */
     public function getMigrationsConfig(): Config
     {
-        return new Config([
+        return Config::fromArray([
             'database'    => [
                 'adapter'  => 'postgresql',
                 'host'     => $_ENV['POSTGRES_TEST_DB_HOST'],
