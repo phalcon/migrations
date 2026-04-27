@@ -16,21 +16,21 @@ namespace Phalcon\Migrations\Utils;
 final class Config
 {
     private function __construct(
-        public readonly ?string $adapter              = null,
-        public readonly ?string $dbname               = null,
-        public readonly ?string $descr                = null,
-        public readonly array   $exportDataFromTables = [],
-        public readonly ?string $host                 = null,
-        public readonly bool    $logInDb              = false,
-        public readonly ?string $migrationsDir        = null,
-        public readonly bool    $migrationsTsBased    = false,
-        public readonly bool    $noAutoIncrement      = false,
-        public readonly ?string $password             = null,
-        public readonly ?int    $port                 = null,
-        public readonly ?string $schema               = null,
-        public readonly bool    $skipForeignChecks    = false,
-        public readonly bool    $skipRefSchema        = false,
-        public readonly ?string $username             = null,
+        public readonly ?string $adapter = null,
+        public readonly ?string $dbname = null,
+        public readonly ?string $descr = null,
+        public readonly array $exportDataFromTables = [],
+        public readonly ?string $host = null,
+        public readonly bool $logInDb = false,
+        public readonly ?string $migrationsDir = null,
+        public readonly bool $migrationsTsBased = false,
+        public readonly bool $noAutoIncrement = false,
+        public readonly ?string $password = null,
+        public readonly ?int $port = null,
+        public readonly ?string $schema = null,
+        public readonly bool $skipForeignChecks = false,
+        public readonly bool $skipRefSchema = false,
+        public readonly ?string $username = null,
     ) {
     }
 
