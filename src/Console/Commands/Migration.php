@@ -77,13 +77,13 @@ class Migration implements CommandsInterface
             'verbose'                => 'Output of debugging information ' .
                 'during operation (Running only)',
             'no-auto-increment'      => 'Disable auto increment (Generating only)',
+            'dry-run'                => 'Preview changes without writing (migrate-files only)',
             'help'                   => 'Shows this help [optional]',
         ];
     }
 
     /**
      * @throws CommandsException
-     * @throws \Phalcon\Db\Exception
      * @throws Exception
      */
     public function run(): void
@@ -92,6 +92,12 @@ class Migration implements CommandsInterface
 
         if (in_array($action, [null, 'help', 'h', '?'], true)) {
             $this->getHelp();
+
+            return;
+        }
+
+        if ($action === 'migrate-files') {
+            (new MigrateFiles($this->parser))->run();
 
             return;
         }
@@ -208,6 +214,9 @@ class Migration implements CommandsInterface
 
         print Color::head('Usage: List all available migrations') . PHP_EOL;
         print Color::colorize('  migration list', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Usage: Update migration files to Phalcon\Migrations\Db namespace') . PHP_EOL;
+        print Color::colorize('  migration migrate-files --migrations=<path>', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
 
         print Color::head('Arguments:') . PHP_EOL;
         print Color::colorize('  help', Color::FG_GREEN);
