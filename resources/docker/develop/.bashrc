@@ -42,7 +42,7 @@ export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40
 # Always enable colored `grep` output
 alias grep='grep --color=auto '
 
-# Enable aliases to be sudo’ed
+# Enable aliases to be sudo'ed
 alias sudo='sudo '
 
 # Get week number
@@ -69,7 +69,7 @@ alias mv='mv -i'
 # untar
 alias untar='tar xvf'
 
-# Zephir related
-alias untar='tar xvf'
-
 PATH=$PATH:./vendor/bin
+
+PHP_VERSION=`php -r 'echo PHP_VERSION;'`
+PS1='${debian_chroot:+($debian_chroot)}\u [$PHP_VERSION]@\w\$ '
