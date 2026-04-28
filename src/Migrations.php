@@ -564,7 +564,9 @@ class Migrations
 
             if (!file_exists(self::$storage)) {
                 if (!is_writable($path)) {
-                    throw new RuntimeException("Unable to write '" . self::$storage . "' file. Permission denied");
+                    throw new RuntimeException(
+                        "Unable to write '" . self::$storage . "' file. Permission denied"
+                    );
                 }
 
                 touch(self::$storage);
@@ -584,7 +586,9 @@ class Migrations
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var AdapterInterface $storage */
             $storage = self::$storage;
-            $query   = 'SELECT version FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC LIMIT 1';
+            $query   = 'SELECT version FROM '
+                       . self::MIGRATION_LOG_TABLE
+                       . ' ORDER BY version DESC LIMIT 1';
             $row     = $storage->fetchOne($query);
 
             if ($row === []) {
@@ -599,7 +603,12 @@ class Migrations
         $version = $version ? trim($version) : null;
 
         if ($version !== null) {
-            $version = preg_split('/\r\n|\r|\n/', $version, -1, PREG_SPLIT_NO_EMPTY);
+            $version = preg_split(
+                '/\r\n|\r|\n/',
+                $version,
+                -1,
+                PREG_SPLIT_NO_EMPTY
+            );
             natsort($version);
             $version = array_pop($version);
         }
@@ -614,8 +623,11 @@ class Migrations
      * @param string      $version   Migration version to store
      * @param string|null $startTime Migration start timestamp
      */
-    public static function addCurrentVersion(array $options, string $version, ?string $startTime = null): void
-    {
+    public static function addCurrentVersion(
+        array $options,
+        string $version,
+        ?string $startTime = null
+    ): void {
         self::connectionSetup($options);
 
         $startTime = $startTime === null ? date('Y-m-d H:i:s') : $startTime;
@@ -625,7 +637,9 @@ class Migrations
             /** @var AdapterInterface $storage */
             $storage = self::$storage;
             $storage->execute(
-                'INSERT INTO ' . self::MIGRATION_LOG_TABLE . ' (version, start_time, end_time) VALUES (?, ?, ?)',
+                'INSERT INTO '
+                . self::MIGRATION_LOG_TABLE
+                . ' (version, start_time, end_time) VALUES (?, ?, ?)',
                 [$version, $startTime, $endTime]
             );
         } else {
@@ -673,7 +687,9 @@ class Migrations
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
             /** @var AdapterInterface $storage */
             $storage           = self::$storage;
-            $query             = 'SELECT version FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC';
+            $query             = 'SELECT version FROM '
+                . self::MIGRATION_LOG_TABLE
+                . ' ORDER BY version DESC';
             $completedVersions = $storage->fetchAll($query);
             $completedVersions = array_column($completedVersions, 'version');
         } else {

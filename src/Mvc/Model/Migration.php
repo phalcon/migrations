@@ -573,7 +573,10 @@ class Migration
 
             foreach ($definition['indexes'] as $tableIndex) {
                 if (!isset($localIndexes[$tableIndex->getName()])) {
-                    if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === Index::TYPE_PRIMARY || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT) {
+                    if ($tableIndex->getName() === 'PRIMARY'
+                        || $tableIndex->getType() === Index::TYPE_PRIMARY
+                        || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT
+                    ) {
                         $this->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                     } else {
                         $this->addIndex($tableName, $tableSchema, $tableIndex);
@@ -590,7 +593,10 @@ class Migration
                     }
 
                     if ($changed) {
-                        if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === Index::TYPE_PRIMARY || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT) {
+                        if ($tableIndex->getName() === 'PRIMARY'
+                            || $tableIndex->getType() === Index::TYPE_PRIMARY
+                            || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT
+                        ) {
                             $this->dropPrimaryKey($tableName, $tableSchema);
                             $this->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                         } else {
