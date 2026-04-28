@@ -7,6 +7,7 @@
 - Added `Phalcon\Migrations\Db\PhalconColumnBridge` for transparent backward compatibility: migration files using `Phalcon\Db\Column` continue to work without modification ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `migration migrate-files` CLI command to update existing migration files from `Phalcon\Db` to `Phalcon\Migrations\Db` namespace ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `@template-implements ArrayAccess<string, mixed>` annotation to `OptionStack` (psalm compliance) ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added migration script to migrate existing migrations to new references; provision for running either migrations (old/refactored) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed Config file loading (`.ini`, `.json`, `.yaml`) to now use native PHP functions (`parse_ini_file`, `json_decode`, `yaml_parse_file`) instead of `Phalcon\Config` adapters ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed `Observer/Profiler` and `Listeners/DbProfilerListener` without `Phalcon\Db` dependency; query timing output is unchanged ([#167](https://github.com/phalcon/migrations/issues/167))
 
