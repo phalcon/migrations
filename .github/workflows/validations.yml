@@ -30,7 +30,7 @@ jobs:
     name: Static Code with PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
     env:
-      extensions: mbstring, intl, json, phalcon-5.5.0
+      extensions: mbstring, intl, json
       key: cache-v4.0~13.04.2024
     needs: validate-code-style
     strategy:
@@ -83,8 +83,8 @@ jobs:
 
       - name: Run Psalm
         if: always()
-        run: vendor/bin/psalm --show-info=false
+        run: composer analyze-psalm
 
-#      - name: Run PHPStan
-#        if: always()
-#        run: vendor/bin/phpstan analyse -l 5 src
+      - name: Run PHPStan
+        if: always()
+        run: composer analyze
