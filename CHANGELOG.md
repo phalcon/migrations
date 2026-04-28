@@ -2,9 +2,9 @@
 
 ## Added
 
-- Added `Phalcon\Migrations\Db\Connection` — trimmed PDO wrapper covering all database operations ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Migrations\Db\Connection` - trimmed PDO wrapper covering all database operations ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `Phalcon\Migrations\Db\Column`, `Index`, `Reference` value objects replacing their `Phalcon\Db` counterparts ([#167](https://github.com/phalcon/migrations/issues/167))
-- Added `Phalcon\Migrations\Db\Adapter\Mysql`, `Postgresql`, `Sqlite` — schema introspection (columns, indexes, foreign keys, table options) and full DDL generation per driver ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Migrations\Db\Adapter\Mysql`, `Postgresql`, `Sqlite` - schema introspection (columns, indexes, foreign keys, table options) and full DDL generation per driver ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `Phalcon\Migrations\Db\PhalconColumnBridge` for transparent backward compatibility: migration files using `Phalcon\Db\Column` continue to work without modification ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `migration migrate-files` CLI command to update existing migration files from `Phalcon\Db` to `Phalcon\Migrations\Db` namespace ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `@template-implements ArrayAccess<string, mixed>` annotation to `OptionStack` (psalm compliance) ([#167](https://github.com/phalcon/migrations/issues/167))
@@ -12,6 +12,7 @@
 - Added `tests/Fakes/` directory with `MigrationFake` and `MigrationCommandFake` test helpers; registered `Phalcon\Migrations\Tests\Fakes\` PSR-4 namespace in `composer.json` ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added backwards-compatibility fixtures in `tests/_data/backcompat/old/` and `tests/_data/backcompat/new/` covering old-format (`Phalcon\Db\*`) and new-format (`Phalcon\Migrations\Db\*`) migrations across two versions each (create + alter column) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added rollback tests exercising `DIRECTION_BACK` and `createPrevClassWithMorphMethod` to verify table structure is correctly restored when running migrations backwards ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Utils\Camelize` to be used instead of the one from Phalcon ([#167](https://github.com/phalcon/migrations/issues/167))
 
 ## Fixed
  

@@ -30,9 +30,9 @@ use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils\Config;
+use Phalcon\Migrations\Utils\Camelize;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
-use Phalcon\Support\Helper\Str\Camelize;
 use Throwable;
 
 use function array_map;
