@@ -13,7 +13,6 @@
 declare(strict_types=1);
 
 use Phalcon\Cop\Parser;
-use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\Commands\CommandsException;
 use Phalcon\Migrations\Console\Commands\Migration;
@@ -41,7 +40,7 @@ try {
     } catch (RuntimeException $runtimeException) {
         echo Color::error($runtimeException->getMessage(), 'Runtime Error: ');
         exit(1);
-    } catch (DbException $dbException) {
+    } catch (\PDOException $dbException) {
         echo Color::error($dbException->getMessage(), 'DB Error: ');
         exit(1);
     }
