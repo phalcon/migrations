@@ -1,8 +1,20 @@
+# [unreleased]
+- Removed `Phalcon\Config\Config` dependency; replaced with `Phalcon\Migrations\Utils\Config` flat value object ([#166](https://github.com/phalcon/migrations/issues/166))
+- Removed `Phalcon\Db` dependency entirely; replaced with library-local `Phalcon\Migrations\Db` layer ([#166](https://github.com/phalcon/migrations/issues/166))
+- Added `Phalcon\Migrations\Db\Connection` — trimmed PDO wrapper covering all database operations ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Migrations\Db\Column`, `Index`, `Reference` value objects replacing their `Phalcon\Db` counterparts ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Migrations\Db\Adapter\Mysql`, `Postgresql`, `Sqlite` — schema introspection (columns, indexes, foreign keys, table options) and full DDL generation per driver ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Migrations\Db\PhalconColumnBridge` for transparent backward compatibility: migration files using `Phalcon\Db\Column` continue to work without modification ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `migration migrate-files` CLI command to update existing migration files from `Phalcon\Db` to `Phalcon\Migrations\Db` namespace ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `@template-implements ArrayAccess<string, mixed>` annotation to `OptionStack` (psalm compliance) ([#167](https://github.com/phalcon/migrations/issues/167))
+- Changed Config file loading (`.ini`, `.json`, `.yaml`) to now use native PHP functions (`parse_ini_file`, `json_decode`, `yaml_parse_file`) instead of `Phalcon\Config` adapters ([#167](https://github.com/phalcon/migrations/issues/167))
+- Changed `Observer/Profiler` and `Listeners/DbProfilerListener` without `Phalcon\Db` dependency; query timing output is unchanged ([#167](https://github.com/phalcon/migrations/issues/167))
+
 # [2.2.4](https://github.com/phalcon/migrations/releases/tag/v2.2.4) (2021-12-10)
-- Changed column modification behaviour during table morph ([#126](https://github.com/phalcon/migrations/issues/126))
+- Changed column modification behavior during table morph ([#126](https://github.com/phalcon/migrations/issues/126))
 
 # [2.2.3](https://github.com/phalcon/migrations/releases/tag/v2.2.3) (2021-08-11)
-- Changed column modification behaviour during table morph ([#97](https://github.com/phalcon/migrations/issues/97))
+- Changed column modification behavior during table morph ([#97](https://github.com/phalcon/migrations/issues/97))
 - Updated composer packages ([#124](https://github.com/phalcon/migrations/pull/124))
 
 # [2.2.2](https://github.com/phalcon/migrations/releases/tag/v2.2.2) (2021-08-08)
