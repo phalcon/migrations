@@ -50,6 +50,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Phalcon\\Db\\": "tests/Fakes/Shims/Phalcon/Db/",
             "Phalcon\\Migrations\\Tests\\": "tests/",
             "Phalcon\\Migrations\\Tests\\Fakes\\": "tests/Fakes/",
             "Phalcon\\Migrations\\Tests\\Unit\\": "tests/unit/"

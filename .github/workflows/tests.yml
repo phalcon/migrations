@@ -21,6 +21,8 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       postgres:
         image: postgres:10.8
+        env:
+          POSTGRES_PASSWORD: postgres
         ports:
           - "5432:5432"
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 2
@@ -73,7 +75,7 @@ jobs:
       - run: composer install --prefer-dist --no-suggest
 
       - name: Copy .env file
-        run: cp config/.env.docker tests/.env
+        run: cp config/.env.example tests/.env
 
       - name: Run test suites
         env:
