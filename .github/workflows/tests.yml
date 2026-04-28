@@ -4,10 +4,10 @@ on: [push]
 
 jobs:
   run-tests-php:
-    name: PHP ${{ matrix.php-versions }} with Phalcon ${{ matrix.phalcon-versions }}
+    name: PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
     env:
-      extensions: mbstring, intl, json, phalcon-${{ matrix.phalcon-versions }}, mysql, pgsql
+      extensions: mbstring, intl, json, mysql, pgsql
       key: cache-v4.0~13.04.2024
 
     services:
@@ -33,7 +33,7 @@ jobs:
           - '8.3'
           - '8.4'
           - '8.5'
-        phalcon-versions: ['5.5.0', '5.6.0', '5.6.1', '5.6.2', '5.7.0', '5.8.0', '5.9.0', '5.9.1', '5.9.2', '5.9.3', '5.10.0']
+
     steps:
       - uses: actions/checkout@v6
 
