@@ -51,6 +51,7 @@
     "autoload-dev": {
         "psr-4": {
             "Phalcon\\Migrations\\Tests\\": "tests/",
+            "Phalcon\\Migrations\\Tests\\Fakes\\": "tests/Fakes/",
             "Phalcon\\Migrations\\Tests\\Unit\\": "tests/unit/"
         }
     },
@@ -80,7 +81,7 @@
     "cs": "vendor/bin/phpcs --standard=phpcs.xml",
     "cs-fix": "vendor/bin/phpcbf --standard=phpcs.xml",
     "test": "vendor/bin/phpunit -c phpunit.xml.dist",
-    "test-coverage": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-clover tests/_output/coverage.xml",
-    "test-coverage-html": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-html tests/_output/coverage/"
+    "test-coverage": "vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover tests/_output/coverage/clover.xml",
+    "test-coverage-html": "vendor/bin/phpunit -c phpunit.xml.dist --coverage-html tests/_output/coverage/html/"
   }
 }

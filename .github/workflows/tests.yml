@@ -73,7 +73,7 @@ jobs:
       - run: composer install --prefer-dist --no-suggest
 
       - name: Copy .env file
-        run: cp tests/.env.example tests/.env
+        run: cp config/.env.example tests/.env
 
       - name: Run test suites
         env:
@@ -82,9 +82,9 @@ jobs:
         if: success()
         run: vendor/bin/codecept run --coverage-xml=coverage-${{ matrix.php-versions }}.xml
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage to Codecov (coverage)
         if: success()
         uses: codecov/codecov-action@v6
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          file: ./tests/_output/coverage-*.xml
+          files: ./tests/_output/coverage-${{ matrix.php-versions }}.xml

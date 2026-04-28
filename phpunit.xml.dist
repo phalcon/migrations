@@ -3,13 +3,20 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
     bootstrap="./phpunit.php"
-    cacheDirectory="./tests/_output/"
+    cacheDirectory="./tests/_output/cache"
     colors="true"
-    stopOnFailure="false"
 >
     <testsuites>
-        <testsuite name="unit">
-            <directory>tests/unit</directory>
+        <testsuite name="unit tests">
+            <directory>./tests/unit/</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+        <exclude>
+            <directory>./tests</directory>
+        </exclude>
+    </source>
 </phpunit>
