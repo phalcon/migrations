@@ -10,6 +10,9 @@
 - Added migration script to migrate existing migrations to new references; provision for running either migrations (old/refactored) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed Config file loading (`.ini`, `.json`, `.yaml`) to now use native PHP functions (`parse_ini_file`, `json_decode`, `yaml_parse_file`) instead of `Phalcon\Config` adapters ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed `Observer/Profiler` and `Listeners/DbProfilerListener` without `Phalcon\Db` dependency; query timing output is unchanged ([#167](https://github.com/phalcon/migrations/issues/167))
+- Changed minimum PHP version to 8.2
+- Changed test suite from Codeception to PHPUnit 11.5; all tests moved to a single `unit` suite under `tests/unit/`
+- Moved CLI entry point from project root to `bin/phalcon-migrations`
 
 # [2.2.4](https://github.com/phalcon/migrations/releases/tag/v2.2.4) (2021-12-10)
 - Changed column modification behavior during table morph ([#126](https://github.com/phalcon/migrations/issues/126))
