@@ -1,8 +1,8 @@
 <?php
 
-use Phalcon\Db\Column;
-use Phalcon\Db\Index;
-use Phalcon\Db\Reference;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Index;
+use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Mvc\Model\Migration;
 
 class TaskJobsMigration_10 extends Migration

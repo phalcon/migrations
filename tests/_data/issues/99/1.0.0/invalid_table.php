@@ -1,7 +1,7 @@
 <?php
 
-use Phalcon\Db\Column;
-use Phalcon\Db\Index;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Mvc\Model\Migration;
 
 class InvalidTableMigration_100 extends Migration
