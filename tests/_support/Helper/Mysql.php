@@ -7,12 +7,11 @@ namespace Helper;
 use Codeception\Module;
 use Codeception\TestInterface;
 use PDO;
-use Phalcon\Migrations\Utils\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\Exception;
-use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Utils\Config;
 
 class Mysql extends Module
 {
@@ -28,7 +27,6 @@ class Mysql extends Module
 
         /** @var AbstractPdo $db */
         self::$phalconDb = new PdoMysql($options);
-        self::$phalconDb->setDialect(new DialectMysql());
     }
 
     public function _before(TestInterface $test)

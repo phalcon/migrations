@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Tests\Unit\Db;
 
 use Codeception\Test\Unit;
-use Phalcon\Db\Column;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\FieldDefinition;
 
 final class FieldDefinitionTest extends Unit

@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Tests\Integration\Migration\Action;
 
 use IntegrationTester;
-use Phalcon\Db\Column;
-use Phalcon\Db\Reference;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Migration\Action\Generate;
 use Phalcon\Migrations\Mvc\Model\Migration;
