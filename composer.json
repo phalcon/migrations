@@ -27,26 +27,21 @@
         "forum": "https://forum.phalcon.io"
     },
     "require": {
-        "php": ">=8.1",
-        "ext-phalcon": ">=5.5",
+        "php": ">=8.2",
         "phalcon/cli-options-parser": "^2.0",
         "nette/php-generator": "^4.0"
     },
     "require-dev": {
         "ext-pdo": "*",
+        "pds/skeleton": "^1.0",
+        "pds/composer-script-names": "^1.0",
+        "phpunit/phpunit": "^11.5",
         "squizlabs/php_codesniffer": "^4.0",
         "fakerphp/faker": "^1.24",
-        "humbug/box": "^4.5",
-        "codeception/codeception": "^5.2",
-        "codeception/module-asserts": "^3.1",
-        "codeception/module-cli": "^2.0",
-        "codeception/module-db": "^3.2",
+        "humbug/box": "^4.7",
         "vlucas/phpdotenv": "^5.6",
         "phpstan/phpstan": "^2.1",
-        "phalcon/ide-stubs": "^5.9",
-        "vimeo/psalm": "^5.26",
-        "pds/composer-script-names": "^1.0",
-        "pds/skeleton": "^1.0"
+        "vimeo/psalm": "^6.16"
     },
     "autoload": {
         "psr-4": {
@@ -55,10 +50,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Phalcon\\Migrations\\Tests\\Cli\\": "tests/cli/",
-            "Phalcon\\Migrations\\Tests\\Integration\\": "tests/integration/",
-            "Phalcon\\Migrations\\Tests\\Mysql\\": "tests/mysql/",
-            "Phalcon\\Migrations\\Tests\\PostgreSQL\\": "tests/postgresql/",
+            "Phalcon\\Migrations\\Tests\\": "tests/",
             "Phalcon\\Migrations\\Tests\\Unit\\": "tests/unit/"
         }
     },
@@ -75,20 +67,20 @@
             ".codecov.yml",
             "CHANGELOG.md",
             "codeception.yml",
-          "phpcs.xml",
+            "phpcs.xml",
             "phpstan.neon.dist",
             "psalm.xml.dist"
         ]
     },
     "bin": [
-        "phalcon-migrations"
+        "bin/phalcon-migrations"
     ],
   "scripts": {
     "analyze": "vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1024M",
     "cs": "vendor/bin/phpcs --standard=phpcs.xml",
     "cs-fix": "vendor/bin/phpcbf --standard=phpcs.xml",
-    "test-unit": "vendor/bin/phpunit -c phpunit.xml.dist",
-    "test-unit-coverage": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-clover tests/_output/coverage.xml",
-    "test-unit-coverage-html": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-html tests/_output/coverage/"
+    "test": "vendor/bin/phpunit -c phpunit.xml.dist",
+    "test-coverage": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-clover tests/_output/coverage.xml",
+    "test-coverage-html": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-html tests/_output/coverage/"
   }
 }
