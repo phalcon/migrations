@@ -573,7 +573,8 @@ class Migration
 
             foreach ($definition['indexes'] as $tableIndex) {
                 if (!isset($localIndexes[$tableIndex->getName()])) {
-                    if ($tableIndex->getName() === 'PRIMARY'
+                    if (
+                        $tableIndex->getName() === 'PRIMARY'
                         || $tableIndex->getType() === Index::TYPE_PRIMARY
                         || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT
                     ) {
@@ -593,7 +594,8 @@ class Migration
                     }
 
                     if ($changed) {
-                        if ($tableIndex->getName() === 'PRIMARY'
+                        if (
+                            $tableIndex->getName() === 'PRIMARY'
                             || $tableIndex->getType() === Index::TYPE_PRIMARY
                             || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT
                         ) {
