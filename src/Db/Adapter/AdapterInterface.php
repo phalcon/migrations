@@ -54,6 +54,8 @@ interface AdapterInterface
 
     public function getTableOptions(string $schema, string $table): array;
 
+    public function dropTable(string $table, string $schema = ''): void;
+
     public function createTable(string $table, string $schema, array $definition): void;
 
     public function addColumn(string $table, string $schema, Column $column): void;

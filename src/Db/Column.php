@@ -64,7 +64,7 @@ final class Column
         $this->type          = (string) ($definition['type'] ?? self::TYPE_VARCHAR);
         $this->size          = $definition['size']          ?? null;
         $this->scale         = isset($definition['scale'])  ? (int) $definition['scale'] : null;
-        $this->notNull       = (bool) ($definition['notNull']       ?? false);
+        $this->notNull       = (bool) ($definition['notNull']       ?? true);
         $this->unsigned      = (bool) ($definition['unsigned']      ?? false);
         $this->autoIncrement = (bool) ($definition['autoIncrement'] ?? false);
         $this->primary       = (bool) ($definition['primary']       ?? false);

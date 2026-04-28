@@ -107,6 +107,12 @@ abstract class AbstractAdapter implements AdapterInterface
         return $this->processColumnInformation($schema, $table, $columns);
     }
 
+    public function dropTable(string $table, string $schema = ''): void
+    {
+        $t = $this->qualifyTable($table, $schema);
+        $this->connection->execute("DROP TABLE IF EXISTS {$t}");
+    }
+
     public function createTable(string $table, string $schema, array $definition): void
     {
         $sql = $this->buildCreateTableSql($table, $schema, $definition);
@@ -430,6 +436,26 @@ abstract class AbstractAdapter implements AdapterInterface
 
         foreach ($definition['columns'] ?? [] as $column) {
             $parts[] = '    ' . $this->buildColumnDefinitionSql($column);
+        }
+
+        $hasPrimaryIndex = false;
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if ($this->isPrimaryIndex($index)) {
+                $hasPrimaryIndex = true;
+                break;
+            }
+        }
+
+        if (!$hasPrimaryIndex) {
+            $pkCols = [];
+            foreach ($definition['columns'] ?? [] as $column) {
+                if ($column->isPrimary()) {
+                    $pkCols[] = $column->getName();
+                }
+            }
+            if ($pkCols !== []) {
+                $parts[] = '    PRIMARY KEY (' . $this->quoteColumns($pkCols) . ')';
+            }
         }
 
         foreach ($definition['indexes'] ?? [] as $index) {
