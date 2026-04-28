@@ -1,0 +1,209 @@
+name: "Tests"
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+  pull_request:
+  workflow_dispatch:
+
+env:
+  EXTENSIONS: mbstring, intl, json, pdo_mysql, pdo_pgsql
+  COMPOSER_NO_INTERACTION: 1
+  COMPOSER_NO_AUDIT: 1
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  phpcs:
+    name: "Code style and static analysis - PHP ${{ matrix.php }}"
+
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php:
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "Cache extensions"
+        uses: shivammathur/cache-extensions@v1
+        id: cache-ext
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ env.EXTENSIONS }}
+          key: ext-cache-v1
+
+      - name: "Restore extensions"
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.cache-ext.outputs.dir }}
+          key: ${{ steps.cache-ext.outputs.key }}
+          restore-keys: ${{ steps.cache-ext.outputs.key }}
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ env.EXTENSIONS }}
+          tools: composer:v2
+          coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Validate composer"
+        run: composer validate --no-check-all --no-check-publish
+
+      - name: "Install dependencies"
+        uses: ramsey/composer-install@v4
+        with:
+          composer-options: "--prefer-dist"
+
+      - name: "PHPCS"
+        run: composer cs
+
+      - name: "PHPStan"
+        run: composer analyze
+
+      - name: "Psalm"
+        run: composer analyze-psalm
+
+  run-tests:
+    name: "PHP ${{ matrix.php-versions }}"
+
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - phpcs
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: phalcon-migrations
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      postgres:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions:
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "Cache extensions"
+        uses: shivammathur/cache-extensions@v1
+        id: cache-ext
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: ${{ env.EXTENSIONS }}
+          key: ext-cache-v1
+
+      - name: "Restore extensions"
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.cache-ext.outputs.dir }}
+          key: ${{ steps.cache-ext.outputs.key }}
+          restore-keys: ${{ steps.cache-ext.outputs.key }}
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: ${{ env.EXTENSIONS }}
+          tools: composer:v2
+          coverage: xdebug
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Validate composer"
+        run: composer validate --no-check-all --no-check-publish
+
+      - name: "Install dependencies"
+        uses: ramsey/composer-install@v4
+        with:
+          composer-options: "--prefer-dist"
+
+      - name: "Copy .env file"
+        run: cp config/.env.example tests/.env
+
+      - name: "Run test suites"
+        run: composer test-coverage
+
+      - name: "Upload coverage file artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "coverage-${{ matrix.php-versions }}"
+          path: "tests/_output/coverage/clover.xml"
+
+  upload-coverage:
+    name: "Upload coverage"
+
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - run-tests
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "Download coverage artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage
+
+      - name: "List coverage files"
+        run: ls -la coverage/
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: >-
+            coverage/coverage-8.2/clover.xml,
+            coverage/coverage-8.3/clover.xml,
+            coverage/coverage-8.4/clover.xml,
+            coverage/coverage-8.5/clover.xml
+          fail_ci_if_error: false

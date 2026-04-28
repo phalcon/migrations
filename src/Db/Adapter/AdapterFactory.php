@@ -13,19 +13,13 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Db\Adapter;
 
-use InvalidArgumentException;
 use Phalcon\Migrations\Db\Connection;
+use Phalcon\Migrations\Exception\InvalidArgumentException;
 
 use function strtolower;
 
 final class AdapterFactory
 {
-    private static array $map = [
-        'mysql'      => Mysql::class,
-        'postgresql' => Postgresql::class,
-        'sqlite'     => Sqlite::class,
-    ];
-
     public static function create(Connection $connection): AdapterInterface
     {
         $driver = strtolower($connection->getDriverName());
@@ -34,7 +28,7 @@ final class AdapterFactory
             'mysql'  => Mysql::class,
             'pgsql'  => Postgresql::class,
             'sqlite' => Sqlite::class,
-            default  => throw new InvalidArgumentException("Unsupported database driver: {$driver}"),
+            default  => throw InvalidArgumentException::unsupportedDatabaseDriver($driver),
         };
 
         return new $adapterClass($connection);

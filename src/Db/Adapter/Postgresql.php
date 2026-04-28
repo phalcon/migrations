@@ -417,6 +417,26 @@ class Postgresql extends AbstractAdapter
             $parts[] = '    ' . $col;
         }
 
+        $hasPrimaryIndex = false;
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if ($this->isPrimaryIndex($index)) {
+                $hasPrimaryIndex = true;
+                break;
+            }
+        }
+
+        if (!$hasPrimaryIndex) {
+            $pkCols = [];
+            foreach ($definition['columns'] ?? [] as $column) {
+                if ($column->isPrimary()) {
+                    $pkCols[] = $column->getName();
+                }
+            }
+            if ($pkCols !== []) {
+                $parts[] = '    PRIMARY KEY (' . $this->quoteColumns($pkCols) . ')';
+            }
+        }
+
         foreach ($definition['indexes'] ?? [] as $index) {
             if ($this->isPrimaryIndex($index)) {
                 $cols    = $this->quoteColumns($index->getColumns());

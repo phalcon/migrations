@@ -31,6 +31,11 @@ class UnknownColumnTypeException extends RuntimeException
         );
     }
 
+    public static function forColumn(Column $column): self
+    {
+        return new self($column);
+    }
+
     public function getColumn(): Column
     {
         return $this->column;

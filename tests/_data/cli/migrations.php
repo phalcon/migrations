@@ -30,6 +30,6 @@ return [
     ],
     'application' => [
         'logInDb' => true,
-        'migrationsDir' => 'tests/_output',
+        'migrationsDir' => 'tests/_output/migrations',
     ],
 ];

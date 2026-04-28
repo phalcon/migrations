@@ -61,14 +61,12 @@ class MigrateFiles implements CommandsInterface
         }
 
         if (!$path) {
-            throw new CommandsException(
-                'Migrations directory is required. Use --migrations=<path>'
-            );
+            throw CommandsException::migrationsDirectoryRequired();
         }
 
         $resolved = realpath($path);
         if ($resolved === false) {
-            throw new CommandsException("Directory not found: {$path}");
+            throw CommandsException::directoryNotFound($path);
         }
 
         $dryRun   = $this->parser->has('dry-run');

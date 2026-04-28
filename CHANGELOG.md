@@ -1,15 +1,45 @@
 # [unreleased]
-- Removed `Phalcon\Config\Config` dependency; replaced with `Phalcon\Migrations\Utils\Config` flat value object ([#166](https://github.com/phalcon/migrations/issues/166))
-- Removed `Phalcon\Db` dependency entirely; replaced with library-local `Phalcon\Migrations\Db` layer ([#166](https://github.com/phalcon/migrations/issues/166))
-- Added `Phalcon\Migrations\Db\Connection` — trimmed PDO wrapper covering all database operations ([#167](https://github.com/phalcon/migrations/issues/167))
+
+## Added
+
+- Added `Phalcon\Migrations\Db\Connection` - trimmed PDO wrapper covering all database operations ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `Phalcon\Migrations\Db\Column`, `Index`, `Reference` value objects replacing their `Phalcon\Db` counterparts ([#167](https://github.com/phalcon/migrations/issues/167))
-- Added `Phalcon\Migrations\Db\Adapter\Mysql`, `Postgresql`, `Sqlite` — schema introspection (columns, indexes, foreign keys, table options) and full DDL generation per driver ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Migrations\Db\Adapter\Mysql`, `Postgresql`, `Sqlite` - schema introspection (columns, indexes, foreign keys, table options) and full DDL generation per driver ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `Phalcon\Migrations\Db\PhalconColumnBridge` for transparent backward compatibility: migration files using `Phalcon\Db\Column` continue to work without modification ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `migration migrate-files` CLI command to update existing migration files from `Phalcon\Db` to `Phalcon\Migrations\Db` namespace ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added `@template-implements ArrayAccess<string, mixed>` annotation to `OptionStack` (psalm compliance) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added migration script to migrate existing migrations to new references; provision for running either migrations (old/refactored) ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `tests/Fakes/` directory with `MigrationFake` and `MigrationCommandFake` test helpers; registered `Phalcon\Migrations\Tests\Fakes\` PSR-4 namespace in `composer.json` ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added backwards-compatibility fixtures in `tests/_data/backcompat/old/` and `tests/_data/backcompat/new/` covering old-format (`Phalcon\Db\*`) and new-format (`Phalcon\Migrations\Db\*`) migrations across two versions each (create + alter column) ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added rollback tests exercising `DIRECTION_BACK` and `createPrevClassWithMorphMethod` to verify table structure is correctly restored when running migrations backwards ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added `Phalcon\Utils\Camelize` to be used instead of the one from Phalcon ([#167](https://github.com/phalcon/migrations/issues/167))
+
+## Fixed
+ 
+- Fixed four `\$this` syntax errors in `tests/unit/Cli/RunTest.php` that prevented the test suite from loading ([#167](https://github.com/phalcon/migrations/issues/167))
+- Fixed `morphTable()` passing the original `$definition` array (containing unconverted `Phalcon\Db\Column`, `Index`, `Reference` objects) to `createTable()`; objects are now normalised to `Phalcon\Migrations\Db\*` types in-place during the column conversion loop, so old-format migration files work correctly on table creation ([#167](https://github.com/phalcon/migrations/issues/167))
+- Fixed `PhalconColumnBridge::fromPhalcon()` preserving an empty-string `getAfterPosition()` from `Phalcon\Db\Column` instead of normalising it to `null`; this caused `AFTER `` ` in the generated ALTER SQL when adding columns from old-format migrations ([#167](https://github.com/phalcon/migrations/issues/167))
+- Fixed PHPStan errors: removed dead `$map` property from `AdapterFactory`, corrected `@var SplFileInfo` annotation, removed `@method` annotations from `Migration` class docblock that caused `method_exists()` to always evaluate to true, removed redundant `@var Config` annotation that made an `instanceof` guard appear always-true ([#167](https://github.com/phalcon/migrations/issues/167))
+- Fixed Psalm errors: unused `$reference` and `$indexColumns` foreach values replaced with `$_`, unused `$description` in first loop of `printParameters()` replaced with `$_`, `realpath()` false return handled explicitly, implicit `__toString` casts made explicit with `(string)`, mixed int/float arithmetic in `IncrementalItem` made type-safe with `(int) pow()` and intermediate `$multiplier` variable, `addMinor()` string `+=` int fixed with explicit `(string)((int) $parts[0] + $number)` ([#167](https://github.com/phalcon/migrations/issues/167))
+- Fixed typo in `Generate::checkEntityExists()` error message: `'Migration entity is e,pty'` → `'Migration entity is empty'` ([#167](https://github.com/phalcon/migrations/issues/167))
+
+## Changed
+
+- `TimestampedItem`, `ListTablesDb`, `ListTablesIterator`, `Connection`, and `AdapterFactory` now use the custom `Phalcon\Migrations\Exception\InvalidArgumentException` instead of the PHP built-in, giving the library a consistent exception hierarchy ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added named static constructor methods to all exception classes returning `self`, eliminating raw `new ExceptionClass('literal string')` throw sites across the codebase ([#167](https://github.com/phalcon/migrations/issues/167))
+- Configured Psalm (`psalm.xml.dist`) with suppressions for `MissingOverrideAttribute` (PHP 8.3 only, project targets 8.2), `PossiblyUnusedMethod`/`UnusedClass` (library public API), `PossiblyNullArrayOffset` (`isset` is safe with null keys), `PossiblyInvalidCast` (Psalm cannot track the conditional `$storage` field type), and `RedundantCast` (Psalm contradicts itself on `pow()` return type narrowing) ([#167](https://github.com/phalcon/migrations/issues/167))
+- Configured PHPStan at level 5 (embedded in `phpstan.neon.dist`); zero errors ([#167](https://github.com/phalcon/migrations/issues/167))
+- Expanded test suite from 91 to 342 tests; added test classes for `Utils\Config`, `Utils\Helper`, `Version\IncrementalItem`, `Version\ItemCollection`, `Version\TimestampedItem`, `Console\Color`, `Console\OptionStack`, `Console\Commands\MigrateFiles`, `Console\Commands\Migration`, `Generator\Snippet`, all `Exception` classes, `Observer\Profiler`, `Listeners\DbProfilerListener`, `Db\PhalconColumnBridge`, `Db\FieldDefinition`, `Db\Adapter\Mysql`, `Db\Adapter\Postgresql`, `Db\Connection`, `Migration\Action\Generate`, `Mvc\Model\Migration`, and `Mvc\Model\Migration\TableAware\ListTablesIterator` ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed Config file loading (`.ini`, `.json`, `.yaml`) to now use native PHP functions (`parse_ini_file`, `json_decode`, `yaml_parse_file`) instead of `Phalcon\Config` adapters ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed `Observer/Profiler` and `Listeners/DbProfilerListener` without `Phalcon\Db` dependency; query timing output is unchanged ([#167](https://github.com/phalcon/migrations/issues/167))
+- Changed minimum PHP version to 8.2 ([#167](https://github.com/phalcon/migrations/issues/167))
+- Changed test suite from Codeception to PHPUnit 11.5; all tests moved to a single `unit` suite under `tests/unit/` ([#167](https://github.com/phalcon/migrations/issues/167))
+- Moved CLI entry point from project root to `bin/phalcon-migrations` ([#167](https://github.com/phalcon/migrations/issues/167))
+
+## Removed
+
+- Removed `Phalcon\Config\Config` dependency; replaced with `Phalcon\Migrations\Utils\Config` flat value object ([#166](https://github.com/phalcon/migrations/issues/166))
+- Removed `Phalcon\Db` dependency entirely; replaced with library-local `Phalcon\Migrations\Db` layer ([#166](https://github.com/phalcon/migrations/issues/166))
 
 # [2.2.4](https://github.com/phalcon/migrations/releases/tag/v2.2.4) (2021-12-10)
 - Changed column modification behavior during table morph ([#126](https://github.com/phalcon/migrations/issues/126))

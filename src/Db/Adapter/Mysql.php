@@ -202,7 +202,9 @@ class Mysql extends AbstractAdapter
     public function getTableOptions(string $schema, string $table): array
     {
         return $this->connection->fetchOne(
-            "SELECT engine, table_collation, auto_increment
+            "SELECT engine           AS engine,
+                    table_collation  AS table_collation,
+                    auto_increment   AS auto_increment
              FROM   information_schema.tables
              WHERE  table_schema = :schema
              AND    table_name   = :table",

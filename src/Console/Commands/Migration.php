@@ -102,7 +102,8 @@ class Migration implements CommandsInterface
             return;
         }
 
-        $path = realpath($this->parser->get('directory', '')) . DIRECTORY_SEPARATOR;
+        $resolved = realpath($this->parser->get('directory', ''));
+        $path     = ($resolved !== false ? $resolved : '') . DIRECTORY_SEPARATOR;
         if ($this->parser->has('config')) {
             $config = $this->loadConfig($path . $this->parser->get('config'));
         } else {
@@ -194,7 +195,7 @@ class Migration implements CommandsInterface
                 break;
 
             default:
-                throw new CommandsException('Unknown action. Use help, h or ? to see all available commands');
+                throw CommandsException::unknownAction();
         }
     }
 
@@ -251,7 +252,7 @@ class Migration implements CommandsInterface
             }
         }
 
-        throw new CommandsException("Can't locate the configuration file.");
+        throw CommandsException::configNotFound();
     }
 
     /**
@@ -265,7 +266,7 @@ class Migration implements CommandsInterface
         $pathInfo = pathinfo($fileName);
 
         if (!isset($pathInfo['extension'])) {
-            throw new CommandsException('Config file extension not found.');
+            throw CommandsException::configExtensionNotFound();
         }
 
         $extension = strtolower(trim($pathInfo['extension']));
@@ -286,7 +287,7 @@ class Migration implements CommandsInterface
                 return Config::fromArray(yaml_parse_file($fileName) ?: []);
 
             default:
-                throw new CommandsException("Builder can't locate the configuration file.");
+                throw CommandsException::configBuilderNotFound();
         }
     }
 
@@ -296,7 +297,7 @@ class Migration implements CommandsInterface
     protected function printParameters(array $parameters): void
     {
         $length = 0;
-        foreach ($parameters as $parameter => $description) {
+        foreach ($parameters as $parameter => $_) {
             if ($length == 0) {
                 $length = strlen($parameter);
             }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
 use DirectoryIterator;
-use InvalidArgumentException;
+use Phalcon\Migrations\Exception\InvalidArgumentException;
 
 use function array_unique;
 use function explode;
@@ -30,7 +30,7 @@ class ListTablesIterator implements ListTablesInterface
     public function listTablesForPrefix(string $tablePrefix, ?DirectoryIterator $iterator = null): string
     {
         if (empty($tablePrefix) || $iterator === null) {
-            throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
+            throw InvalidArgumentException::parametersNotDefined(__METHOD__);
         }
 
         $fileNames = [];

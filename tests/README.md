@@ -7,8 +7,7 @@ This folder contains all the tests for the Phalcon Migrations.
 ## Run tests
 
 ```bash
-vendor/bin/codecept build
-vendor/bin/codecept run
+composer test
 ```
 
 ## Getting Started
@@ -17,7 +16,7 @@ Currently, you will need configured MySQL and PostgreSQL databases.
 
 *  Copy .env.example file: 
 ```bash
-cp -p tests/.env.example tests/.env
+cp -p config/.env.example tests/.env
 ```
 *  Edit credentials to the databases
 *  Create manually databases and users (if needed) or use these commands matching default ones:

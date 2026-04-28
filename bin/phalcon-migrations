@@ -1,0 +1,50 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * This file is part of the Phalcon Developer Tools.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+use Phalcon\Cop\Parser;
+use Phalcon\Migrations\Console\Color;
+use Phalcon\Migrations\Console\Commands\CommandsException;
+use Phalcon\Migrations\Console\Commands\Migration;
+use Phalcon\Migrations\Exception\RuntimeException;
+
+try {
+    $files = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
+    foreach ($files as $file) {
+        if (file_exists($file)) {
+            require $file;
+            break;
+        }
+    }
+
+    print PHP_EOL . Color::colorize('Phalcon Migrations', Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL . PHP_EOL;
+
+    try {
+        $parser = new Parser();
+        $parser->parse();
+        $command = new Migration($parser);
+        $command->run();
+    } catch (CommandsException $commandsException) {
+        echo Color::error($commandsException->getMessage(), 'Exception Error: ');
+        exit(1);
+    } catch (RuntimeException $runtimeException) {
+        echo Color::error($runtimeException->getMessage(), 'Runtime Error: ');
+        exit(1);
+    } catch (\PDOException $dbException) {
+        echo Color::error($dbException->getMessage(), 'DB Error: ');
+        exit(1);
+    }
+} catch (Throwable $e) {
+    echo Color::fatal($e->getMessage());
+    exit(1);
+}

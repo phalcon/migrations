@@ -13,15 +13,19 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Console;
 
-use Codeception\Test\Unit;
 use Phalcon\Migrations\Console\OptionStack;
+use Phalcon\Migrations\Tests\AbstractTestCase;
+use Phalcon\Migrations\Version\IncrementalItem;
+use Phalcon\Migrations\Version\ItemCollection;
+use Phalcon\Migrations\Version\TimestampedItem;
+use PHPUnit\Framework\Attributes\DataProvider;
 
-final class OptionStackTest extends Unit
+final class OptionStackTest extends AbstractTestCase
 {
     /**
      * @see testSetOptionAndGetOption11
      */
-    public function setOptionAndGetOption11DataProvider(): array
+    public static function setOptionAndGetOption11DataProvider(): array
     {
         return [
             ['foo-bar', 'bar-foo', 'foo-bar'],
@@ -32,7 +36,7 @@ final class OptionStackTest extends Unit
     /**
      * @see testSetDefaultOptionIfOptionDidntExist
      */
-    public function setDefaultOptionIfOptionDidntExistDataProvider(): array
+    public static function setDefaultOptionIfOptionDidntExistDataProvider(): array
     {
         return [
             ['test', 'foo-bar', 'bar'],
@@ -52,13 +56,7 @@ final class OptionStackTest extends Unit
         $this->assertSame($data, $options->getOptions());
     }
 
-    /**
-     * @dataProvider setOptionAndGetOption11DataProvider
-     *
-     * @param $option
-     * @param $defaultValue
-     * @param $expected
-     */
+    #[DataProvider('setOptionAndGetOption11DataProvider')]
     public function testSetOptionAndGetOption11($option, $defaultValue, $expected): void
     {
         $key = 'set-test';
@@ -68,13 +66,7 @@ final class OptionStackTest extends Unit
         $this->assertSame($expected, $options->offsetGet($key));
     }
 
-    /**
-     * @dataProvider setDefaultOptionIfOptionDidntExistDataProvider
-     *
-     * @param $key
-     * @param $defaultValue
-     * @param $expected
-     */
+    #[DataProvider('setDefaultOptionIfOptionDidntExistDataProvider')]
     public function testSetDefaultOptionIfOptionDidntExist($key, $defaultValue, $expected): void
     {
         $options = new OptionStack();
@@ -99,5 +91,77 @@ final class OptionStackTest extends Unit
 
         $this->assertSame('foo', $options->getPrefixOption('foo^', '^'));
         $this->assertSame('bar', $options->getPrefixOption('bar?', '?'));
+    }
+
+    public function testGetPrefixOptionWithoutStarSuffixReturnsEmpty(): void
+    {
+        $options = new OptionStack();
+
+        $this->assertSame('', $options->getPrefixOption('foo'));
+    }
+
+    public function testOffsetExistsReturnsTrueForSetKey(): void
+    {
+        $options = new OptionStack(['key' => 'value']);
+
+        $this->assertTrue($options->offsetExists('key'));
+        $this->assertFalse($options->offsetExists('missing'));
+    }
+
+    public function testOffsetUnsetRemovesKey(): void
+    {
+        $options = new OptionStack(['key' => 'value', 'other' => 'val']);
+        $options->offsetUnset('key');
+
+        $this->assertFalse($options->offsetExists('key'));
+        $this->assertTrue($options->offsetExists('other'));
+    }
+
+    public function testOffsetUnsetIgnoresMissingKey(): void
+    {
+        $options = new OptionStack(['key' => 'value']);
+        $options->offsetUnset('missing');
+
+        $this->assertSame(['key' => 'value'], $options->getOptions());
+    }
+
+    public function testGetVersionNameGeneratingMigrationWithDescr(): void
+    {
+        $options = new OptionStack([
+            'descr'         => 'initial',
+            'migrationsDir' => [],
+        ]);
+
+        $version = $options->getVersionNameGeneratingMigration();
+
+        $this->assertInstanceOf(TimestampedItem::class, $version);
+        $this->assertStringEndsWith('_initial', $version->getVersion());
+        ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
+    }
+
+    public function testGetVersionNameGeneratingMigrationWithExplicitVersion(): void
+    {
+        $options = new OptionStack([
+            'version'       => '2.0.0',
+            'migrationsDir' => [],
+            'force'         => false,
+        ]);
+
+        $version = $options->getVersionNameGeneratingMigration();
+
+        $this->assertInstanceOf(IncrementalItem::class, $version);
+        $this->assertSame('2.0.0', $version->getVersion());
+    }
+
+    public function testGetVersionNameGeneratingMigrationAutoReturnsFirstVersion(): void
+    {
+        $options = new OptionStack([
+            'migrationsDir' => [],
+        ]);
+
+        $version = $options->getVersionNameGeneratingMigration();
+
+        $this->assertInstanceOf(IncrementalItem::class, $version);
+        $this->assertSame('1.0.0', $version->getVersion());
     }
 }

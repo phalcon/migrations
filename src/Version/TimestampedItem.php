@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Version;
 
-use InvalidArgumentException;
+use Phalcon\Migrations\Exception\InvalidArgumentException;
 
 use function explode;
 use function preg_match;
@@ -39,7 +39,7 @@ class TimestampedItem implements ItemInterface
     public function __construct(string $version)
     {
         if ((1 !== preg_match('#^[\d]{7,}(?:\_[a-z0-9]+)*$#', $version)) && $version != '000') {
-            throw new InvalidArgumentException('Wrong version number provided');
+            throw InvalidArgumentException::wrongVersionNumber();
         }
 
         $this->version       = $version;
