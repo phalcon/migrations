@@ -351,7 +351,7 @@ class Generate
 
             $columnType = $column->getType();
             if (!isset($supportedColumnTypes[$columnType])) {
-                throw new UnknownColumnTypeException($column);
+                throw UnknownColumnTypeException::forColumn($column);
             }
 
             if (in_array($columnType, $this->numericColumnTypes, true)) {
@@ -568,7 +568,7 @@ class Generate
     public function checkEntityExists(): void
     {
         if (null === $this->file) {
-            throw new RuntimeException('Migration entity is e,pty. Call Generate::createEntity()');
+            throw RuntimeException::migrationEntityEmpty();
         }
     }
 }

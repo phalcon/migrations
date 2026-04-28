@@ -60,7 +60,7 @@ class Helper
         }
 
         if (!$migrationsDir) {
-            throw new RuntimeException('Migrations directory is not defined. Cannot proceed');
+            throw RuntimeException::migrationsDirectoryNotDefined();
         }
 
         if (!file_exists($migrationsDir)) {

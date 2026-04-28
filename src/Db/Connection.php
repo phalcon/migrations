@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Db;
 
 use Generator;
-use InvalidArgumentException;
 use PDO;
 use PDOStatement;
+use Phalcon\Migrations\Exception\InvalidArgumentException;
 use Phalcon\Migrations\Observer\Profiler;
 use Phalcon\Migrations\Utils\Config;
 
@@ -72,7 +72,7 @@ final class Connection
                 break;
 
             default:
-                throw new InvalidArgumentException('Unsupported database adapter: ' . $driver);
+                throw InvalidArgumentException::unsupportedDatabaseAdapter($driver);
         }
 
         return new self($dsn, $config->username, $config->password, $options, $queries);

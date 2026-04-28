@@ -166,9 +166,9 @@ class IncrementalItem implements ItemInterface
         $parts = array_reverse($this->parts);
         if (isset($parts[0])) {
             if (is_numeric($parts[0])) {
-                $parts[0] += $number;
+                $parts[0] = (string) ((int) $parts[0] + $number);
             } else {
-                $parts[0] = ord($parts[0]) + $number;
+                $parts[0] = (string) (ord($parts[0]) + $number);
             }
         }
 
@@ -211,16 +211,17 @@ class IncrementalItem implements ItemInterface
         $versionStamp = 0;
 
         foreach ($this->parts as $part) {
+            $multiplier = (int) pow(10, $n);
             if (is_numeric($part)) {
-                $versionStamp += $part * pow(10, $n);
+                $versionStamp += (int) $part * $multiplier;
             } else {
-                $versionStamp += ord($part) * pow(10, $n);
+                $versionStamp += ord($part) * $multiplier;
             }
 
             $n -= 1;
         }
 
-        $this->versionStamp = (int) $versionStamp;
+        $this->versionStamp = $versionStamp;
 
         return $this;
     }

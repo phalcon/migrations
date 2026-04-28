@@ -130,7 +130,7 @@ class Migrations
 
         // Try to connect to the DB
         if ($optionStack->offsetGet('config')->adapter === null) {
-            throw new RuntimeException('Cannot load database configuration');
+            throw RuntimeException::cannotLoadDatabaseConfiguration();
         }
 
         ModelMigration::setup($optionStack->offsetGet('config'), $verbose);
@@ -214,12 +214,12 @@ class Migrations
         }
 
         if (!$optionStack->offsetGet('config') instanceof Config) {
-            throw new RuntimeException('Internal error. Config should be an instance of ' . Config::class);
+            throw RuntimeException::configMustBeInstance();
         }
 
         // Init ModelMigration
         if ($optionStack->offsetGet('config')->adapter === null) {
-            throw new RuntimeException('Cannot load database configuration');
+            throw RuntimeException::cannotLoadDatabaseConfiguration();
         }
 
         /** @var IncrementalItem $initialVersion */
@@ -231,7 +231,7 @@ class Migrations
             foreach ($migrationsDirList as $migrationsDir) {
                 $migrationsDir = rtrim($migrationsDir, '\\/');
                 if (!file_exists($migrationsDir)) {
-                    throw new RuntimeException('Migrations directory was not found.');
+                    throw RuntimeException::migrationsDirNotFound();
                 }
                 foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
                     $items->setPath($migrationsDir);
@@ -241,7 +241,7 @@ class Migrations
         } else {
             $migrationsDir = rtrim($migrationsDirList, '\\/');
             if (!file_exists($migrationsDir)) {
-                throw new RuntimeException('Migrations directory was not found.');
+                throw RuntimeException::migrationsDirNotFound();
             }
 
             foreach (ModelMigration::scanForVersions($migrationsDir) as $items) {
@@ -373,7 +373,6 @@ class Migrations
 
             if ($optionStack->offsetGet('tableName') === '@') {
                 $migrationFiles = [];
-                /** @var SplFileInfo $fileInfo */
                 foreach ($iterator as $fileInfo) {
                     if (!$fileInfo->isFile() || 0 !== strcasecmp($fileInfo->getExtension(), 'php')) {
                         continue;
@@ -410,10 +409,10 @@ class Migrations
 
             if (ModelMigration::DIRECTION_FORWARD === $direction) {
                 self::addCurrentVersion($optionStack->getOptions(), (string) $versionItem, $migrationStartTime);
-                print Color::success('Version ' . $versionItem . ' was successfully migrated');
+                print Color::success('Version ' . (string) $versionItem . ' was successfully migrated');
             } else {
                 self::removeCurrentVersion($optionStack->getOptions(), (string) $initialVersion);
-                print Color::success('Version ' . $initialVersion . ' was successfully rolled back');
+                print Color::success('Version ' . (string) $initialVersion . ' was successfully rolled back');
             }
 
             $initialVersion = $versionItem;
@@ -435,15 +434,14 @@ class Migrations
             VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
         }
 
-        /** @var Config $config */
         $config = $options['config'];
         if (!$config instanceof Config) {
-            throw new RuntimeException('Internal error. Config should be an instance of ' . Config::class);
+            throw RuntimeException::configMustBeInstance();
         }
 
         // Init ModelMigration
         if ($config->adapter === null) {
-            throw new RuntimeException('Cannot load database configuration');
+            throw RuntimeException::cannotLoadDatabaseConfiguration();
         }
 
         $versionItems      = [];
@@ -452,7 +450,7 @@ class Migrations
             foreach ($migrationsDirList as $migrationsDir) {
                 $migrationsDir = rtrim($migrationsDir, '/');
                 if (!file_exists($migrationsDir)) {
-                    throw new RuntimeException('Migrations directory was not found.');
+                    throw RuntimeException::migrationsDirNotFound();
                 }
                 $versionItem = ModelMigration::scanForVersions($migrationsDir);
 
@@ -514,7 +512,7 @@ class Migrations
             $config = $options['config'];
 
             if ($config->adapter === null) {
-                throw new RuntimeException('Unspecified database Adapter in your configuration!');
+                throw RuntimeException::unspecifiedDatabaseAdapter();
             }
 
             $connection    = Connection::fromConfig($config);
@@ -544,18 +542,18 @@ class Migrations
             }
 
             if (!is_dir($path) && !is_writable(dirname($path))) {
-                throw new RuntimeException("Unable to write '{$path}' directory. Permission denied");
+                throw RuntimeException::cannotWriteDirectory($path);
             }
 
             if (is_file($path)) {
                 unlink($path);
                 if (!mkdir($path) && !is_dir($path)) {
-                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
+                    throw RuntimeException::directoryNotCreated($path);
                 }
                 chmod($path, 0775);
             } elseif (!is_dir($path)) {
                 if (!mkdir($path) && !is_dir($path)) {
-                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
+                    throw RuntimeException::directoryNotCreated($path);
                 }
                 chmod($path, 0775);
             }
@@ -564,9 +562,7 @@ class Migrations
 
             if (!file_exists(self::$storage)) {
                 if (!is_writable($path)) {
-                    throw new RuntimeException(
-                        "Unable to write '" . self::$storage . "' file. Permission denied"
-                    );
+                    throw RuntimeException::cannotWriteFile((string) self::$storage);
                 }
 
                 touch(self::$storage);
@@ -579,7 +575,7 @@ class Migrations
      *
      * @return IncrementalItem|TimestampedItem
      */
-    public static function getCurrentVersion(array $options)
+    public static function getCurrentVersion(array $options): IncrementalItem|TimestampedItem
     {
         self::connectionSetup($options);
 
