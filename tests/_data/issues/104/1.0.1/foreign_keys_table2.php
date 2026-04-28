@@ -1,6 +1,6 @@
 <?php
 
-use Phalcon\Db\Column;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Mvc\Model\Migration;
 
 class ForeignKeysTable2Migration_101 extends Migration

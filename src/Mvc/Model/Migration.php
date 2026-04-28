@@ -16,24 +16,21 @@ namespace Phalcon\Migrations\Mvc\Model;
 use DirectoryIterator;
 use Exception;
 use Nette\PhpGenerator\PsrPrinter;
-use Phalcon\Migrations\Utils\Config;
-use Phalcon\Db\Adapter\AbstractAdapter;
-use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
-use Phalcon\Db\ColumnInterface;
-use Phalcon\Db\Exception as DbException;
-use Phalcon\Db\IndexInterface;
-use Phalcon\Db\ReferenceInterface;
-use Phalcon\Events\Manager as EventsManager;
-use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
-use Phalcon\Migrations\Db\Dialect\DialectMysql;
-use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
+use Phalcon\Migrations\Db\Adapter\AdapterFactory;
+use Phalcon\Migrations\Db\Adapter\AdapterInterface;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Connection;
+use Phalcon\Migrations\Db\PhalconColumnBridge;
+use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Db\FieldDefinition;
+use Phalcon\Migrations\Db\Index;
+use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
-use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Phalcon\Support\Helper\Str\Camelize;
@@ -48,7 +45,6 @@ use function fopen;
 use function get_called_class;
 use function implode;
 use function in_array;
-use function is_object;
 use function method_exists;
 use function preg_replace;
 use function rtrim;
@@ -77,33 +73,17 @@ class Migration
     public const DB_ADAPTER_POSTGRESQL = 'postgresql';
     public const DB_ADAPTER_SQLITE     = 'sqlite';
 
-    /**
-     * Migration database connection
-     *
-     * @var AbstractAdapter
-     */
-    protected static AbstractAdapter $connection;
+    private static AdapterInterface $adapter;
 
     /**
-     * Database configuration
-     *
      * @var Config
      */
-    private static $databaseConfig;
+    private static Config $databaseConfig;
 
-    /**
-     * Path where to save the migration
-     */
     private static string $migrationPath = '';
 
-    /**
-     * Skip auto increment
-     */
     private static bool $skipAI = true;
 
-    /**
-     * Version of the migration file
-     */
     protected ?string $version = null;
 
     /**
@@ -111,86 +91,44 @@ class Migration
      *
      * @param Config $config  Database config
      * @param bool   $verbose array with settings
-     *
-     * @throws DbException
      */
     public static function setup(Config $config, bool $verbose = false): void
     {
         if ($config->adapter === null) {
-            throw new DbException('Unspecified database Adapter in your configuration!');
+            throw new RuntimeException('Unspecified database Adapter in your configuration!');
         }
 
-        /**
-         * The original Phalcon\Db\Adapter\Pdo\Mysql::addForeignKey is broken until the v3.2.0
-         *
-         * @see: Phalcon\Db\Dialect\PdoMysql The extended and fixed dialect class for MySQL
-         */
-        $dbAdapter = strtolower($config->adapter);
-        if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
-            $adapter = PdoMysql::class;
-        } elseif ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
-            $adapter = PdoPostgresql::class;
-        } else {
-            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $config->adapter;
+        $connection = Connection::fromConfig($config);
+
+        if ($verbose && Migrations::isConsole()) {
+            (new DbProfilerListener())->attach($connection);
         }
 
-        if (!class_exists($adapter)) {
-            throw new DbException("Invalid database adapter: '{$adapter}'");
-        }
-
-        $configArray = $config->toArray();
-        unset($configArray['adapter']);
-
-        /** @var AbstractAdapter $connection */
-        $connection           = new $adapter($configArray);
-        self::$connection     = $connection;
+        self::$adapter        = AdapterFactory::create($connection);
         self::$databaseConfig = $config;
-
-        // Connection custom Dialect/DialectMysql
-        if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
-            self::$connection->setDialect(new DialectMysql());
-        }
-
-        // Connection custom Dialect/DialectPostgresql
-        if ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
-            self::$connection->setDialect(new DialectPostgresql());
-        }
-
-        if (!$verbose || !Migrations::isConsole()) {
-            return;
-        }
-
-        $eventsManager = new EventsManager();
-        $eventsManager->attach('db', new DbProfilerListener());
-
-        self::$connection->setEventsManager($eventsManager);
     }
 
-    /**
-     * Set the skip auto increment value
-     */
     public static function setSkipAutoIncrement(bool $skip): void
     {
         self::$skipAI = $skip;
     }
 
-    /**
-     * Set the migration directory path
-     */
     public static function setMigrationPath(string $path): void
     {
         self::$migrationPath = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
     }
 
+    public static function getAdapter(): AdapterInterface
+    {
+        return self::$adapter;
+    }
+
+    public static function getSchema(): ?string
+    {
+        return self::resolveDbSchema(self::$databaseConfig);
+    }
+
     /**
-     * Generates all the class migration definitions for certain database setup
-     *
-     * @param ItemInterface $version
-     * @param string|null   $exportData
-     * @param array         $exportTables
-     * @param bool          $skipRefSchema
-     *
-     * @return array
      * @throws UnknownColumnTypeException
      */
     public static function generateAll(
@@ -202,23 +140,20 @@ class Migration
         $classDefinition = [];
         $schema          = self::resolveDbSchema(self::$databaseConfig);
 
-        foreach (self::$connection->listTables($schema) as $table) {
-            $classDefinition[$table] = self::generate($version, $table, $exportData, $exportTables, $skipRefSchema);
+        foreach (self::$adapter->listTables($schema ?? '') as $table) {
+            $classDefinition[$table] = self::generate(
+                $version,
+                $table,
+                $exportData,
+                $exportTables,
+                $skipRefSchema
+            );
         }
 
         return $classDefinition;
     }
 
     /**
-     * Generate specified table migration
-     *
-     * @param ItemInterface $version
-     * @param string        $table
-     * @param mixed         $exportData
-     * @param array         $exportTables
-     * @param bool          $skipRefSchema
-     *
-     * @return string
      * @throws UnknownColumnTypeException
      */
     public static function generate(
@@ -233,16 +168,25 @@ class Migration
         $snippet       = new Snippet();
         $adapter       = strtolower((string) self::$databaseConfig->adapter);
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
-        $description   = self::$connection->describeColumns($table, $defaultSchema);
-        $indexes       = self::$connection->describeIndexes($table, $defaultSchema);
-        $references    = self::$connection->describeReferences($table, $defaultSchema);
-        $tableOptions  = self::$connection->tableOptions($table, $defaultSchema);
 
-        $classVersion              = preg_replace('/[^0-9A-Za-z]/', '', (string) $version->getStamp());
-        $className                 = $camelize->__invoke($table) . 'Migration_' . $classVersion;
-        $shouldExportDataFromTable = in_array($table, $exportTables);
+        $columns    = self::$adapter->listColumns($defaultSchema ?? '', $table);
+        $indexes    = self::$adapter->listIndexes($defaultSchema ?? '', $table);
+        $references = self::$adapter->listReferences($defaultSchema ?? '', $table);
+        $options    = self::$adapter->getTableOptions($defaultSchema ?? '', $table);
 
-        $generateAction = new GenerateAction($adapter, $description, $indexes, $references, $tableOptions);
+        $classVersion = preg_replace('/[^0-9A-Za-z]/', '', (string) $version->getStamp());
+        $className    = $camelize->__invoke($table) . 'Migration_' . $classVersion;
+
+        $shouldExportDataFromTable = in_array($table, $exportTables, true);
+
+        $generateAction = new GenerateAction(
+            $adapter,
+            $columns,
+            $indexes,
+            $references,
+            $options
+        );
+
         $generateAction->createEntity($className)
                        ->addMorph($snippet, $table, $skipRefSchema, self::$skipAI)
                        ->addUp($table, $exportData, $shouldExportDataFromTable)
@@ -251,25 +195,16 @@ class Migration
                        ->createDumpFiles(
                            $table,
                            self::$migrationPath,
-                           self::$connection,
+                           self::$adapter,
                            $version,
                            $exportData,
                            $shouldExportDataFromTable
-                       )
-        ;
-
+                       );
 
         return $printer->printFile($generateAction->getEntity());
     }
 
     /**
-     * Migrate
-     *
-     * @param string             $tableName
-     * @param ItemInterface|null $fromVersion
-     * @param ItemInterface|null $toVersion
-     * @param bool               $skipForeignChecks
-     *
      * @throws Exception
      */
     public static function migrate(
@@ -282,28 +217,27 @@ class Migration
         $toVersion   = $toVersion ?: VersionCollection::createItem($toVersion);
 
         if ($fromVersion->getStamp() === $toVersion->getStamp()) {
-            return; // nothing to do
+            return;
         }
 
-        $dialect = self::$connection->getDialectType();
-        if ($skipForeignChecks === true) {
-            if ($dialect === self::DB_ADAPTER_MYSQL) {
-                self::$connection->execute('SET FOREIGN_KEY_CHECKS=0');
-            } elseif ($dialect === self::DB_ADAPTER_POSTGRESQL) {
-                self::$connection->execute("SET session_replication_role = 'replica'");
+        $driver = strtolower(self::$adapter->getConnection()->getDriverName());
+
+        if ($skipForeignChecks) {
+            if ($driver === 'mysql') {
+                self::$adapter->execute('SET FOREIGN_KEY_CHECKS=0');
+            } elseif ($driver === 'pgsql') {
+                self::$adapter->execute("SET session_replication_role = 'replica'");
             }
         }
 
         if ($fromVersion->getStamp() < $toVersion->getStamp()) {
             $toMigration = self::createClass($toVersion, $tableName);
 
-            if (null !== $toMigration) {
-                // morph the table structure
+            if ($toMigration !== null) {
                 if (method_exists($toMigration, 'morph')) {
                     $toMigration->morph();
                 }
 
-                // modify the datasets
                 if (method_exists($toMigration, 'up')) {
                     $toMigration->up();
                     if (method_exists($toMigration, 'afterUp')) {
@@ -312,37 +246,30 @@ class Migration
                 }
             }
         } else {
-            // rollback!
-
-            // reset the data modifications
             $fromMigration = self::createClass($fromVersion, $tableName);
-            if (null !== $fromMigration && method_exists($fromMigration, 'down')) {
+            if ($fromMigration !== null && method_exists($fromMigration, 'down')) {
                 $fromMigration->down();
-
                 if (method_exists($fromMigration, 'afterDown')) {
                     $fromMigration->afterDown();
                 }
             }
 
-            // call the last morph function in the previous migration files
             $toMigration = self::createPrevClassWithMorphMethod($toVersion, $tableName);
             if ($toMigration !== null && method_exists($toMigration, 'morph')) {
                 $toMigration->morph();
             }
         }
 
-        if ($skipForeignChecks === true) {
-            if ($dialect === self::DB_ADAPTER_MYSQL) {
-                self::$connection->execute('SET FOREIGN_KEY_CHECKS=1');
-            } elseif ($dialect === self::DB_ADAPTER_POSTGRESQL) {
-                self::$connection->execute("SET session_replication_role = 'origin'");
+        if ($skipForeignChecks) {
+            if ($driver === 'mysql') {
+                self::$adapter->execute('SET FOREIGN_KEY_CHECKS=1');
+            } elseif ($driver === 'pgsql') {
+                self::$adapter->execute("SET session_replication_role = 'origin'");
             }
         }
     }
 
     /**
-     * Create migration object for specified version
-     *
      * @throws Exception
      */
     private static function createClass(ItemInterface $version, string $tableName): ?Migration
@@ -368,12 +295,12 @@ class Migration
     }
 
     /**
-     * Find the last morph function in the previous migration files
-     *
      * @throws Exception
      */
-    private static function createPrevClassWithMorphMethod(ItemInterface $toVersion, string $tableName): ?Migration
-    {
+    private static function createPrevClassWithMorphMethod(
+        ItemInterface $toVersion,
+        string $tableName
+    ): ?Migration {
         $prevVersions = [];
         $versions     = self::scanForVersions(self::$migrationPath);
         foreach ($versions as $prevVersion) {
@@ -393,9 +320,6 @@ class Migration
         return null;
     }
 
-    /**
-     * Scan for all versions
-     */
     public static function scanForVersions(string $dir): array
     {
         $versions = [];
@@ -412,72 +336,70 @@ class Migration
         return $versions;
     }
 
-    /**
-     * Look for table definition modifications and apply to real table
-     */
     public function morphTable(string $tableName, array $definition): void
     {
-        $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
-        $tableExists   = self::$connection->tableExists($tableName, $defaultSchema);
-        $tableSchema   = (string) $defaultSchema;
+        $schema      = self::resolveDbSchema(self::$databaseConfig);
+        $tableExists = self::$adapter->tableExists($tableName, $schema ?? '');
+        $tableSchema = (string) $schema;
 
         if (isset($definition['columns'])) {
             if (count($definition['columns']) === 0) {
-                throw new DbException('Table must have at least one column');
+                throw new RuntimeException('Table must have at least one column');
             }
 
             $fields        = [];
             $previousField = null;
-            /** @var ColumnInterface $tableColumn */
             foreach ($definition['columns'] as $tableColumn) {
-                /**
-                 * TODO: Remove this message, as it will throw same during createTable() execution.
-                 */
-                if (!is_object($tableColumn)) {
-                    throw new DbException('Table must have at least one column');
+                if (!$tableColumn instanceof Column) {
+                    // Transparently convert Phalcon\Db\Column objects from pre-upgrade migration files
+                    if (is_object($tableColumn) && method_exists($tableColumn, 'getType')) {
+                        $tableColumn = PhalconColumnBridge::fromPhalcon($tableColumn);
+                    } else {
+                        throw new RuntimeException('Table must have at least one column');
+                    }
                 }
 
                 $field = new FieldDefinition($tableColumn);
                 $field->setPrevious($previousField);
-                if (null !== $previousField) {
+                if ($previousField !== null) {
                     $previousField->setNext($field);
                 }
-                $previousField = $field;
 
-                $fields[$field->getName()] = $field;
+                $previousField                     = $field;
+                $fields[$field->getName()]         = $field;
             }
 
             if ($tableExists) {
                 $localFields   = [];
                 $previousField = null;
-                $description   = self::$connection->describeColumns($tableName, $defaultSchema);
-                /** @var ColumnInterface $localColumn */
-                foreach ($description as $localColumn) {
+                foreach (self::$adapter->listColumns($schema ?? '', $tableName) as $localColumn) {
                     $field = new FieldDefinition($localColumn);
                     $field->setPrevious($previousField);
-                    if (null !== $previousField) {
+                    if ($previousField !== null) {
                         $previousField->setNext($field);
                     }
-                    $previousField = $field;
 
+                    $previousField                 = $field;
                     $localFields[$field->getName()] = $field;
                 }
 
                 foreach ($fields as $fieldDefinition) {
                     $localFieldDefinition = $fieldDefinition->getPairedDefinition($localFields);
-                    if (null === $localFieldDefinition) {
+                    if ($localFieldDefinition === null) {
                         try {
-                            self::$connection->addColumn($tableName, $tableSchema, $fieldDefinition->getColumn());
-                        } catch (Throwable $exception) {
-                            throw new RuntimeException(
-                                sprintf(
-                                    "Failed to add column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $fieldDefinition->getName(),
-                                    $tableName,
-                                    get_called_class(),
-                                    $exception->getMessage()
-                                )
+                            self::$adapter->addColumn(
+                                $tableName,
+                                $tableSchema,
+                                $fieldDefinition->getColumn()
                             );
+                        } catch (Throwable $e) {
+                            throw new RuntimeException(sprintf(
+                                "Failed to add column '%s' in table '%s'. In '%s' migration. DB error: %s",
+                                $fieldDefinition->getName(),
+                                $tableName,
+                                get_called_class(),
+                                $e->getMessage()
+                            ));
                         }
 
                         continue;
@@ -485,59 +407,49 @@ class Migration
 
                     if ($fieldDefinition->isChanged($localFieldDefinition)) {
                         try {
-                            self::$connection->modifyColumn(
+                            self::$adapter->modifyColumn(
                                 $tableName,
                                 $tableSchema,
                                 $fieldDefinition->getColumn(),
                                 $localFieldDefinition->getColumn()
                             );
-                        } catch (Throwable $exception) {
-                            throw new RuntimeException(
-                                sprintf(
-                                    "Failed to modify column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $fieldDefinition->getName(),
-                                    $tableName,
-                                    get_called_class(),
-                                    $exception->getMessage()
-                                )
-                            );
+                        } catch (Throwable $e) {
+                            throw new RuntimeException(sprintf(
+                                "Failed to modify column '%s' in table '%s'. In '%s' migration. DB error: %s",
+                                $fieldDefinition->getName(),
+                                $tableName,
+                                get_called_class(),
+                                $e->getMessage()
+                            ));
                         }
                     }
                 }
 
                 foreach ($localFields as $fieldDefinition) {
-                    $newFieldDefinition = $fieldDefinition->getPairedDefinition($fields);
-                    if (null === $newFieldDefinition) {
+                    if ($fieldDefinition->getPairedDefinition($fields) === null) {
                         try {
-                            /**
-                             * TODO: Check, why schemaName is empty string.
-                             */
-                            self::$connection->dropColumn($tableName, '', $fieldDefinition->getName());
-                        } catch (Throwable $exception) {
-                            throw new RuntimeException(
-                                sprintf(
-                                    "Failed to drop column '%s' in table '%s'. In '%s' migration. DB error: %s",
-                                    $fieldDefinition->getName(),
-                                    $tableName,
-                                    get_called_class(),
-                                    $exception->getMessage()
-                                )
-                            );
+                            self::$adapter->dropColumn($tableName, '', $fieldDefinition->getName());
+                        } catch (Throwable $e) {
+                            throw new RuntimeException(sprintf(
+                                "Failed to drop column '%s' in table '%s'. In '%s' migration. DB error: %s",
+                                $fieldDefinition->getName(),
+                                $tableName,
+                                get_called_class(),
+                                $e->getMessage()
+                            ));
                         }
                     }
                 }
             } else {
                 try {
-                    self::$connection->createTable($tableName, $tableSchema, $definition);
-                } catch (Throwable $exception) {
-                    throw new RuntimeException(
-                        sprintf(
-                            "Failed to create table '%s'. In '%s' migration. DB error: %s",
-                            $tableName,
-                            get_called_class(),
-                            $exception->getMessage()
-                        )
-                    );
+                    self::$adapter->createTable($tableName, $tableSchema, $definition);
+                } catch (Throwable $e) {
+                    throw new RuntimeException(sprintf(
+                        "Failed to create table '%s'. In '%s' migration. DB error: %s",
+                        $tableName,
+                        get_called_class(),
+                        $e->getMessage()
+                    ));
                 }
 
                 if (method_exists($this, 'afterCreateTable')) {
@@ -548,74 +460,47 @@ class Migration
 
         if (isset($definition['references']) && $tableExists) {
             $references = [];
-            foreach ($definition['references'] as $tableReference) {
-                $references[$tableReference->getName()] = $tableReference;
+            foreach ($definition['references'] as $ref) {
+                $references[$ref->getName()] = $ref;
             }
 
             $localReferences  = [];
-            $activeReferences = self::$connection->describeReferences($tableName, $defaultSchema);
-            /** @var ReferenceInterface $activeReference */
-            foreach ($activeReferences as $activeReference) {
-                $localReferences[$activeReference->getName()] = [
-                    'columns'           => $activeReference->getColumns(),
-                    'referencedTable'   => $activeReference->getReferencedTable(),
-                    'referencedSchema'  => $activeReference->getReferencedSchema(),
-                    'referencedColumns' => $activeReference->getReferencedColumns(),
+            foreach (self::$adapter->listReferences($schema ?? '', $tableName) as $activeRef) {
+                $localReferences[$activeRef->getName()] = [
+                    'columns'           => $activeRef->getColumns(),
+                    'referencedTable'   => $activeRef->getReferencedTable(),
+                    'referencedSchema'  => $activeRef->getReferencedSchema(),
+                    'referencedColumns' => $activeRef->getReferencedColumns(),
                 ];
             }
 
             foreach ($definition['references'] as $tableReference) {
-                $schemaName = $tableReference->getSchemaName() ?? '';
+                $schemaName = $tableReference->getReferencedSchema() ?? '';
 
                 if (!isset($localReferences[$tableReference->getName()])) {
                     try {
-                        self::$connection->addForeignKey(
+                        self::$adapter->addForeignKey($tableName, $schemaName, $tableReference);
+                    } catch (Throwable $e) {
+                        throw new RuntimeException(sprintf(
+                            "Failed to add foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
+                            $tableReference->getName(),
                             $tableName,
-                            $schemaName,
-                            $tableReference
-                        );
-                    } catch (Throwable $exception) {
-                        throw new RuntimeException(
-                            sprintf(
-                                "Failed to add foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
-                                $tableReference->getName(),
-                                $tableName,
-                                get_called_class(),
-                                $exception->getMessage()
-                            )
-                        );
+                            get_called_class(),
+                            $e->getMessage()
+                        ));
                     }
 
                     continue;
                 }
 
-                $changed = false;
-                if (
-                    $tableReference->getReferencedTable() !==
-                    $localReferences[$tableReference->getName()]['referencedTable']
-                ) {
-                    $changed = true;
-                }
-
-                if (
-                    !$changed
-                    && count($tableReference->getColumns()) !==
-                    count($localReferences[$tableReference->getName()]['columns'])
-                ) {
-                    $changed = true;
-                }
-
-                if (
-                    !$changed
-                    && count($tableReference->getReferencedColumns()) !==
-                    count($localReferences[$tableReference->getName()]['referencedColumns'])
-                ) {
-                    $changed = true;
-                }
+                $local   = $localReferences[$tableReference->getName()];
+                $changed = $tableReference->getReferencedTable() !== $local['referencedTable']
+                    || count($tableReference->getColumns()) !== count($local['columns'])
+                    || count($tableReference->getReferencedColumns()) !== count($local['referencedColumns']);
 
                 if (!$changed) {
-                    foreach ($tableReference->getColumns() as $columnName) {
-                        if (!in_array($columnName, $localReferences[$tableReference->getName()]['columns'], true)) {
+                    foreach ($tableReference->getColumns() as $col) {
+                        if (!in_array($col, $local['columns'], true)) {
                             $changed = true;
                             break;
                         }
@@ -623,9 +508,8 @@ class Migration
                 }
 
                 if (!$changed) {
-                    foreach ($tableReference->getReferencedColumns() as $columnName) {
-                        $referencedColumns = $localReferences[$tableReference->getName()]['referencedColumns'];
-                        if (!in_array($columnName, $referencedColumns, true)) {
+                    foreach ($tableReference->getReferencedColumns() as $col) {
+                        if (!in_array($col, $local['referencedColumns'], true)) {
                             $changed = true;
                             break;
                         }
@@ -634,60 +518,43 @@ class Migration
 
                 if ($changed) {
                     try {
-                        self::$connection->dropForeignKey(
+                        self::$adapter->dropForeignKey($tableName, $schemaName, $tableReference->getName());
+                    } catch (Throwable $e) {
+                        throw new RuntimeException(sprintf(
+                            "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
+                            $tableReference->getName(),
                             $tableName,
-                            $schemaName,
-                            $tableReference->getName()
-                        );
-                    } catch (Throwable $exception) {
-                        throw new RuntimeException(
-                            sprintf(
-                                "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
-                                $tableReference->getName(),
-                                $tableName,
-                                get_called_class(),
-                                $exception->getMessage()
-                            )
-                        );
+                            get_called_class(),
+                            $e->getMessage()
+                        ));
                     }
 
                     try {
-                        self::$connection->addForeignKey(
+                        self::$adapter->addForeignKey($tableName, $schemaName, $tableReference);
+                    } catch (Throwable $e) {
+                        throw new RuntimeException(sprintf(
+                            "Failed to add foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
+                            $tableReference->getName(),
                             $tableName,
-                            $schemaName,
-                            $tableReference
-                        );
-                    } catch (Throwable $exception) {
-                        throw new RuntimeException(
-                            sprintf(
-                                "Failed to add foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
-                                $tableReference->getName(),
-                                $tableName,
-                                get_called_class(),
-                                $exception->getMessage()
-                            )
-                        );
+                            get_called_class(),
+                            $e->getMessage()
+                        ));
                     }
                 }
             }
 
-            foreach ($localReferences as $referenceName => $reference) {
-                if (!isset($references[$referenceName])) {
+            foreach ($localReferences as $refName => $reference) {
+                if (!isset($references[$refName])) {
                     try {
-                        /**
-                         * TODO: Check, why schemaName is empty string.
-                         */
-                        self::$connection->dropForeignKey($tableName, '', $referenceName);
-                    } catch (Throwable $exception) {
-                        throw new RuntimeException(
-                            sprintf(
-                                "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
-                                $referenceName,
-                                $tableName,
-                                get_called_class(),
-                                $exception->getMessage()
-                            )
-                        );
+                        self::$adapter->dropForeignKey($tableName, '', $refName);
+                    } catch (Throwable $e) {
+                        throw new RuntimeException(sprintf(
+                            "Failed to drop foreign key '%s' in '%s'. In '%s' migration. DB error: %s",
+                            $refName,
+                            $tableName,
+                            get_called_class(),
+                            $e->getMessage()
+                        ));
                     }
                 }
             }
@@ -695,31 +562,31 @@ class Migration
 
         if (isset($definition['indexes']) && $tableExists) {
             $indexes = [];
-            foreach ($definition['indexes'] as $tableIndex) {
-                $indexes[$tableIndex->getName()] = $tableIndex;
+            foreach ($definition['indexes'] as $idx) {
+                $indexes[$idx->getName()] = $idx;
             }
 
-            $localIndexes  = [];
-            $actualIndexes = self::$connection->describeIndexes($tableName, $defaultSchema);
-            /** @var ReferenceInterface $actualIndex */
-            foreach ($actualIndexes as $actualIndex) {
+            $localIndexes = [];
+            foreach (self::$adapter->listIndexes($schema ?? '', $tableName) as $actualIndex) {
                 $localIndexes[$actualIndex->getName()] = $actualIndex->getColumns();
             }
 
             foreach ($definition['indexes'] as $tableIndex) {
                 if (!isset($localIndexes[$tableIndex->getName()])) {
-                    if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
+                    if (
+                        $tableIndex->getName() === 'PRIMARY'
+                        || $tableIndex->getType() === Index::TYPE_PRIMARY
+                        || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT
+                    ) {
                         $this->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                     } else {
                         $this->addIndex($tableName, $tableSchema, $tableIndex);
                     }
                 } else {
-                    $changed = false;
-                    if (count($tableIndex->getColumns()) !== count($localIndexes[$tableIndex->getName()])) {
-                        $changed = true;
-                    } else {
-                        foreach ($tableIndex->getColumns() as $columnName) {
-                            if (!in_array($columnName, $localIndexes[$tableIndex->getName()], true)) {
+                    $changed = count($tableIndex->getColumns()) !== count($localIndexes[$tableIndex->getName()]);
+                    if (!$changed) {
+                        foreach ($tableIndex->getColumns() as $col) {
+                            if (!in_array($col, $localIndexes[$tableIndex->getName()], true)) {
                                 $changed = true;
                                 break;
                             }
@@ -727,7 +594,11 @@ class Migration
                     }
 
                     if ($changed) {
-                        if ($tableIndex->getName() === 'PRIMARY' || $tableIndex->getType() === 'PRIMARY KEY') {
+                        if (
+                            $tableIndex->getName() === 'PRIMARY'
+                            || $tableIndex->getType() === Index::TYPE_PRIMARY
+                            || $tableIndex->getType() === Index::TYPE_PRIMARY_ALT
+                        ) {
                             $this->dropPrimaryKey($tableName, $tableSchema);
                             $this->addPrimaryKey($tableName, $tableSchema, $tableIndex);
                         } else {
@@ -739,24 +610,13 @@ class Migration
             }
 
             foreach ($localIndexes as $indexName => $indexColumns) {
-                /**
-                 * Skip existing keys
-                 */
-                if (isset($indexes[$indexName])) {
-                    continue;
+                if (!isset($indexes[$indexName])) {
+                    $this->dropIndex($tableName, '', $indexName);
                 }
-
-                /**
-                 * TODO: Check, why schemaName is empty string.
-                 */
-                $this->dropIndex($tableName, '', $indexName);
             }
         }
     }
 
-    /**
-     * Inserts data from a data migration file in a table
-     */
     public function batchInsert(string $tableName, array $fields, int $size = 1024): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
@@ -764,19 +624,20 @@ class Migration
             return;
         }
 
-        self::$connection->begin();
+        $connection = self::$adapter;
+        $connection->begin();
 
         $str          = '';
         $pointer      = 1;
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
-                static function ($value) {
-                    if (null === $value || $value === 'NULL') {
+                static function ($value) use ($connection) {
+                    if ($value === null || $value === 'NULL') {
                         return 'NULL';
                     }
 
-                    return self::$connection->escapeString(stripslashes($value));
+                    return $connection->quote(stripslashes($value));
                 },
                 $line
             );
@@ -784,8 +645,6 @@ class Migration
             $str .= sprintf('(%s),', implode(',', $values));
             if ($pointer === $size) {
                 $this->executeMultiInsert($tableName, $fields, $str);
-
-                unset($str);
                 $str     = '';
                 $pointer = 1;
             } else {
@@ -795,72 +654,61 @@ class Migration
             unset($line, $values);
         }
 
-        if (!empty($str)) {
+        if ($str !== '') {
             $this->executeMultiInsert($tableName, $fields, $str);
-            unset($str);
         }
 
         fclose($batchHandler);
-        self::$connection->commit();
+        $connection->commit();
     }
 
-    /**
-     * Delete the migration datasets from the table
-     */
     public function batchDelete(string $tableName): void
     {
         $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
         if (!file_exists($migrationData)) {
-            return; // nothing to do
+            return;
         }
 
-        self::$connection->begin();
-        self::$connection->delete($tableName);
+        $connection = self::$adapter;
+        $connection->begin();
+        $connection->execute("DELETE FROM {$tableName}");
 
         $batchHandler = fopen($migrationData, 'r');
         while (($line = fgetcsv($batchHandler)) !== false) {
             $values = array_map(
-                static function ($value) {
-                    return null === $value ? null : stripslashes($value);
-                },
+                static fn($v) => $v === null ? null : stripslashes($v),
                 $line
             );
 
-            self::$connection->delete($tableName, 'id = ?', [$values[0]]);
+            $connection->execute(
+                "DELETE FROM {$tableName} WHERE id = " . $connection->quote((string) $values[0])
+            );
+
             unset($line);
         }
 
         fclose($batchHandler);
-        self::$connection->commit();
+        $connection->commit();
     }
 
-    /**
-     * Get db connection
-     */
-    public function getConnection(): AbstractAdapter
+    public function getConnection(): AdapterInterface
     {
-        return self::$connection;
+        return self::$adapter;
     }
 
-    /**
-     * Execute Multi Insert
-     */
     protected function executeMultiInsert(string $table, array $columns, string $values): void
     {
+        $cols  = implode(',', $columns);
         $query = sprintf(
             "INSERT INTO %s (%s) VALUES %s",
             $table,
-            sprintf('%s', implode(',', $columns)),
+            $cols,
             rtrim($values, ',') . ';'
         );
 
-        self::$connection->execute($query);
-        unset($query);
+        self::$adapter->execute($query);
     }
 
-    /**
-     * Resolves the DB Schema
-     */
     public static function resolveDbSchema(Config $config): ?string
     {
         if ($config->schema !== null) {
@@ -873,90 +721,68 @@ class Migration
         }
 
         if (self::DB_ADAPTER_SQLITE === $adapter) {
-            // SQLite only supports the current database, unless one is
-            // attached. This is not the case, so don't return a schema.
             return null;
         }
 
         return $config->dbname;
     }
 
-    /**
-     * @throw RuntimeException
-     */
-    private function addPrimaryKey(string $tableName, string $schemaName, IndexInterface $index): void
+    private function addPrimaryKey(string $tableName, string $schemaName, Index $index): void
     {
         try {
-            self::$connection->addPrimaryKey($tableName, $schemaName, $index);
-        } catch (Throwable $exception) {
-            throw new RuntimeException(
-                sprintf(
-                    "Failed to add primary key '%s' in '%s'. In '%s' migration. DB error: %s",
-                    $index->getName(),
-                    $tableName,
-                    get_called_class(),
-                    $exception->getMessage()
-                )
-            );
+            self::$adapter->addPrimaryKey($tableName, $schemaName, $index);
+        } catch (Throwable $e) {
+            throw new RuntimeException(sprintf(
+                "Failed to add primary key '%s' in '%s'. In '%s' migration. DB error: %s",
+                $index->getName(),
+                $tableName,
+                get_called_class(),
+                $e->getMessage()
+            ));
         }
     }
 
-    /**
-     * @throw RuntimeException
-     */
     private function dropPrimaryKey(string $tableName, string $schemaName): void
     {
         try {
-            self::$connection->dropPrimaryKey($tableName, $schemaName);
-        } catch (Throwable $exception) {
-            throw new RuntimeException(
-                sprintf(
-                    "Failed to drop primary key in '%s'. In '%s' migration. DB error: %s",
-                    $tableName,
-                    get_called_class(),
-                    $exception->getMessage()
-                )
-            );
+            self::$adapter->dropPrimaryKey($tableName, $schemaName);
+        } catch (Throwable $e) {
+            throw new RuntimeException(sprintf(
+                "Failed to drop primary key in '%s'. In '%s' migration. DB error: %s",
+                $tableName,
+                get_called_class(),
+                $e->getMessage()
+            ));
         }
     }
 
-    /**
-     * @throw RuntimeException
-     */
-    private function addIndex(string $tableName, string $schemaName, IndexInterface $indexName): void
+    private function addIndex(string $tableName, string $schemaName, Index $index): void
     {
         try {
-            self::$connection->addIndex($tableName, $schemaName, $indexName);
-        } catch (Throwable $exception) {
-            throw new RuntimeException(
-                sprintf(
-                    "Failed to add index '%s' in '%s'. In '%s' migration. DB error: %s",
-                    $indexName->getName(),
-                    $tableName,
-                    get_called_class(),
-                    $exception->getMessage()
-                )
-            );
+            self::$adapter->addIndex($tableName, $schemaName, $index);
+        } catch (Throwable $e) {
+            throw new RuntimeException(sprintf(
+                "Failed to add index '%s' in '%s'. In '%s' migration. DB error: %s",
+                $index->getName(),
+                $tableName,
+                get_called_class(),
+                $e->getMessage()
+            ));
         }
     }
 
-    /**
-     * @throw RuntimeException
-     */
     private function dropIndex(string $tableName, string $schemaName, string $indexName): void
     {
         try {
-            self::$connection->dropIndex($tableName, $schemaName, $indexName);
-        } catch (Throwable $exception) {
-            throw new RuntimeException(
-                sprintf(
-                    "Failed to drop index '%s' in '%s'. In '%s' migration. DB error: %s",
-                    $indexName,
-                    $tableName,
-                    get_called_class(),
-                    $exception->getMessage()
-                )
-            );
+            self::$adapter->dropIndex($tableName, $schemaName, $indexName);
+        } catch (Throwable $e) {
+            throw new RuntimeException(sprintf(
+                "Failed to drop index '%s' in '%s'. In '%s' migration. DB error: %s",
+                $indexName,
+                $tableName,
+                get_called_class(),
+                $e->getMessage()
+            ));
         }
     }
 }

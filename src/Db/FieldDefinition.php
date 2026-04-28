@@ -13,27 +13,20 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Db;
 
-use Phalcon\Db\ColumnInterface;
-
-use function get_class_methods;
-
 class FieldDefinition
 {
     private string $name;
-
-    private ColumnInterface $currentColumn;
 
     private ?FieldDefinition $previousField;
 
     private ?FieldDefinition $nextField;
 
     public function __construct(
-        ColumnInterface $column,
+        private Column $currentColumn,
         ?FieldDefinition $previousField = null,
         ?FieldDefinition $nextField = null
     ) {
-        $this->name          = $column->getName();
-        $this->currentColumn = $column;
+        $this->name          = $currentColumn->getName();
         $this->previousField = $previousField;
         $this->nextField     = $nextField;
     }
@@ -53,7 +46,7 @@ class FieldDefinition
         return $this->name;
     }
 
-    public function getColumn(): ColumnInterface
+    public function getColumn(): Column
     {
         return $this->currentColumn;
     }
@@ -69,9 +62,7 @@ class FieldDefinition
     }
 
     /**
-     * @param FieldDefinition[] $externalFieldset Set of another field definitions to compare field between
-     *
-     * @return self|null
+     * @param FieldDefinition[] $externalFieldset
      */
     public function getPairedDefinition(array $externalFieldset): ?FieldDefinition
     {
@@ -80,21 +71,21 @@ class FieldDefinition
         }
 
         $possiblePairedField = null;
-        if (null !== $this->previousField) {
+        if ($this->previousField !== null) {
             $prevField = $externalFieldset[$this->previousField->getName()] ?? null;
-            if (null !== $prevField) {
+            if ($prevField !== null) {
                 $possiblePairedField = $prevField->getNext();
             }
         }
 
-        if (null === $possiblePairedField && null !== $this->nextField) {
+        if ($possiblePairedField === null && $this->nextField !== null) {
             $nextField = $externalFieldset[$this->nextField->getName()] ?? null;
-            if (null !== $nextField) {
+            if ($nextField !== null) {
                 $possiblePairedField = $nextField->getPrevious();
             }
         }
 
-        if (null === $possiblePairedField) {
+        if ($possiblePairedField === null) {
             return null;
         }
 
@@ -105,26 +96,29 @@ class FieldDefinition
         return $possiblePairedField;
     }
 
-    public function isChanged(FieldDefinition $comparingFieldDefinition): bool
+    public function isChanged(FieldDefinition $other): bool
     {
-        return $this->isChangedName($comparingFieldDefinition) || $this->isChangedData($comparingFieldDefinition);
+        return $this->isChangedName($other) || $this->isChangedData($other);
     }
 
-    public function isChangedName(FieldDefinition $comparingFieldDefinition): bool
+    public function isChangedName(FieldDefinition $other): bool
     {
-        return $this->currentColumn->getName() !== $comparingFieldDefinition->getColumn()->getName();
+        return $this->currentColumn->getName() !== $other->getColumn()->getName();
     }
 
-    public function isChangedData(FieldDefinition $comparingFieldDefinition): bool
+    public function isChangedData(FieldDefinition $other): bool
     {
-        $paramsToCheck = get_class_methods(ColumnInterface::class);
-        $comparingFieldColumn = $comparingFieldDefinition->getColumn();
-        foreach ($paramsToCheck as $method) {
-            if ($this->currentColumn->$method() !== $comparingFieldColumn->$method()) {
-                return true;
-            }
-        }
+        $a = $this->currentColumn;
+        $b = $other->getColumn();
 
-        return false;
+        return $a->getType()          !== $b->getType()
+            || $a->getSize()          !== $b->getSize()
+            || $a->getScale()         !== $b->getScale()
+            || $a->isNotNull()        !== $b->isNotNull()
+            || $a->isUnsigned()       !== $b->isUnsigned()
+            || $a->isAutoIncrement()  !== $b->isAutoIncrement()
+            || $a->isPrimary()        !== $b->isPrimary()
+            || $a->hasDefault()       !== $b->hasDefault()
+            || $a->getDefault()       !== $b->getDefault();
     }
 }

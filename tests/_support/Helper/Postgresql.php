@@ -6,11 +6,10 @@ namespace Helper;
 
 use Codeception\Module;
 use Codeception\TestInterface;
-use Phalcon\Migrations\Utils\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
-use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
+use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Utils\Config;
 
 class Postgresql extends Module
 {
@@ -35,7 +34,6 @@ class Postgresql extends Module
         self::$defaultSchema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
         /** @var AbstractPdo $db */
         self::$phalconDb = new PdoPostgresql($options);
-        self::$phalconDb->setDialect(new DialectPostgresql());
     }
 
     public function _before(TestInterface $test): void

@@ -15,7 +15,6 @@ namespace Phalcon\Migrations\Mvc\Model\Migration\TableAware;
 
 use DirectoryIterator;
 use InvalidArgumentException;
-use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 
 use function implode;
@@ -26,8 +25,6 @@ class ListTablesDb implements ListTablesInterface
 {
     /**
      * Get table names with prefix for running migration
-     *
-     * @throws DbException
      */
     public function listTablesForPrefix(string $tablePrefix, ?DirectoryIterator $iterator = null): string
     {
@@ -35,7 +32,9 @@ class ListTablesDb implements ListTablesInterface
             throw new InvalidArgumentException("Parameters weren't defined in " . __METHOD__);
         }
 
-        $tablesList = (new ModelMigration())->getConnection()->listTables();
+        $schema     = ModelMigration::getSchema() ?? '';
+        $tablesList = ModelMigration::getAdapter()->listTables($schema);
+
         if (empty($tablesList)) {
             return '';
         }
@@ -48,7 +47,7 @@ class ListTablesDb implements ListTablesInterface
         }
 
         if (empty($tablesList)) {
-            throw new DbException("Specified table prefix doesn't match with any table name");
+            throw new InvalidArgumentException("Specified table prefix doesn't match with any table name");
         }
 
         return implode(',', $tablesList);

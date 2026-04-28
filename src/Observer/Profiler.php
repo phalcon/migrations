@@ -13,25 +13,22 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Observer;
 
-use Phalcon\Db\Profiler as DbProfiler;
-use Phalcon\Db\Profiler\Item;
-
 use function str_replace;
 
 use const PHP_EOL;
 
 /**
- * Displays transactions made on the database and the times them taken to execute
+ * Displays SQL statements and their execution times during verbose migration runs.
  */
-class Profiler extends DbProfiler
+class Profiler
 {
-    public function beforeStartProfile(Item $profile): void
+    public function start(string $sql, float $startTime): void
     {
-        echo $profile->getInitialTime(), ': ', str_replace(["\n", "\t"], " ", $profile->getSqlStatement());
+        echo $startTime, ': ', str_replace(["\n", "\t"], ' ', $sql);
     }
 
-    public function afterEndProfile(Item $profile): void
+    public function end(string $sql, float $startTime, float $endTime): void
     {
-        echo '  => ', $profile->getFinalTime(), ' (', ($profile->getTotalElapsedSeconds()), ')', PHP_EOL;
+        echo '  => ', $endTime, ' (', ($endTime - $startTime), ')', PHP_EOL;
     }
 }

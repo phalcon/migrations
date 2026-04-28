@@ -16,13 +16,11 @@ namespace Phalcon\Migrations\Migration\Action;
 use Generator;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpFile;
-use Phalcon\Db\Adapter\AbstractAdapter;
-use Phalcon\Db\Column;
-use Phalcon\Db\ColumnInterface;
-use Phalcon\Db\Enum;
-use Phalcon\Db\Exception;
-use Phalcon\Db\Index;
-use Phalcon\Db\Reference;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Adapter\AdapterInterface;
+use Phalcon\Migrations\Db\Connection;
+use Phalcon\Migrations\Db\Index;
+use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
@@ -50,38 +48,33 @@ use function strtoupper;
 class Generate
 {
     protected array $supportedColumnTypes = [
-        Column::TYPE_BIGINTEGER => 'TYPE_BIGINTEGER',
-        Column::TYPE_INTEGER => 'TYPE_INTEGER',
+        Column::TYPE_BIGINTEGER   => 'TYPE_BIGINTEGER',
+        Column::TYPE_BIT          => 'TYPE_BIT',
+        Column::TYPE_BLOB         => 'TYPE_BLOB',
+        Column::TYPE_BOOLEAN      => 'TYPE_BOOLEAN',
+        Column::TYPE_CHAR         => 'TYPE_CHAR',
+        Column::TYPE_DATE         => 'TYPE_DATE',
+        Column::TYPE_DATETIME     => 'TYPE_DATETIME',
+        Column::TYPE_DECIMAL      => 'TYPE_DECIMAL',
+        Column::TYPE_DOUBLE       => 'TYPE_DOUBLE',
+        Column::TYPE_ENUM         => 'TYPE_ENUM',
+        Column::TYPE_FLOAT        => 'TYPE_FLOAT',
+        Column::TYPE_INTEGER      => 'TYPE_INTEGER',
+        Column::TYPE_JSON         => 'TYPE_JSON',
+        Column::TYPE_JSONB        => 'TYPE_JSONB',
+        Column::TYPE_LONGBLOB     => 'TYPE_LONGBLOB',
+        Column::TYPE_LONGTEXT     => 'TYPE_LONGTEXT',
+        Column::TYPE_MEDIUMBLOB   => 'TYPE_MEDIUMBLOB',
         Column::TYPE_MEDIUMINTEGER => 'TYPE_MEDIUMINTEGER',
+        Column::TYPE_MEDIUMTEXT   => 'TYPE_MEDIUMTEXT',
         Column::TYPE_SMALLINTEGER => 'TYPE_SMALLINTEGER',
-        Column::TYPE_TINYINTEGER => 'TYPE_TINYINTEGER',
-
-        Column::TYPE_VARCHAR => 'TYPE_VARCHAR',
-        Column::TYPE_CHAR => 'TYPE_CHAR',
-        Column::TYPE_TEXT => 'TYPE_TEXT',
-        Column::TYPE_MEDIUMTEXT => 'TYPE_MEDIUMTEXT',
-        Column::TYPE_LONGTEXT => 'TYPE_LONGTEXT',
-        Column::TYPE_TINYTEXT => 'TYPE_TINYTEXT',
-
-        Column::TYPE_TIME => 'TYPE_TIME',
-        Column::TYPE_DATE => 'TYPE_DATE',
-        Column::TYPE_DATETIME => 'TYPE_DATETIME',
-        Column::TYPE_TIMESTAMP => 'TYPE_TIMESTAMP',
-        Column::TYPE_DECIMAL => 'TYPE_DECIMAL',
-
-        Column::TYPE_BOOLEAN => 'TYPE_BOOLEAN',
-        Column::TYPE_BIT => 'TYPE_BIT',
-        Column::TYPE_FLOAT => 'TYPE_FLOAT',
-        Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
-        Column::TYPE_TINYBLOB => 'TYPE_TINYBLOB',
-
-        Column::TYPE_BLOB => 'TYPE_BLOB',
-        Column::TYPE_MEDIUMBLOB => 'TYPE_MEDIUMBLOB',
-        Column::TYPE_LONGBLOB => 'TYPE_LONGBLOB',
-
-        Column::TYPE_JSON => 'TYPE_JSON',
-        Column::TYPE_JSONB => 'TYPE_JSONB',
-        Column::TYPE_ENUM => 'TYPE_ENUM',
+        Column::TYPE_TEXT         => 'TYPE_TEXT',
+        Column::TYPE_TIME         => 'TYPE_TIME',
+        Column::TYPE_TIMESTAMP    => 'TYPE_TIMESTAMP',
+        Column::TYPE_TINYBLOB     => 'TYPE_TINYBLOB',
+        Column::TYPE_TINYINTEGER  => 'TYPE_TINYINTEGER',
+        Column::TYPE_TINYTEXT     => 'TYPE_TINYTEXT',
+        Column::TYPE_VARCHAR      => 'TYPE_VARCHAR',
     ];
 
     protected array $supportedColumnTypesPgsql = [
@@ -93,44 +86,35 @@ class Generate
     ];
 
     protected array $numericColumnTypes = [
-        Column::TYPE_INTEGER,
         Column::TYPE_BIGINTEGER,
+        Column::TYPE_DECIMAL,
+        Column::TYPE_INTEGER,
         Column::TYPE_MEDIUMINTEGER,
         Column::TYPE_SMALLINTEGER,
         Column::TYPE_TINYINTEGER,
-        Column::TYPE_DECIMAL,
     ];
 
-    /**
-     * Column types without size (MySQL / SQLite)
-     */
     protected array $noSizeColumnTypes = [
+        Column::TYPE_BLOB,
         Column::TYPE_DATE,
         Column::TYPE_DATETIME,
-
-        Column::TYPE_TIMESTAMP,
-        Column::TYPE_TIME,
-
-        Column::TYPE_FLOAT,
         Column::TYPE_DOUBLE,
-
-        Column::TYPE_TINYTEXT,
-        Column::TYPE_TEXT,
-        Column::TYPE_MEDIUMTEXT,
-        Column::TYPE_LONGTEXT,
-
-        Column::TYPE_TINYBLOB,
-        Column::TYPE_MEDIUMBLOB,
+        Column::TYPE_FLOAT,
         Column::TYPE_LONGBLOB,
+        Column::TYPE_LONGTEXT,
+        Column::TYPE_MEDIUMBLOB,
+        Column::TYPE_MEDIUMTEXT,
+        Column::TYPE_TEXT,
+        Column::TYPE_TIME,
+        Column::TYPE_TIMESTAMP,
+        Column::TYPE_TINYBLOB,
+        Column::TYPE_TINYTEXT,
     ];
 
-    /**
-     * Column types without size (PostgreSQL)
-     */
     protected array $noSizeColumnTypesPostgreSQL = [
+        Column::TYPE_BIGINTEGER,
         Column::TYPE_BOOLEAN,
         Column::TYPE_INTEGER,
-        Column::TYPE_BIGINTEGER,
     ];
 
     /**
@@ -178,7 +162,6 @@ class Generate
         if (null === $this->class || $recreate) {
             $this->file = new PhpFile();
             $this->file->addUse(Column::class)
-                ->addUse(Exception::class)
                 ->addUse(Index::class)
                 ->addUse(Reference::class)
                 ->addUse(Migration::class);
@@ -307,17 +290,19 @@ class Generate
     public function createDumpFiles(
         string $table,
         string $migrationPath,
-        AbstractAdapter $connection,
+        Connection|AdapterInterface $connection,
         ItemInterface $version,
         $exportData = null,
         bool $shouldExportDataFromTable = false
     ): self {
+        $conn = $connection instanceof AdapterInterface
+            ? $connection->getConnection()
+            : $connection;
+
         $numericColumns = $this->getNumericColumns();
         if ($exportData === 'always' || $exportData === 'oncreate' || $shouldExportDataFromTable) {
             $fileHandler = fopen($migrationPath . $version->getVersion() . '/' . $table . '.dat', 'w');
-            $cursor = $connection->query('SELECT * FROM ' . $connection->escapeIdentifier($table));
-            $cursor->setFetchMode(Enum::FETCH_ASSOC);
-            while ($row = $cursor->fetchArray()) {
+            foreach ($conn->iterate('SELECT * FROM ' . $conn->quoteIdentifier($table)) as $row) {
                 $data = [];
                 foreach ($row as $key => $value) {
                     if (isset($numericColumns[$key])) {
@@ -362,7 +347,7 @@ class Generate
         }
 
         foreach ($this->columns as $column) {
-            /** @var ColumnInterface $column */
+            /** @var Column $column */
 
             $columnType = $column->getType();
             if (!isset($supportedColumnTypes[$columnType])) {
@@ -413,7 +398,15 @@ class Generate
                 $definition[] = "'scale' => " . $column->getScale();
             }
 
-            if (method_exists($column, 'getComment') && $column->getComment()) {
+            if ($column->getOptions() !== null) {
+                $opts = implode(', ', array_map(
+                    fn($v) => "'" . addslashes((string) $v) . "'",
+                    $column->getOptions()
+                ));
+                $definition[] = "'options' => [{$opts}]";
+            }
+
+            if ($column->getComment() !== '') {
                 $definition[] = sprintf("'comment' => \"%s\"", $column->getComment());
             }
 
@@ -435,12 +428,16 @@ class Generate
     {
         foreach ($this->indexes as $name => $index) {
             /** @var Index $index */
+            $isPrimary  = $index->getType() === Index::TYPE_PRIMARY
+                || $index->getType() === Index::TYPE_PRIMARY_ALT;
             $definition = [];
             foreach ($index->getColumns() as $column) {
-                // [PostgreSQL] Skip primary key column
-                if ($column !== $this->getPrimaryColumnName()) {
-                    $definition[] = $this->wrapWithQuotes($column);
+                // [PostgreSQL] Skip primary key column only from non-primary indexes
+                if (!$isPrimary && $column === $this->getPrimaryColumnName()) {
+                    continue;
                 }
+
+                $definition[] = $this->wrapWithQuotes($column);
             }
 
             if (!empty($definition)) {
@@ -533,7 +530,7 @@ class Generate
     /**
      * Get column size basing on its type
      */
-    protected function getColumnSize(ColumnInterface $column): null|int|string
+    protected function getColumnSize(Column $column): null|int|string
     {
         $columnType = $column->getType();
         $columnsSize = $column->getSize();
@@ -548,6 +545,10 @@ class Generate
             return null;
         }
 
+        if ($columnType === Column::TYPE_ENUM) {
+            return null;
+        }
+
         if (
             $this->adapter === Migration::DB_ADAPTER_MYSQL &&
             in_array($columnType, $this->numericColumnTypes)
@@ -555,18 +556,11 @@ class Generate
             return $columnsSize ?: null;
         }
 
-        /**
-         * Check MySQL and SQLite
-         */
         if (in_array($columnType, $this->noSizeColumnTypes)) {
             return null;
         }
 
-        if ($columnType === Column::TYPE_ENUM) {
-            $size = $this->wrapWithQuotes((string)$columnsSize, '"');
-        } else {
-            $size = $columnsSize ?: 1;
-        }
+        $size = $columnsSize ?: 1;
 
         return $size;
     }

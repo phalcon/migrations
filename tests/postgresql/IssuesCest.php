@@ -16,7 +16,9 @@ namespace Phalcon\Migrations\Tests\PostgreSQL;
 use Exception;
 use Phalcon\Db\Column;
 use Phalcon\Db\Index;
-use Phalcon\Migrations\Db\Adapter\Pdo\PdoPostgresql;
+use Phalcon\Migrations\Db\Adapter\AdapterFactory;
+use Phalcon\Migrations\Db\Connection;
+use Phalcon\Migrations\Db\Index as MigrationIndex;
 use Phalcon\Migrations\Migrations;
 use PostgresqlTester;
 
@@ -182,9 +184,11 @@ final class IssuesCest
                 ],
             ]);
 
-        $indexes = $I->getPhalconDb()->describeIndexes($tableName, $I->getDefaultSchema());
-        $index = array_shift($indexes);
+        $config  = $I->getMigrationsConfig();
+        $adapter = AdapterFactory::create(Connection::fromConfig($config));
+        $indexes = $adapter->listIndexes($I->getDefaultSchema(), $tableName);
+        $index   = array_shift($indexes);
 
-        $I->assertSame(PdoPostgresql::INDEX_TYPE_PRIMARY, $index->getType());
+        $I->assertSame(MigrationIndex::TYPE_PRIMARY, $index->getType());
     }
 }
