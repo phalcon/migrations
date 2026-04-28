@@ -77,7 +77,8 @@
         "bin/phalcon-migrations"
     ],
   "scripts": {
-    "analyze": "vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1024M",
+    "analyze": "vendor/bin/phpstan analyse -c phpstan.neon.dist",
+    "analyze-psalm": "vendor/bin/psalm",
     "cs": "vendor/bin/phpcs --standard=phpcs.xml",
     "cs-fix": "vendor/bin/phpcbf --standard=phpcs.xml",
     "test": "vendor/bin/phpunit -c phpunit.xml.dist",
