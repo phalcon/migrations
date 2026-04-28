@@ -78,9 +78,6 @@ jobs:
         run: cp config/.env.example tests/.env
 
       - name: Run test suites
-        env:
-          MYSQL_TEST_DB_PORT: ${{ job.services.mysql.ports['3306'] }}
-          POSTGRES_TEST_DB_PORT: ${{ job.services.postgres.ports['5432'] }}
         if: success()
         run: vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover tests/_output/coverage/coverage-${{ matrix.php-versions }}.xml
 
