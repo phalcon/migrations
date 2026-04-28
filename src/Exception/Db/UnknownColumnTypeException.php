@@ -13,23 +13,25 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Exception\Db;
 
-use Phalcon\Db\ColumnInterface;
-use Phalcon\Db\Exception;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Exception\RuntimeException;
 
-class UnknownColumnTypeException extends Exception
+use function sprintf;
+
+class UnknownColumnTypeException extends RuntimeException
 {
-    public function __construct(protected ColumnInterface $column)
+    public function __construct(protected Column $column)
     {
-        $message = sprintf(
-            'Unrecognized data type "%s" for column "%s".',
-            $column->getType(),
-            $column->getName()
+        parent::__construct(
+            sprintf(
+                'Unrecognized data type "%s" for column "%s".',
+                $column->getType(),
+                $column->getName()
+            )
         );
-
-        parent::__construct($message, 0);
     }
 
-    public function getColumn(): ColumnInterface
+    public function getColumn(): Column
     {
         return $this->column;
     }
