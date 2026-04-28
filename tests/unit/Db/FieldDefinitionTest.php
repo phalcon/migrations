@@ -113,6 +113,63 @@ final class FieldDefinitionTest extends AbstractTestCase
         $this->assertTrue($fieldDefinition->isChangedData($fieldDefinitionChanged));
     }
 
+    public function testIsChangedReturnsFalseForSameDefinition(): void
+    {
+        $column          = new Column(self::COLUMN_NAME, self::COLUMN_DEF);
+        $fieldDefinition = new FieldDefinition($column);
+
+        $this->assertFalse($fieldDefinition->isChanged($fieldDefinition));
+    }
+
+    public function testIsChangedReturnsTrueForDifferentName(): void
+    {
+        $column1 = new Column(self::COLUMN_NAME, self::COLUMN_DEF);
+        $column2 = new Column(self::NEW_COLUMN_NAME, self::COLUMN_DEF);
+        $def1    = new FieldDefinition($column1);
+        $def2    = new FieldDefinition($column2);
+
+        $this->assertTrue($def1->isChanged($def2));
+    }
+
+    public function testIsChangedReturnsTrueForDifferentData(): void
+    {
+        $column1 = new Column(self::COLUMN_NAME, self::COLUMN_DEF);
+        $column2 = new Column(self::COLUMN_NAME, self::NEW_COLUMN_DEF);
+        $def1    = new FieldDefinition($column1);
+        $def2    = new FieldDefinition($column2);
+
+        $this->assertTrue($def1->isChanged($def2));
+    }
+
+    public function testIsChangedNameReturnsFalseForSameName(): void
+    {
+        $column1 = new Column(self::COLUMN_NAME, self::COLUMN_DEF);
+        $column2 = new Column(self::COLUMN_NAME, self::NEW_COLUMN_DEF);
+        $def1    = new FieldDefinition($column1);
+        $def2    = new FieldDefinition($column2);
+
+        $this->assertFalse($def1->isChangedName($def2));
+    }
+
+    public function testGetPreviousAndGetNextReturnNullByDefault(): void
+    {
+        $column = new Column(self::COLUMN_NAME, self::COLUMN_DEF);
+        $def    = new FieldDefinition($column);
+
+        $this->assertNull($def->getPrevious());
+        $this->assertNull($def->getNext());
+    }
+
+    public function testGetPairedDefinitionFoundByName(): void
+    {
+        $column = new Column(self::COLUMN_NAME, self::COLUMN_DEF);
+        $def    = new FieldDefinition($column);
+
+        $externalFields = [self::COLUMN_NAME => $def];
+
+        $this->assertSame($def, $def->getPairedDefinition($externalFields));
+    }
+
     private function createPrev(FieldDefinition $fieldDefinition): FieldDefinition
     {
         $prevColumn          = new Column(self::PREV_COLUMN, self::ID_COLUMN_DEF);

@@ -13,14 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests;
 
-use FilesystemIterator;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
 use Phalcon\Db\Enum;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils\Config;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 abstract class AbstractPostgresqlTestCase extends AbstractTestCase
 {
@@ -99,17 +96,6 @@ abstract class AbstractPostgresqlTestCase extends AbstractTestCase
         return __DIR__ . '/_data' . ($path ? '/' . ltrim($path, '/') : '');
     }
 
-    protected function getOutputDir(string $path = ''): string
-    {
-        $dir = __DIR__ . '/_output' . ($path ? '/' . ltrim($path, '/') : '');
-        if (is_dir($dir)) {
-            $this->removeDir($dir);
-        }
-        mkdir($dir, 0755, true);
-
-        return $dir;
-    }
-
     protected function grabColumnFromDatabase(string $table, string $column): array
     {
         $results = $this->getPhalconDb()->fetchAll(
@@ -120,20 +106,4 @@ abstract class AbstractPostgresqlTestCase extends AbstractTestCase
         return array_column($results, $column);
     }
 
-    protected function removeDir(string $path): void
-    {
-        if (!is_dir($path)) {
-            return;
-        }
-        $directoryIterator = new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS);
-        $iterator          = new RecursiveIteratorIterator($directoryIterator, RecursiveIteratorIterator::CHILD_FIRST);
-        foreach ($iterator as $file) {
-            if ($file->getFileName() === '.gitignore') {
-                continue;
-            }
-            $realPath = $file->getRealPath();
-            $file->isDir() ? rmdir($realPath) : unlink($realPath);
-        }
-        rmdir($path);
-    }
 }

@@ -24,7 +24,7 @@ abstract class AbstractCliTestCase extends AbstractMysqlTestCase
     {
         parent::setUp();
 
-        $outputDir = __DIR__ . '/_output';
+        $outputDir = $this->getOutputDir();
         if (is_dir($outputDir)) {
             foreach (new FilesystemIterator($outputDir, FilesystemIterator::SKIP_DOTS) as $item) {
                 if ($item->getFileName() === '.gitignore') {
@@ -43,11 +43,6 @@ abstract class AbstractCliTestCase extends AbstractMysqlTestCase
     protected function assertExitCode(int $expected): void
     {
         $this->assertSame($expected, $this->lastExitCode);
-    }
-
-    protected function getCliOutputDir(string $path = ''): string
-    {
-        return __DIR__ . '/_output' . ($path ? '/' . ltrim($path, '/') : '');
     }
 
     protected function runCommand(string $command): void

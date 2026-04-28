@@ -23,7 +23,7 @@ final class GenerateTest extends AbstractCliTestCase
 
     public function testTryWithoutDbConfig(): void
     {
-        $directory = $this->getCliOutputDir();
+        $directory = $this->getOutputDir();
 
         $this->runCommand('php bin/phalcon-migrations generate --directory=' . $directory);
 
@@ -73,10 +73,10 @@ final class GenerateTest extends AbstractCliTestCase
         $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
         $this->assertExitCode(0);
 
-        $content = file_get_contents($this->getCliOutputDir('1.0.0/cli-skip-ref-schema.php'));
+        $content = file_get_contents($this->getOutputPath('1.0.0/cli-skip-ref-schema.php'));
 
-        $this->assertFalse(strpos($content, "'referencedSchema' => '$schema',"));
-        $this->assertNotFalse(strpos($content, "'referencedTable' => 'client',"));
+        $this->assertStringNotContainsString("'referencedSchema' => '$schema',", $content);
+        $this->assertStringContainsString("'referencedTable' => 'client',", $content);
     }
 
     public function testGenerateWithRefSchema(): void
@@ -90,10 +90,10 @@ final class GenerateTest extends AbstractCliTestCase
         $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
         $this->assertExitCode(0);
 
-        $content = file_get_contents($this->getCliOutputDir('1.0.0/cli-skip-ref-schema.php'));
+        $content = file_get_contents($this->getOutputPath('1.0.0/cli-skip-ref-schema.php'));
 
-        $this->assertNotFalse(strpos($content, "'referencedSchema' => '$schema',"));
-        $this->assertNotFalse(strpos($content, "'referencedTable' => 'client',"));
+        $this->assertStringContainsString("'referencedSchema' => '$schema',", $content);
+        $this->assertStringContainsString("'referencedTable' => 'client',", $content);
     }
 
     private function createFKTables(): void

@@ -23,7 +23,7 @@ final class RunTest extends AbstractCliTestCase
 
     public function testRunCommandWithoutDbConfig(): void
     {
-        $directory = $this->getCliOutputDir();
+        $directory = $this->getOutputDir();
 
         $this->runCommand('php bin/phalcon-migrations run --directory=' . $directory);
 
@@ -65,7 +65,7 @@ final class RunTest extends AbstractCliTestCase
         $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
         $this->assertExitCode(0);
 
-        $migrationContent = file_get_contents($this->getCliOutputDir('1.0.0/' . $table2 . '.php'));
+        $migrationContent = file_get_contents($this->getOutputPath('1.0.0/' . $table2 . '.php'));
         $this->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
 
         $this->getPhalconDb()->dropTable($table2);
@@ -87,7 +87,7 @@ final class RunTest extends AbstractCliTestCase
         $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
         $this->assertExitCode(0);
 
-        $migrationContent = file_get_contents($this->getCliOutputDir('1.0.0/' . $table2 . '.php'));
+        $migrationContent = file_get_contents($this->getOutputPath('1.0.0/' . $table2 . '.php'));
         $this->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
 
         $this->getPhalconDb()->dropTable($table2);
@@ -110,7 +110,7 @@ final class RunTest extends AbstractCliTestCase
         $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
         $this->assertExitCode(0);
 
-        $migrationContent = file_get_contents($this->getCliOutputDir('1.0.0/' . $table2 . '.php'));
+        $migrationContent = file_get_contents($this->getOutputPath('1.0.0/' . $table2 . '.php'));
         $this->assertNotFalse(strpos($migrationContent, "'referencedTable' => '" . $table1 . "',"));
 
         $this->getPhalconDb()->dropTable($table2);
@@ -133,7 +133,7 @@ final class RunTest extends AbstractCliTestCase
         $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
         $this->assertExitCode(0);
 
-        $migrationContent = file_get_contents($this->getCliOutputDir('1.0.0/' . $table2 . '.php'));
+        $migrationContent = file_get_contents($this->getOutputPath('1.0.0/' . $table2 . '.php'));
         $this->assertNotFalse(strpos($migrationContent, "'referencedTable' => 'client',"));
 
         $this->getPhalconDb()->dropTable($table2);

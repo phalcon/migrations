@@ -58,8 +58,12 @@ final class MigrationsTest extends AbstractPostgresqlTestCase
 
         $indexes = $this->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
 
-        $this->assertTrue($this->getPhalconDb()->tableExists($tableName, $this->getDefaultSchema()));
-        $this->assertTrue($this->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $this->getDefaultSchema()));
+        $this->assertTrue(
+            $this->getPhalconDb()->tableExists($tableName, $this->getDefaultSchema())
+        );
+        $this->assertTrue(
+            $this->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $this->getDefaultSchema())
+        );
         $this->assertSame(1, count($indexes));
     }
 

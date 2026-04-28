@@ -22,7 +22,7 @@ final class ListTest extends AbstractCliTestCase
 
     public function testRunCommandWithoutDbConfig(): void
     {
-        $directory = $this->getCliOutputDir();
+        $directory = $this->getOutputDir();
 
         $this->runCommand('php bin/phalcon-migrations list --directory=' . $directory);
 
