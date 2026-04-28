@@ -349,11 +349,12 @@ class Migration
 
             $fields        = [];
             $previousField = null;
-            foreach ($definition['columns'] as $tableColumn) {
+            foreach ($definition['columns'] as $key => $tableColumn) {
                 if (!$tableColumn instanceof Column) {
                     // Transparently convert Phalcon\Db\Column objects from pre-upgrade migration files
                     if (is_object($tableColumn) && method_exists($tableColumn, 'getType')) {
-                        $tableColumn = PhalconColumnBridge::fromPhalcon($tableColumn);
+                        $tableColumn                    = PhalconColumnBridge::fromPhalcon($tableColumn);
+                        $definition['columns'][$key]    = $tableColumn;
                     } else {
                         throw new RuntimeException('Table must have at least one column');
                     }
@@ -367,6 +368,29 @@ class Migration
 
                 $previousField                     = $field;
                 $fields[$field->getName()]         = $field;
+            }
+
+            foreach ($definition['indexes'] ?? [] as $key => $index) {
+                if (!$index instanceof Index && is_object($index) && method_exists($index, 'getName')) {
+                    $definition['indexes'][$key] = new Index(
+                        $index->getName(),
+                        $index->getColumns(),
+                        (string) $index->getType()
+                    );
+                }
+            }
+
+            foreach ($definition['references'] ?? [] as $key => $ref) {
+                if (!$ref instanceof Reference && is_object($ref) && method_exists($ref, 'getName')) {
+                    $definition['references'][$key] = new Reference($ref->getName(), [
+                        'referencedTable'   => $ref->getReferencedTable(),
+                        'referencedSchema'  => $ref->getReferencedSchema(),
+                        'columns'           => $ref->getColumns(),
+                        'referencedColumns' => $ref->getReferencedColumns(),
+                        'onUpdate'          => $ref->getOnUpdate(),
+                        'onDelete'          => $ref->getOnDelete(),
+                    ]);
+                }
             }
 
             if ($tableExists) {

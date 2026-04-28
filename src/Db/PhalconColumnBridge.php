@@ -69,7 +69,7 @@ final class PhalconColumnBridge
             'autoIncrement' => $column->isAutoIncrement(),
             'primary'       => $column->isPrimary(),
             'first'         => $column->isFirst(),
-            'after'         => $column->getAfterPosition(),
+            'after'         => $column->getAfterPosition() ?: null,
             'comment'       => method_exists($column, 'getComment') ? $column->getComment() : '',
         ];
 
