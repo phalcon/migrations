@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Db;
 
-use Codeception\Test\Unit;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\FieldDefinition;
+use Phalcon\Migrations\Tests\AbstractTestCase;
 
-final class FieldDefinitionTest extends Unit
+final class FieldDefinitionTest extends AbstractTestCase
 {
     public const COLUMN_NAME = 'login';
     public const COLUMN_DEF  = [

@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Version;
 
-use Codeception\Test\Unit;
+use Phalcon\Migrations\Tests\AbstractTestCase;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemInterface;
 
-final class IncrementalItemTest extends Unit
+final class IncrementalItemTest extends AbstractTestCase
 {
     public function testMockConstructor(): void
     {

@@ -13,15 +13,16 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Console;
 
-use Codeception\Test\Unit;
 use Phalcon\Migrations\Console\OptionStack;
+use Phalcon\Migrations\Tests\AbstractTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
-final class OptionStackTest extends Unit
+final class OptionStackTest extends AbstractTestCase
 {
     /**
      * @see testSetOptionAndGetOption11
      */
-    public function setOptionAndGetOption11DataProvider(): array
+    public static function setOptionAndGetOption11DataProvider(): array
     {
         return [
             ['foo-bar', 'bar-foo', 'foo-bar'],
@@ -32,7 +33,7 @@ final class OptionStackTest extends Unit
     /**
      * @see testSetDefaultOptionIfOptionDidntExist
      */
-    public function setDefaultOptionIfOptionDidntExistDataProvider(): array
+    public static function setDefaultOptionIfOptionDidntExistDataProvider(): array
     {
         return [
             ['test', 'foo-bar', 'bar'],
@@ -52,13 +53,7 @@ final class OptionStackTest extends Unit
         $this->assertSame($data, $options->getOptions());
     }
 
-    /**
-     * @dataProvider setOptionAndGetOption11DataProvider
-     *
-     * @param $option
-     * @param $defaultValue
-     * @param $expected
-     */
+    #[DataProvider('setOptionAndGetOption11DataProvider')]
     public function testSetOptionAndGetOption11($option, $defaultValue, $expected): void
     {
         $key = 'set-test';
@@ -68,13 +63,7 @@ final class OptionStackTest extends Unit
         $this->assertSame($expected, $options->offsetGet($key));
     }
 
-    /**
-     * @dataProvider setDefaultOptionIfOptionDidntExistDataProvider
-     *
-     * @param $key
-     * @param $defaultValue
-     * @param $expected
-     */
+    #[DataProvider('setDefaultOptionIfOptionDidntExistDataProvider')]
     public function testSetDefaultOptionIfOptionDidntExist($key, $defaultValue, $expected): void
     {
         $options = new OptionStack();
