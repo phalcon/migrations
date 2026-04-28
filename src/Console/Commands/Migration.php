@@ -14,19 +14,20 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Console\Commands;
 
 use Exception;
-use Phalcon\Config\Adapter\Ini as IniConfig;
-use Phalcon\Config\Adapter\Json as JsonConfig;
-use Phalcon\Config\Adapter\Yaml as YamlConfig;
-use Phalcon\Config\Config;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Cop\Parser;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Migrations;
 
 use function explode;
 use function file_exists;
+use function file_get_contents;
 use function in_array;
 use function is_array;
+use function json_decode;
+use function parse_ini_file;
 use function pathinfo;
+use function yaml_parse_file;
 use function preg_match;
 use function realpath;
 use function str_repeat;
@@ -101,14 +102,12 @@ class Migration implements CommandsInterface
         } else {
             $config = $this->getConfig($path);
         }
-        $application = $config->get('application') ?? [];
-
         // Multiple dir
         $migrationsDir = [];
         if ($this->parser->has('migrations')) {
             $migrationsDir = explode(',', $this->parser->get('migrations'));
-        } elseif (isset($application['migrationsDir'])) {
-            $migrationsDir = explode(',', $application['migrationsDir']);
+        } elseif ($config->migrationsDir !== null) {
+            $migrationsDir = explode(',', $config->migrationsDir);
         }
 
         if (!empty($migrationsDir)) {
@@ -129,20 +128,19 @@ class Migration implements CommandsInterface
          * Keep migrations log in db either "log-in-db" option or "logInDb"
          * config variable from "application" block
          */
-        $migrationsInDb = $application['logInDb'] ?? $this->parser->has('log-in-db');
+        $migrationsInDb = $config->logInDb ?: $this->parser->has('log-in-db');
 
         /**
          * Migrations naming is timestamp-based rather than traditional, dotted versions
          * either "ts-based" option or "migrationsTsBased" config variable from "application" block
          */
-        $migrationsTsBased = $application['migrationsTsBased'] ?? $this->parser->has('ts-based');
+        $migrationsTsBased = $config->migrationsTsBased ?: $this->parser->has('ts-based');
 
+        $noAutoIncrement   = $config->noAutoIncrement   ?: $this->parser->has('no-auto-increment');
+        $skipRefSchema     = $config->skipRefSchema     ?: $this->parser->has('skip-ref-schema');
+        $skipForeignChecks = $config->skipForeignChecks ?: $this->parser->has('skip-foreign-checks');
 
-        $noAutoIncrement   = $application['no-auto-increment'] ?? $this->parser->has('no-auto-increment');
-        $skipRefSchema     = $application['skip-ref-schema'] ?? $this->parser->has('skip-ref-schema');
-        $skipForeignChecks = $application['skip-foreign-checks'] ?? $this->parser->has('skip-foreign-checks');
-
-        $descr     = $application['descr'] ?? $this->parser->get('descr');
+        $descr     = $config->descr ?? $this->parser->get('descr');
         $tableName = $this->parser->get('table', '@');
 
         switch ($action) {
@@ -220,21 +218,11 @@ class Migration implements CommandsInterface
 
     protected function exportFromTables(Config $config): array
     {
-        $tables      = [];
-        $application = $config->get('application') ?? [];
-
         if ($this->parser->has('exportDataFromTables')) {
-            $tables = explode(',', $this->parser->get('exportDataFromTables'));
-        } elseif (isset($application['exportDataFromTables'])) {
-            $configTables = $application['exportDataFromTables'];
-            if ($configTables instanceof Config) {
-                $tables = $configTables->toArray();
-            } else {
-                $tables = explode(',', $configTables);
-            }
+            return explode(',', $this->parser->get('exportDataFromTables'));
         }
 
-        return $tables;
+        return $config->exportDataFromTables;
     }
 
     /**
@@ -242,7 +230,6 @@ class Migration implements CommandsInterface
      *
      * @return Config
      * @throws CommandsException
-     * @throws \Phalcon\Config\Exception
      */
     protected function getConfig(string $path): Config
     {
@@ -263,7 +250,6 @@ class Migration implements CommandsInterface
      * and load config
      *
      * @throws CommandsException
-     * @throws \Phalcon\Config\Exception
      */
     protected function loadConfig(string $fileName): Config
     {
@@ -277,22 +263,18 @@ class Migration implements CommandsInterface
 
         switch ($extension) {
             case 'php':
-                $config = include($fileName);
-                if (is_array($config)) {
-                    $config = new Config($config);
-                }
-
-                return $config;
+                $data = include($fileName);
+                return Config::fromArray(is_array($data) ? $data : []);
 
             case 'ini':
-                return new IniConfig($fileName);
+                return Config::fromArray(parse_ini_file($fileName, true) ?: []);
 
             case 'json':
-                return new JsonConfig($fileName);
+                return Config::fromArray(json_decode(file_get_contents($fileName), true) ?? []);
 
             case 'yaml':
             case 'yml':
-                return new YamlConfig($fileName);
+                return Config::fromArray(yaml_parse_file($fileName) ?: []);
 
             default:
                 throw new CommandsException("Builder can't locate the configuration file.");

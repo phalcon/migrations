@@ -1,37 +1,70 @@
 # For local development only.
 
 services:
-  migrations-8.0:
-    container_name: migrations-8.0
-    hostname: migrations-80
-    build: .docker/8.0
-    working_dir: /srv
-    volumes:
-      - .:/srv
-
   migrations-8.1:
     container_name: migrations-8.1
     hostname: migrations-81
-    build: .docker/8.1
-    working_dir: /srv
+    build:
+      dockerfile: resources/docker/develop/Dockerfile
+      args:
+        PHP_VERSION: "8.1"
+    working_dir: /app
     volumes:
-      - .:/srv
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   migrations-8.2:
     container_name: migrations-8.2
     hostname: migrations-82
-    build: .docker/8.2
-    working_dir: /srv
+    build:
+      dockerfile: resources/docker/develop/Dockerfile
+      args:
+        PHP_VERSION: "8.2"
+    working_dir: /app
     volumes:
-      - .:/srv
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   migrations-8.3:
     container_name: migrations-8.3
     hostname: migrations-83
-    build: .docker/8.3
-    working_dir: /srv
+    build:
+      dockerfile: resources/docker/develop/Dockerfile
+      args:
+        PHP_VERSION: "8.3"
+    working_dir: /app
     volumes:
-      - .:/srv
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  migrations-8.4:
+    container_name: migrations-8.4
+    hostname: migrations-84
+    build:
+      dockerfile: resources/docker/develop/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+    working_dir: /app
+    volumes:
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  migrations-8.5:
+    container_name: migrations-8.5
+    hostname: migrations-85
+    build:
+      dockerfile: resources/docker/develop/Dockerfile
+      args:
+        PHP_VERSION: "8.5"
+    working_dir: /app
+    volumes:
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   mysql:
     container_name: migrations-mysql
@@ -41,11 +74,15 @@ services:
       - MYSQL_USER=phalcon
       - MYSQL_DATABASE=phalcon
       - MYSQL_PASSWORD=secret
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   postgres:
     container_name: migrations-postgres
-    image: postgres:12-alpine
+    image: postgres:18-alpine
     environment:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_USER=phalcon
       - POSTGRES_DB=phalcon
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

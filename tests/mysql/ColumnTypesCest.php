@@ -16,7 +16,7 @@ namespace Phalcon\Migrations\Tests\Mysql;
 use Codeception\Example;
 use MysqlTester;
 use PDO;
-use Phalcon\Config\Config;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Column;
 use Phalcon\Db\Exception;

@@ -7,7 +7,7 @@ namespace Helper;
 use Codeception\Module;
 use Codeception\TestInterface;
 use PDO;
-use Phalcon\Config\Config;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Db\Adapter\Pdo\AbstractPdo;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\Exception;
@@ -23,10 +23,11 @@ class Mysql extends Module
 
     public function _initialize()
     {
+        $options = $this->getMigrationsConfig()->toArray();
+        unset($options['adapter']);
+
         /** @var AbstractPdo $db */
-        self::$phalconDb = new PdoMysql($this->getMigrationsConfig()
-                                             ->get('database')
-                                             ->toArray());
+        self::$phalconDb = new PdoMysql($options);
         self::$phalconDb->setDialect(new DialectMysql());
     }
 
@@ -85,7 +86,7 @@ class Mysql extends Module
      */
     public function getMigrationsConfig(): Config
     {
-        return new Config([
+        return Config::fromArray([
             'database'    => [
                 'adapter'  => 'mysql',
                 'host'     => $_ENV['MYSQL_TEST_DB_HOST'],

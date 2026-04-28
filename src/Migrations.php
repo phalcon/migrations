@@ -15,12 +15,12 @@ namespace Phalcon\Migrations;
 
 use DirectoryIterator;
 use Exception;
-use Phalcon\Config\Config;
 use Phalcon\Db\Adapter\AdapterInterface;
 use Phalcon\Db\Column;
 use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\OptionStack;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Db\Dialect\DialectMysql;
 use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
 use Phalcon\Migrations\Exception\RuntimeException;
@@ -129,11 +129,11 @@ class Migrations
         $migrationPath = $helper->getMigrationsPath($versionItem, $migrationsDir, $verbose, $force);
 
         // Try to connect to the DB
-        if (!isset($optionStack->offsetGet('config')->database)) {
+        if ($optionStack->offsetGet('config')->adapter === null) {
             throw new RuntimeException('Cannot load database configuration');
         }
 
-        ModelMigration::setup($optionStack->offsetGet('config')->database, $verbose);
+        ModelMigration::setup($optionStack->offsetGet('config'), $verbose);
         ModelMigration::setSkipAutoIncrement((bool) $optionStack->offsetGet('noAutoIncrement'));
         ModelMigration::setMigrationPath($migrationsDir);
 
@@ -219,7 +219,7 @@ class Migrations
         }
 
         // Init ModelMigration
-        if (!isset($optionStack->offsetGet('config')->database)) {
+        if ($optionStack->offsetGet('config')->adapter === null) {
             throw new RuntimeException('Cannot load database configuration');
         }
 
@@ -277,7 +277,7 @@ class Migrations
             return;
         }
 
-        ModelMigration::setup($optionStack->offsetGet('config')->database, $optionStack->offsetGet('verbose'));
+        ModelMigration::setup($optionStack->offsetGet('config'), $optionStack->offsetGet('verbose'));
         self::connectionSetup($optionStack->getOptions());
 
         /**
@@ -443,7 +443,7 @@ class Migrations
         }
 
         // Init ModelMigration
-        if (!isset($config->database)) {
+        if ($config->adapter === null) {
             throw new RuntimeException('Cannot load database configuration');
         }
 
@@ -465,7 +465,7 @@ class Migrations
             }
         }
 
-        ModelMigration::setup($config->database);
+        ModelMigration::setup($config);
 
         self::connectionSetup($options);
 
@@ -511,23 +511,23 @@ class Migrations
         }
 
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var Config $database */
-            $database = $options['config']['database'];
+            /** @var Config $config */
+            $config = $options['config'];
 
-            if (!isset($database->adapter)) {
+            if ($config->adapter === null) {
                 throw new RuntimeException('Unspecified database Adapter in your configuration!');
             }
 
-            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
+            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $config->adapter;
             if (!class_exists($adapter)) {
                 throw new RuntimeException('Invalid database Adapter!');
             }
 
-            $configArray = $database->toArray();
+            $configArray = $config->toArray();
             unset($configArray['adapter']);
             self::$storage = new $adapter($configArray);
 
-            $dbAdapter = strtolower((string) $database->adapter);
+            $dbAdapter = strtolower($config->adapter);
             if ($dbAdapter === ModelMigration::DB_ADAPTER_MYSQL) {
                 self::$storage->setDialect(new DialectMysql());
                 self::$storage->query('SET FOREIGN_KEY_CHECKS=0');

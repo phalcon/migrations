@@ -12,7 +12,6 @@
 declare(strict_types=1);
 
 use Dotenv\Dotenv;
-use Phalcon\Config\Config;
 
 Dotenv::createImmutable(realpath('tests'))->load();
 
@@ -20,7 +19,7 @@ Dotenv::createImmutable(realpath('tests'))->load();
  * Current config file is used in CLI tests
  * For cases when it is needed to test real working cases.
  */
-return new Config([
+return [
     'database' => [
         'adapter' => 'mysql',
         'host' => $_ENV['MYSQL_TEST_DB_HOST'],
@@ -33,4 +32,4 @@ return new Config([
         'logInDb' => true,
         'migrationsDir' => 'tests/_output',
     ],
-]);
+];

@@ -22,6 +22,8 @@ use Phalcon\Migrations\Version\ItemInterface;
 
 /**
  * CLI options
+ *
+ * @template-implements ArrayAccess<string, mixed>
  */
 class OptionStack implements ArrayAccess
 {

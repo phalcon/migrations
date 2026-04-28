@@ -16,7 +16,7 @@ namespace Phalcon\Migrations\Mvc\Model;
 use DirectoryIterator;
 use Exception;
 use Nette\PhpGenerator\PsrPrinter;
-use Phalcon\Config\Config;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Db\Adapter\AbstractAdapter;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Db\ColumnInterface;
@@ -109,14 +109,14 @@ class Migration
     /**
      * Prepares component
      *
-     * @param Config $database Database config
-     * @param bool   $verbose  array with settings
+     * @param Config $config  Database config
+     * @param bool   $verbose array with settings
      *
      * @throws DbException
      */
-    public static function setup(Config $database, bool $verbose = false): void
+    public static function setup(Config $config, bool $verbose = false): void
     {
-        if (!isset($database->adapter)) {
+        if ($config->adapter === null) {
             throw new DbException('Unspecified database Adapter in your configuration!');
         }
 
@@ -125,26 +125,26 @@ class Migration
          *
          * @see: Phalcon\Db\Dialect\PdoMysql The extended and fixed dialect class for MySQL
          */
-        $dbAdapter = strtolower((string) $database->adapter);
+        $dbAdapter = strtolower($config->adapter);
         if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
             $adapter = PdoMysql::class;
         } elseif ($dbAdapter === self::DB_ADAPTER_POSTGRESQL) {
             $adapter = PdoPostgresql::class;
         } else {
-            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $database->adapter;
+            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $config->adapter;
         }
 
         if (!class_exists($adapter)) {
             throw new DbException("Invalid database adapter: '{$adapter}'");
         }
 
-        $configArray = $database->toArray();
+        $configArray = $config->toArray();
         unset($configArray['adapter']);
 
         /** @var AbstractAdapter $connection */
         $connection           = new $adapter($configArray);
         self::$connection     = $connection;
-        self::$databaseConfig = $database;
+        self::$databaseConfig = $config;
 
         // Connection custom Dialect/DialectMysql
         if ($dbAdapter === self::DB_ADAPTER_MYSQL) {
@@ -231,7 +231,7 @@ class Migration
         $camelize      = new Camelize();
         $printer       = new PsrPrinter();
         $snippet       = new Snippet();
-        $adapter       = strtolower((string) self::$databaseConfig->path('adapter'));
+        $adapter       = strtolower((string) self::$databaseConfig->adapter);
         $defaultSchema = self::resolveDbSchema(self::$databaseConfig);
         $description   = self::$connection->describeColumns($table, $defaultSchema);
         $indexes       = self::$connection->describeIndexes($table, $defaultSchema);
@@ -863,11 +863,11 @@ class Migration
      */
     public static function resolveDbSchema(Config $config): ?string
     {
-        if ($config->offsetExists('schema')) {
-            return $config->get('schema');
+        if ($config->schema !== null) {
+            return $config->schema;
         }
 
-        $adapter = strtolower($config->get('adapter'));
+        $adapter = strtolower((string) $config->adapter);
         if (self::DB_ADAPTER_POSTGRESQL === $adapter) {
             return 'public';
         }
@@ -878,11 +878,7 @@ class Migration
             return null;
         }
 
-        if ($config->offsetExists('dbname')) {
-            return $config->get('dbname');
-        }
-
-        return null;
+        return $config->dbname;
     }
 
     /**
