@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Postgresql;
 
-use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
@@ -22,9 +21,6 @@ use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
  */
 final class Issue104Test extends AbstractPostgresqlTestCase
 {
-    /**
-     * @throws Exception
-     */
     public function testNormalRun(): void
     {
         $this->getPhalconDb()->execute("SET session_replication_role = 'replica'");

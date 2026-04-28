@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Db;
 
-use Phalcon\Db\Column as PhalconColumn;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\PhalconColumnBridge;
 use Phalcon\Migrations\Tests\AbstractTestCase;
+use Phalcon\Migrations\Tests\Fakes\Db\FakeColumn as PhalconColumn;
 
 final class PhalconColumnBridgeTest extends AbstractTestCase
 {

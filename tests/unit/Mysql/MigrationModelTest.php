@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
-use Phalcon\Db\Column as PhalconColumn;
-use Phalcon\Db\Index as PhalconIndex;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Mvc\Model\Migration;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
+use Phalcon\Migrations\Tests\Fakes\Db\FakeColumn as PhalconColumn;
+use Phalcon\Migrations\Tests\Fakes\Db\FakeIndex as PhalconIndex;
 use Phalcon\Migrations\Tests\Fakes\Mvc\Model\MigrationFake;
 use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Version\ItemCollection;
@@ -185,14 +186,14 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $fake = new MigrationFake();
         $fake->morphTable('mm_new_create', [
             'columns' => [
-                new \Phalcon\Migrations\Db\Column('id', [
-                    'type'    => \Phalcon\Migrations\Db\Column::TYPE_INTEGER,
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
                     'size'    => 11,
                     'notNull' => true,
                     'first'   => true,
                 ]),
-                new \Phalcon\Migrations\Db\Column('name', [
-                    'type'    => \Phalcon\Migrations\Db\Column::TYPE_VARCHAR,
+                new Column('name', [
+                    'type'    => Column::TYPE_VARCHAR,
                     'size'    => 100,
                     'notNull' => true,
                 ]),
@@ -200,7 +201,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         ]);
 
         $this->assertTrue($this->getPhalconDb()->tableExists('mm_new_create'));
-        $columns = $this->getPhalconDb()->describeColumns('mm_new_create');
+        $columns = $this->describeColumns('mm_new_create');
         $this->assertCount(2, $columns);
     }
 
@@ -231,7 +232,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         ]);
 
         $this->assertTrue($this->getPhalconDb()->tableExists('mm_old_create'));
-        $columns = $this->getPhalconDb()->describeColumns('mm_old_create');
+        $columns = $this->describeColumns('mm_old_create');
         $this->assertCount(2, $columns);
     }
 
@@ -266,8 +267,8 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->getPhalconDb()->createTable($table, $schema, [
             'columns' => [
-                new \Phalcon\Db\Column('id', [
-                    'type'    => \Phalcon\Db\Column::TYPE_INTEGER,
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
                     'size'    => 11,
                     'notNull' => true,
                     'first'   => true,
@@ -278,21 +279,21 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $fake = new MigrationFake();
         $fake->morphTable($table, [
             'columns' => [
-                new \Phalcon\Migrations\Db\Column('id', [
-                    'type'    => \Phalcon\Migrations\Db\Column::TYPE_INTEGER,
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
                     'size'    => 11,
                     'notNull' => true,
                     'first'   => true,
                 ]),
-                new \Phalcon\Migrations\Db\Column('name', [
-                    'type'    => \Phalcon\Migrations\Db\Column::TYPE_VARCHAR,
+                new Column('name', [
+                    'type'    => Column::TYPE_VARCHAR,
                     'size'    => 100,
                     'notNull' => true,
                 ]),
             ],
         ]);
 
-        $columns = $this->getPhalconDb()->describeColumns($table);
+        $columns = $this->describeColumns($table);
         $this->assertCount(2, $columns);
     }
 
@@ -303,8 +304,8 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->getPhalconDb()->createTable($table, $schema, [
             'columns' => [
-                new \Phalcon\Db\Column('id', [
-                    'type'    => \Phalcon\Db\Column::TYPE_INTEGER,
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
                     'size'    => 11,
                     'notNull' => true,
                     'first'   => true,
@@ -329,7 +330,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
             ],
         ]);
 
-        $columns = $this->getPhalconDb()->describeColumns($table);
+        $columns = $this->describeColumns($table);
         $this->assertCount(2, $columns);
     }
 
@@ -342,8 +343,8 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $this->getPhalconDb()->createTable('mm_batch_skip', $schema, [
             'columns' => [
-                new \Phalcon\Db\Column('id', [
-                    'type' => \Phalcon\Db\Column::TYPE_INTEGER, 'notNull' => true, 'first' => true,
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true,
                 ]),
             ],
         ]);
@@ -366,14 +367,14 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->getPhalconDb()->createTable($table, $schema, [
             'columns' => [
-                new \Phalcon\Db\Column('id', [
-                    'type'    => \Phalcon\Db\Column::TYPE_INTEGER,
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
                     'size'    => 11,
                     'notNull' => true,
                     'first'   => true,
                 ]),
-                new \Phalcon\Db\Column('name', [
-                    'type'    => \Phalcon\Db\Column::TYPE_VARCHAR,
+                new Column('name', [
+                    'type'    => Column::TYPE_VARCHAR,
                     'size'    => 100,
                     'notNull' => true,
                 ]),
@@ -397,8 +398,8 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
         $this->getPhalconDb()->createTable('mm_batch_del_skip', $schema, [
             'columns' => [
-                new \Phalcon\Db\Column('id', [
-                    'type' => \Phalcon\Db\Column::TYPE_INTEGER, 'notNull' => true, 'first' => true,
+                new Column('id', [
+                    'type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true,
                 ]),
             ],
         ]);
@@ -421,8 +422,8 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->getPhalconDb()->createTable($table, $schema, [
             'columns' => [
-                new \Phalcon\Db\Column('id', [
-                    'type'    => \Phalcon\Db\Column::TYPE_INTEGER,
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
                     'size'    => 11,
                     'notNull' => true,
                     'first'   => true,
@@ -454,7 +455,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->assertTrue($this->getPhalconDb()->tableExists('bc_old_users'));
 
-        $columns     = $this->getPhalconDb()->describeColumns('bc_old_users');
+        $columns     = $this->describeColumns('bc_old_users');
         $columnNames = array_map(fn($c) => $c->getName(), $columns);
 
         $this->assertContains('id', $columnNames);
@@ -466,7 +467,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
     {
         $this->silentRun('backcompat/old');
 
-        $columns     = $this->getPhalconDb()->describeColumns('bc_old_users');
+        $columns     = $this->describeColumns('bc_old_users');
         $columnNames = array_map(fn($c) => $c->getName(), $columns);
 
         $this->assertContains('created_at', $columnNames);
@@ -478,7 +479,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->assertTrue($this->getPhalconDb()->tableExists('bc_new_users'));
 
-        $columns     = $this->getPhalconDb()->describeColumns('bc_new_users');
+        $columns     = $this->describeColumns('bc_new_users');
         $columnNames = array_map(fn($c) => $c->getName(), $columns);
 
         $this->assertContains('id', $columnNames);
@@ -490,7 +491,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
     {
         $this->silentRun('backcompat/new');
 
-        $columns     = $this->getPhalconDb()->describeColumns('bc_new_users');
+        $columns     = $this->describeColumns('bc_new_users');
         $columnNames = array_map(fn($c) => $c->getName(), $columns);
 
         $this->assertContains('created_at', $columnNames);
@@ -500,9 +501,8 @@ final class MigrationModelTest extends AbstractMysqlTestCase
     {
         $this->silentRun('backcompat/old');
 
-        $oldColumns  = $this->getPhalconDb()->describeColumns('bc_old_users');
+        $oldColumns  = $this->describeColumns('bc_old_users');
 
-        // Reset tracking so the new-format versions aren't seen as already run
         if ($this->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE)) {
             $this->getPhalconDb()->dropTable(Migrations::MIGRATION_LOG_TABLE);
         }
@@ -510,7 +510,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
         $this->silentRun('backcompat/new');
 
-        $newColumns  = $this->getPhalconDb()->describeColumns('bc_new_users');
+        $newColumns  = $this->describeColumns('bc_new_users');
 
         $oldNames = array_map(fn($c) => $c->getName(), $oldColumns);
         $newNames = array_map(fn($c) => $c->getName(), $newColumns);
@@ -533,7 +533,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
     {
         $this->silentRun('backcompat/old');
 
-        $afterForward = $this->getPhalconDb()->describeColumns('bc_old_users');
+        $afterForward = $this->describeColumns('bc_old_users');
         $this->assertCount(4, $afterForward);
 
         ob_start();
@@ -548,7 +548,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
             ob_end_clean();
         }
 
-        $afterRollback = $this->getPhalconDb()->describeColumns('bc_old_users');
+        $afterRollback = $this->describeColumns('bc_old_users');
         $columnNames   = array_map(fn($c) => $c->getName(), $afterRollback);
 
         $this->assertCount(3, $columnNames);
@@ -566,7 +566,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
     {
         $this->silentRun('backcompat/new');
 
-        $afterForward = $this->getPhalconDb()->describeColumns('bc_new_users');
+        $afterForward = $this->describeColumns('bc_new_users');
         $this->assertCount(4, $afterForward);
 
         ob_start();
@@ -581,7 +581,7 @@ final class MigrationModelTest extends AbstractMysqlTestCase
             ob_end_clean();
         }
 
-        $afterRollback = $this->getPhalconDb()->describeColumns('bc_new_users');
+        $afterRollback = $this->describeColumns('bc_new_users');
         $columnNames   = array_map(fn($c) => $c->getName(), $afterRollback);
 
         $this->assertCount(3, $columnNames);

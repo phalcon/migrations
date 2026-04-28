@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
-use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
@@ -23,7 +22,6 @@ final class IssuesTest extends AbstractMysqlTestCase
     /**
      * @see https://github.com/phalcon/migrations/issues/2
      *
-     * @throws Exception
      * @throws ScriptException
      */
     public function testDisableEnableForeignKeyChecks(): void
@@ -40,14 +38,13 @@ final class IssuesTest extends AbstractMysqlTestCase
         $this->assertTrue($this->getPhalconDb()->tableExists('client'));
         $this->assertArrayHasKey(
             'fk_accessToken_client_1',
-            $this->getPhalconDb()->describeReferences('accessToken')
+            $this->describeReferences('accessToken')
         );
     }
 
     /**
      * @see https://github.com/phalcon/migrations/issues/29
      *
-     * @throws Exception
      * @throws ScriptException
      */
     public function testIssue29(): void
@@ -64,7 +61,7 @@ final class IssuesTest extends AbstractMysqlTestCase
         $this->assertTrue($this->getPhalconDb()->tableExists('task_jobs'));
         $this->assertArrayHasKey(
             'task_jobs_tasks_id_fk',
-            $this->getPhalconDb()->describeReferences('task_jobs')
+            $this->describeReferences('task_jobs')
         );
     }
 }

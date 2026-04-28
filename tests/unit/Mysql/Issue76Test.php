@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
-use Phalcon\Db\Exception;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
@@ -22,9 +21,6 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
  */
 final class Issue76Test extends AbstractMysqlTestCase
 {
-    /**
-     * @throws Exception
-     */
     public function testNormalRun(): void
     {
         ob_start();

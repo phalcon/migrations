@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests;
 
-use Phalcon\Db\Adapter\Pdo\AbstractPdo;
-use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgresql;
-use Phalcon\Db\Enum;
+use Phalcon\Migrations\Db\Adapter\AdapterFactory;
+use Phalcon\Migrations\Db\Adapter\AdapterInterface;
+use Phalcon\Migrations\Db\Connection;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils\Config;
 
 abstract class AbstractPostgresqlTestCase extends AbstractTestCase
 {
-    protected static ?AbstractPdo $phalconDb = null;
+    protected static ?AdapterInterface $db = null;
 
     protected static string $defaultSchema = '';
 
@@ -31,10 +31,9 @@ abstract class AbstractPostgresqlTestCase extends AbstractTestCase
 
         static::$defaultSchema = $_ENV['POSTGRES_TEST_DB_SCHEMA'];
 
-        $options = static::getMigrationsConfig()->toArray();
-        unset($options['adapter']);
-
-        self::$phalconDb = new PdoPostgresql($options);
+        self::$db = AdapterFactory::create(
+            Connection::fromConfig(static::getMigrationsConfig())
+        );
     }
 
     protected function setUp(): void
@@ -42,22 +41,27 @@ abstract class AbstractPostgresqlTestCase extends AbstractTestCase
         parent::setUp();
 
         $schema = static::$defaultSchema;
-        self::$phalconDb->execute('DROP SCHEMA IF EXISTS "' . $schema . '" CASCADE');
-        self::$phalconDb->execute('CREATE SCHEMA "' . $schema . '"');
-        self::$phalconDb->execute('SET search_path TO "' . $schema . '"');
+        self::$db->execute('DROP SCHEMA IF EXISTS "' . $schema . '" CASCADE');
+        self::$db->execute('CREATE SCHEMA "' . $schema . '"');
+        self::$db->execute('SET search_path TO "' . $schema . '"');
     }
 
     protected function tearDown(): void
     {
-        self::$phalconDb->execute('DROP SCHEMA IF EXISTS "' . static::$defaultSchema . '" CASCADE');
+        self::$db->execute('DROP SCHEMA IF EXISTS "' . static::$defaultSchema . '" CASCADE');
         Migrations::resetStorage();
 
         parent::tearDown();
     }
 
-    public function getPhalconDb(): AbstractPdo
+    public function getAdapter(): AdapterInterface
     {
-        return self::$phalconDb;
+        return self::$db;
+    }
+
+    public function getPhalconDb(): AdapterInterface
+    {
+        return self::$db;
     }
 
     public function getDefaultSchema(): string
@@ -83,9 +87,31 @@ abstract class AbstractPostgresqlTestCase extends AbstractTestCase
         ]);
     }
 
+    protected function describeColumns(string $table, string $schema = ''): array
+    {
+        $schema = $schema ?: static::$defaultSchema;
+
+        return array_values(self::$db->listColumns($schema, $table));
+    }
+
+    protected function describeIndexes(string $table, string $schema = ''): array
+    {
+        $schema = $schema ?: static::$defaultSchema;
+
+        return self::$db->listIndexes($schema, $table);
+    }
+
+    protected function insertRow(string $table, array $values, array $columns): void
+    {
+        $schema = static::$defaultSchema;
+        $cols   = implode(', ', array_map(fn($c) => '"' . $c . '"', $columns));
+        $vals   = implode(', ', array_map(fn($v) => self::$db->quote((string) $v), $values));
+        self::$db->execute(sprintf('INSERT INTO "%s"."%s" (%s) VALUES (%s)', $schema, $table, $cols, $vals));
+    }
+
     protected function assertNumRecords(int $expected, string $table): void
     {
-        $result = $this->getPhalconDb()->fetchOne(
+        $result = self::$db->fetchOne(
             sprintf('SELECT COUNT(*) AS cnt FROM %s', $table)
         );
         $this->assertSame($expected, (int) $result['cnt']);
@@ -98,12 +124,10 @@ abstract class AbstractPostgresqlTestCase extends AbstractTestCase
 
     protected function grabColumnFromDatabase(string $table, string $column): array
     {
-        $results = $this->getPhalconDb()->fetchAll(
-            sprintf('SELECT "%s" FROM %s', $column, $table),
-            Enum::FETCH_ASSOC
+        $results = self::$db->fetchAll(
+            sprintf('SELECT "%s" FROM %s', $column, $table)
         );
 
         return array_column($results, $column);
     }
-
 }

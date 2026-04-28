@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
-use Phalcon\Db\Column;
-use Phalcon\Db\Exception;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -172,7 +171,6 @@ final class ColumnTypesTest extends AbstractMysqlTestCase
     }
 
     /**
-     * @throws Exception
      * @throws \Exception
      */
     #[DataProvider('columnsDataProvider')]
@@ -206,15 +204,17 @@ final class ColumnTypesTest extends AbstractMysqlTestCase
 
         try {
             foreach ($values as $value) {
-                $this->getPhalconDb()->insert($tableName, [$value], [$columnName]);
+                $this->getPhalconDb()->execute(
+                    sprintf('INSERT INTO `%s` (`%s`) VALUES (?)', $tableName, $columnName),
+                    [$value]
+                );
             }
         } finally {
             Migrations::resetStorage();
             $this->removeDir($migrationsDir);
         }
 
-        /** @var Column $column */
-        $column = $this->getPhalconDb()->describeColumns($tableName)[0];
+        $column = $this->describeColumns($tableName)[0];
         $rows   = $this->grabColumnFromDatabase($tableName, $columnName);
 
         $this->assertSame($definition['unsigned'] ?? false, $column->isUnsigned());

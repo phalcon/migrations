@@ -15,7 +15,8 @@ namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
 use Exception;
 use Faker\Factory as FakerFactory;
-use Phalcon\Db\Column;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -121,7 +122,6 @@ final class MigrationsTest extends AbstractMysqlTestCase
     }
 
     /**
-     * @throws \Phalcon\Db\Exception
      * @throws Exception
      */
     public function testTypeDateWithManyRows(): void
@@ -183,7 +183,6 @@ final class MigrationsTest extends AbstractMysqlTestCase
     }
 
     /**
-     * @throws \Phalcon\Db\Exception
      * @throws Exception
      */
     public function testPhalconMigrationsTable(): void
@@ -207,14 +206,14 @@ final class MigrationsTest extends AbstractMysqlTestCase
         ]);
         ob_end_clean();
 
-        $indexes      = $this->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $indexes      = $this->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
         $currentIndex = current($indexes);
 
         $this->assertTrue($this->getPhalconDb()->tableExists($tableName));
         $this->assertTrue($this->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE));
         $this->assertSame(1, count($indexes));
         $this->assertArrayHasKey('PRIMARY', $indexes);
-        $this->assertSame('PRIMARY', $currentIndex->getType());
+        $this->assertSame(Index::TYPE_PRIMARY, $currentIndex->getType());
     }
 
     /**
@@ -242,11 +241,10 @@ final class MigrationsTest extends AbstractMysqlTestCase
 
         $this->batchInsert($tableName, ['id'], [[1], [2], [3]]);
 
-        $autoIncrement = $this->getPhalconDb()->fetchColumn(
-            sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName),
-            [],
-            10
+        $row           = $this->getPhalconDb()->fetchOne(
+            sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName)
         );
+        $autoIncrement = $row['Auto_increment'];
 
         ob_start();
         Migrations::generate([
@@ -288,11 +286,10 @@ final class MigrationsTest extends AbstractMysqlTestCase
 
         $this->batchInsert($tableName, ['id'], [[1], [2], [3]]);
 
-        $autoIncrement = $this->getPhalconDb()->fetchColumn(
-            sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName),
-            [],
-            10
+        $row           = $this->getPhalconDb()->fetchOne(
+            sprintf('SHOW TABLE STATUS FROM `%s` WHERE Name = "%s"', $dbName, $tableName)
         );
+        $autoIncrement = $row['Auto_increment'];
 
         ob_start();
         Migrations::generate([
@@ -310,9 +307,6 @@ final class MigrationsTest extends AbstractMysqlTestCase
         );
     }
 
-    /**
-     * @throws \Phalcon\Db\Exception
-     */
     public function testRunAllMigrations(): void
     {
         $this->runIssue66Migrations();
@@ -332,9 +326,6 @@ final class MigrationsTest extends AbstractMysqlTestCase
         ];
     }
 
-    /**
-     * @throws \Phalcon\Db\Exception
-     */
     #[DataProvider('specificMigrationsDataProvider')]
     public function testRunSpecificMigrations(array $versions): void
     {
@@ -391,9 +382,6 @@ final class MigrationsTest extends AbstractMysqlTestCase
         );
     }
 
-    /**
-     * @throws \Phalcon\Db\Exception
-     */
     public function testUpdateColumnUnsigned(): void
     {
         $dbName        = $_ENV['MYSQL_TEST_DB_DATABASE'];
@@ -430,14 +418,11 @@ final class MigrationsTest extends AbstractMysqlTestCase
         ]);
         ob_end_clean();
 
-        $columns = $this->getPhalconDb()->describeColumns($tableName);
+        $columns = $this->describeColumns($tableName);
 
         $this->assertTrue($columns[0]->isUnsigned());
     }
 
-    /**
-     * @throws \Phalcon\Db\Exception
-     */
     public function testNullableTimestamp(): void
     {
         $dbName    = $_ENV['MYSQL_TEST_DB_DATABASE'];
@@ -474,7 +459,7 @@ final class MigrationsTest extends AbstractMysqlTestCase
         ]);
         ob_end_clean();
 
-        $columns = $this->getPhalconDb()->describeColumns($tableName);
+        $columns = $this->describeColumns($tableName);
 
         $this->assertFalse($columns[1]->isNotNull());
         $this->assertNull($columns[1]->getDefault());

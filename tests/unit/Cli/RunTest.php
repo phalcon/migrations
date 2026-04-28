@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Cli;
 
-use Phalcon\Db\Column;
-use Phalcon\Db\Reference;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Tests\AbstractCliTestCase;
 
 final class RunTest extends AbstractCliTestCase

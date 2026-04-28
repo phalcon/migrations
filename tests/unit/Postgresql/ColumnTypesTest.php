@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Postgresql;
 
-use Phalcon\Db\Column;
-use Phalcon\Db\Exception;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -42,7 +41,6 @@ final class ColumnTypesTest extends AbstractPostgresqlTestCase
     }
 
     /**
-     * @throws Exception
      * @throws \Exception
      */
     #[DataProvider('columnsDataProvider')]
@@ -64,7 +62,7 @@ final class ColumnTypesTest extends AbstractPostgresqlTestCase
                 'config'        => static::getMigrationsConfig(),
                 'tableName'     => $tableName,
             ]);
-            $this->getPhalconDb()->dropTable($tableName);
+            $this->getPhalconDb()->dropTable($tableName, $this->getDefaultSchema());
             Migrations::run([
                 'migrationsDir'  => $migrationsDir,
                 'config'         => static::getMigrationsConfig(),
@@ -75,13 +73,12 @@ final class ColumnTypesTest extends AbstractPostgresqlTestCase
         }
 
         foreach ($values as $value) {
-            $this->getPhalconDb()->insert($tableName, [$value], [$columnName]);
+            $this->insertRow($tableName, [$value], [$columnName]);
         }
 
         $this->removeDir($migrationsDir);
 
-        /** @var Column $column */
-        $column = $this->getPhalconDb()->describeColumns($tableName, $this->getDefaultSchema())[0];
+        $column = $this->describeColumns($tableName, $this->getDefaultSchema())[0];
         $rows   = $this->grabColumnFromDatabase($this->getDefaultSchema() . '.' . $tableName, $columnName);
 
         $this->assertSame($definition['type'], $column->getType());

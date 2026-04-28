@@ -13,9 +13,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
-use Phalcon\Db\Column;
-use Phalcon\Db\Exception;
-use Phalcon\Db\Index;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
@@ -24,9 +23,6 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
  */
 final class Issue94Test extends AbstractMysqlTestCase
 {
-    /**
-     * @throws Exception
-     */
     public function testIssue94(): void
     {
         ob_start();
@@ -37,14 +33,11 @@ final class Issue94Test extends AbstractMysqlTestCase
         ]);
         ob_end_clean();
 
-        $options = $this->getPhalconDb()->tableOptions('memory_table');
+        $options = $this->tableOptions('memory_table');
 
         $this->assertSame('MEMORY', $options['engine']);
     }
 
-    /**
-     * @throws Exception
-     */
     public function testGenerateIssue94(): void
     {
         $engine        = 'MyISAM';
@@ -84,6 +77,6 @@ final class Issue94Test extends AbstractMysqlTestCase
         ]);
         ob_end_clean();
 
-        $this->assertSame($engine, $this->getPhalconDb()->tableOptions($tableName)['engine']);
+        $this->assertSame($engine, $this->tableOptions($tableName)['engine']);
     }
 }

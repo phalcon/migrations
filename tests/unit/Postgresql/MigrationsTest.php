@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Tests\Unit\Postgresql;
 
 use Exception;
-use Phalcon\Db\Column;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
@@ -46,7 +46,7 @@ final class MigrationsTest extends AbstractPostgresqlTestCase
                 'config'        => static::getMigrationsConfig(),
                 'tableName'     => '@',
             ]);
-            $this->getPhalconDb()->dropTable($tableName);
+            $this->getPhalconDb()->dropTable($tableName, $this->getDefaultSchema());
             Migrations::run([
                 'migrationsDir'  => $migrationsDir,
                 'config'         => static::getMigrationsConfig(),
@@ -56,7 +56,7 @@ final class MigrationsTest extends AbstractPostgresqlTestCase
             ob_end_clean();
         }
 
-        $indexes = $this->getPhalconDb()->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+        $indexes = $this->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
 
         $this->assertTrue(
             $this->getPhalconDb()->tableExists($tableName, $this->getDefaultSchema())
@@ -88,9 +88,9 @@ final class MigrationsTest extends AbstractPostgresqlTestCase
             ],
         ]);
 
-        $this->getPhalconDb()->insert($tableName, [1], ['id']);
-        $this->getPhalconDb()->insert($tableName, [2], ['id']);
-        $this->getPhalconDb()->insert($tableName, [3], ['id']);
+        $this->insertRow($tableName, [1], ['id']);
+        $this->insertRow($tableName, [2], ['id']);
+        $this->insertRow($tableName, [3], ['id']);
 
         ob_start();
         try {

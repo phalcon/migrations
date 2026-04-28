@@ -13,16 +13,14 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
-use Phalcon\Db\Column;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
-use Phalcon\Mvc\Model\Exception;
 
 final class TimestampedVersionTest extends AbstractMysqlTestCase
 {
     /**
-     * @throws Exception
      * @throws ScriptException
      * @throws \Exception
      */
@@ -50,7 +48,6 @@ final class TimestampedVersionTest extends AbstractMysqlTestCase
     }
 
     /**
-     * @throws Exception
      * @throws ScriptException
      * @throws \Exception
      */
