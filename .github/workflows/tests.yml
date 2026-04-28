@@ -80,7 +80,7 @@ jobs:
           MYSQL_TEST_DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           POSTGRES_TEST_DB_PORT: ${{ job.services.postgres.ports['5432'] }}
         if: success()
-        run: vendor/bin/codecept run --coverage-xml=coverage-${{ matrix.php-versions }}.xml
+        run: vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover tests/_output/coverage/coverage-${{ matrix.php-versions }}.xml
 
       - name: Upload coverage to Codecov (coverage)
         if: success()
