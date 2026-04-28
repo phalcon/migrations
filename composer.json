@@ -44,7 +44,9 @@
         "vlucas/phpdotenv": "^5.6",
         "phpstan/phpstan": "^2.1",
         "phalcon/ide-stubs": "^5.9",
-        "vimeo/psalm": "^5.26"
+        "vimeo/psalm": "^5.26",
+        "pds/composer-script-names": "^1.0",
+        "pds/skeleton": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -73,12 +75,20 @@
             ".codecov.yml",
             "CHANGELOG.md",
             "codeception.yml",
-            "phpcs.xml.dist",
+          "phpcs.xml",
             "phpstan.neon.dist",
             "psalm.xml.dist"
         ]
     },
     "bin": [
         "phalcon-migrations"
-    ]
+    ],
+  "scripts": {
+    "analyze": "vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1024M",
+    "cs": "vendor/bin/phpcs --standard=phpcs.xml",
+    "cs-fix": "vendor/bin/phpcbf --standard=phpcs.xml",
+    "test-unit": "vendor/bin/phpunit -c phpunit.xml.dist",
+    "test-unit-coverage": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-clover tests/_output/coverage.xml",
+    "test-unit-coverage-html": "vendor/bin/phpunit  -c phpunit.xml.dist --coverage-html tests/_output/coverage/"
+  }
 }

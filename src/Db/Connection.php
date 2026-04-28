@@ -17,13 +17,15 @@ use Generator;
 use InvalidArgumentException;
 use PDO;
 use PDOStatement;
+use Phalcon\Migrations\Observer\Profiler;
 use Phalcon\Migrations\Utils\Config;
 
 use function is_int;
 
 final class Connection
 {
-    private ?PDO $pdo = null;
+    private ?PDO $pdo      = null;
+    private ?Profiler $profiler = null;
     /** @var callable|null */
     private $logger = null;
 
@@ -188,6 +190,11 @@ final class Connection
         $this->logger = $logger;
     }
 
+    public function setProfiler(?Profiler $profiler): void
+    {
+        $this->profiler = $profiler;
+    }
+
     private function pdo(): PDO
     {
         $this->connect();
@@ -199,6 +206,9 @@ final class Connection
 
     private function perform(string $sql, array $values): PDOStatement
     {
+        $start = microtime(true);
+        $this->profiler?->start($sql, $start);
+
         $sth = $this->pdo()->prepare($sql);
         foreach ($values as $key => $value) {
             $placeholder = is_int($key) ? $key + 1 : $key;
@@ -206,6 +216,8 @@ final class Connection
         }
 
         $sth->execute();
+
+        $this->profiler?->end($sql, $start, microtime(true));
 
         return $sth;
     }

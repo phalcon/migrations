@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Listeners;
 
-use Phalcon\Events\Event;
+use Phalcon\Migrations\Db\Connection;
 use Phalcon\Migrations\Observer\Profiler;
 
 /**
- * Db event listener
+ * Attaches the query profiler to a database connection for verbose output.
  */
 class DbProfilerListener
 {
@@ -28,13 +28,8 @@ class DbProfilerListener
         $this->profiler = new Profiler();
     }
 
-    public function beforeQuery(Event $event, $connection)
+    public function attach(Connection $connection): void
     {
-        $this->profiler->startProfile($connection->getSQLStatement());
-    }
-
-    public function afterQuery()
-    {
-        $this->profiler->stopProfile();
+        $connection->setProfiler($this->profiler);
     }
 }
