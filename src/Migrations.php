@@ -15,18 +15,18 @@ namespace Phalcon\Migrations;
 
 use DirectoryIterator;
 use Exception;
-use Phalcon\Db\Adapter\AdapterInterface;
-use Phalcon\Db\Column;
-use Phalcon\Db\Exception as DbException;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Console\OptionStack;
-use Phalcon\Migrations\Utils\Config;
-use Phalcon\Migrations\Db\Dialect\DialectMysql;
-use Phalcon\Migrations\Db\Dialect\DialectPostgresql;
+use Phalcon\Migrations\Db\Adapter\AdapterFactory;
+use Phalcon\Migrations\Db\Adapter\AdapterInterface;
+use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Connection;
+use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Mvc\Model\Migration as ModelMigration;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesDb;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Utils\Helper;
 use Phalcon\Migrations\Version\IncrementalItem;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
@@ -83,11 +83,11 @@ class Migrations
     public const MIGRATION_LOG_TABLE = 'phalcon_migrations';
 
     /**
-     * Filename or db connection to store migrations log
+     * Filename or db adapter to store migrations log
      *
-     * @var mixed
+     * @var string|AdapterInterface|null
      */
-    protected static $storage;
+    protected static $storage = null;
 
     /**
      * Check if the script is running on Console mode
@@ -195,7 +195,6 @@ class Migrations
     /**
      * Run migrations
      *
-     * @throws DbException
      * @throws RuntimeException
      * @throws Exception
      */
@@ -518,23 +517,12 @@ class Migrations
                 throw new RuntimeException('Unspecified database Adapter in your configuration!');
             }
 
-            $adapter = '\\Phalcon\\Db\\Adapter\\Pdo\\' . $config->adapter;
-            if (!class_exists($adapter)) {
-                throw new RuntimeException('Invalid database Adapter!');
-            }
-
-            $configArray = $config->toArray();
-            unset($configArray['adapter']);
-            self::$storage = new $adapter($configArray);
+            $connection    = Connection::fromConfig($config);
+            self::$storage = AdapterFactory::create($connection);
 
             $dbAdapter = strtolower($config->adapter);
             if ($dbAdapter === ModelMigration::DB_ADAPTER_MYSQL) {
-                self::$storage->setDialect(new DialectMysql());
-                self::$storage->query('SET FOREIGN_KEY_CHECKS=0');
-            }
-
-            if ($dbAdapter === ModelMigration::DB_ADAPTER_POSTGRESQL) {
-                self::$storage->setDialect(new DialectPostgresql());
+                $connection->execute('SET FOREIGN_KEY_CHECKS=0');
             }
 
             if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {
@@ -594,18 +582,16 @@ class Migrations
         self::connectionSetup($options);
 
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $connection */
-            $connection        = self::$storage;
-            $query             = 'SELECT * FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC LIMIT 1';
-            $lastGoodMigration = $connection->query($query);
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $query   = 'SELECT version FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC LIMIT 1';
+            $row     = $storage->fetchOne($query);
 
-            if (0 === $lastGoodMigration->numRows()) {
+            if ($row === []) {
                 return VersionCollection::createItem();
             }
 
-            $lastGoodMigration = $lastGoodMigration->fetchArray();
-
-            return VersionCollection::createItem($lastGoodMigration['version']);
+            return VersionCollection::createItem($row['version']);
         }
 
         // Get and clean migration
@@ -636,12 +622,11 @@ class Migrations
         $endTime = date('Y-m-d H:i:s');
 
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $connection */
-            $connection = self::$storage;
-            $connection->insert(
-                self::MIGRATION_LOG_TABLE,
-                [$version, $startTime, $endTime],
-                ['version', 'start_time', 'end_time']
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $storage->execute(
+                'INSERT INTO ' . self::MIGRATION_LOG_TABLE . ' (version, start_time, end_time) VALUES (?, ?, ?)',
+                [$version, $startTime, $endTime]
             );
         } else {
             $currentVersions           = self::getCompletedVersions($options);
@@ -663,9 +648,12 @@ class Migrations
         self::connectionSetup($options);
 
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $connection */
-            $connection = self::$storage;
-            $connection->execute('DELETE FROM ' . self::MIGRATION_LOG_TABLE . ' WHERE version=\'' . $version . '\'');
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $storage->execute(
+                'DELETE FROM ' . self::MIGRATION_LOG_TABLE . ' WHERE version = ?',
+                [$version]
+            );
         } else {
             $currentVersions = self::getCompletedVersions($options);
             unset($currentVersions[$version]);
@@ -683,15 +671,11 @@ class Migrations
         self::connectionSetup($options);
 
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $connection */
-            $connection        = self::$storage;
+            /** @var AdapterInterface $storage */
+            $storage           = self::$storage;
             $query             = 'SELECT version FROM ' . self::MIGRATION_LOG_TABLE . ' ORDER BY version DESC';
-            $completedVersions = $connection->query($query)
-                                            ->fetchAll()
-            ;
-            $completedVersions = array_map(function ($version) {
-                return $version['version'];
-            }, $completedVersions);
+            $completedVersions = $storage->fetchAll($query);
+            $completedVersions = array_column($completedVersions, 'version');
         } else {
             $completedVersions = file(self::$storage, FILE_IGNORE_NEW_LINES);
         }
@@ -712,34 +696,30 @@ class Migrations
      */
     public static function createLogTable(): void
     {
-        self::$storage->createTable(self::MIGRATION_LOG_TABLE, '', [
+        /** @var AdapterInterface $storage */
+        $storage = self::$storage;
+        $storage->createTable(self::MIGRATION_LOG_TABLE, '', [
             'columns' => [
-                new Column(
-                    'version',
-                    [
-                        'type'    => Column::TYPE_VARCHAR,
-                        'size'    => 255,
-                        'notNull' => true,
-                        'first'   => true,
-                        'primary' => true,
-                    ]
-                ),
-                new Column(
-                    'start_time',
-                    [
-                        'type'    => Column::TYPE_TIMESTAMP,
-                        'notNull' => true,
-                        'default' => 'CURRENT_TIMESTAMP',
-                    ]
-                ),
-                new Column(
-                    'end_time',
-                    [
-                        'type'    => Column::TYPE_TIMESTAMP,
-                        'notNull' => true,
-                        'default' => 'CURRENT_TIMESTAMP',
-                    ]
-                )
+                new Column('version', [
+                    'type'    => Column::TYPE_VARCHAR,
+                    'size'    => 255,
+                    'notNull' => true,
+                    'first'   => true,
+                    'primary' => true,
+                ]),
+                new Column('start_time', [
+                    'type'    => Column::TYPE_TIMESTAMP,
+                    'notNull' => true,
+                    'default' => 'CURRENT_TIMESTAMP',
+                ]),
+                new Column('end_time', [
+                    'type'    => Column::TYPE_TIMESTAMP,
+                    'notNull' => true,
+                    'default' => 'CURRENT_TIMESTAMP',
+                ]),
+            ],
+            'indexes' => [
+                new Index('PRIMARY', ['version'], Index::TYPE_PRIMARY),
             ],
         ]);
     }
