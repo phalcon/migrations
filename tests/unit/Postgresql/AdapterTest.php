@@ -118,6 +118,28 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $this->assertCount(1, $rows);
     }
 
+    public function testCreateTableWithCurrentTimestampDefault(): void
+    {
+        $this->adapter->createTable('pg_ts_default_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('created_at', [
+                    'type'    => Column::TYPE_TIMESTAMP,
+                    'notNull' => true,
+                    'default' => 'current_timestamp()',
+                ]),
+            ],
+        ]);
+
+        $this->adapter->execute('INSERT INTO pg_ts_default_test (id) VALUES (1)');
+        $row = $this->adapter->fetchOne('SELECT created_at FROM pg_ts_default_test');
+
+        $this->assertMatchesRegularExpression(
+            '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',
+            (string) $row['created_at']
+        );
+    }
+
     public function testDropIndex(): void
     {
         $this->adapter->createTable('pg_dropidx_test', $this->schema, [
@@ -341,6 +363,29 @@ final class AdapterTest extends AbstractPostgresqlTestCase
 
         $cols = $this->adapter->listColumns($this->schema, 'pg_moddef_test');
         $this->assertArrayHasKey('name', $cols);
+    }
+
+    public function testModifyColumnWithFunctionDefault(): void
+    {
+        $this->adapter->createTable('pg_modfn_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('created_at', ['type' => Column::TYPE_TIMESTAMP]),
+            ],
+        ]);
+
+        $old = new Column('created_at', ['type' => Column::TYPE_TIMESTAMP]);
+        $new = new Column('created_at', ['type' => Column::TYPE_TIMESTAMP, 'default' => 'current_timestamp()']);
+
+        $this->adapter->modifyColumn('pg_modfn_test', $this->schema, $new, $old);
+
+        $this->adapter->execute('INSERT INTO pg_modfn_test (id) VALUES (1)');
+        $row = $this->adapter->fetchOne('SELECT created_at FROM pg_modfn_test');
+
+        $this->assertMatchesRegularExpression(
+            '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',
+            (string) $row['created_at']
+        );
     }
 
     public function testTableExists(): void

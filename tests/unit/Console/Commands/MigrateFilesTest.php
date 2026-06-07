@@ -20,7 +20,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class MigrateFilesTest extends AbstractTestCase
 {
-
     public function testGetHelp(): void
     {
         $command = new MigrateFiles($this->makeParser([]));

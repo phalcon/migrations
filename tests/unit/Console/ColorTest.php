@@ -18,7 +18,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class ColorTest extends AbstractTestCase
 {
-
     public function testColorizeReturnsOriginalStringWhenShellNotSupported(): void
     {
         if (Color::isSupportedShell()) {

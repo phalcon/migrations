@@ -18,7 +18,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class BasicTest extends AbstractCliTestCase
 {
-
     public static function helpArgumentsDataProvider(): array
     {
         return [

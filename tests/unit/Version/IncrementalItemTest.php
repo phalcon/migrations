@@ -19,7 +19,6 @@ use Phalcon\Migrations\Version\ItemInterface;
 
 final class IncrementalItemTest extends AbstractTestCase
 {
-
     public function testAddMinorIncrementsLastPart(): void
     {
         $item = new IncrementalItem('1.0.0');

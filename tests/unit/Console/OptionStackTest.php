@@ -22,7 +22,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class OptionStackTest extends AbstractTestCase
 {
-
     /**
      * @see testSetDefaultOptionIfOptionDidntExist
      */

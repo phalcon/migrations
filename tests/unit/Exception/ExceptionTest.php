@@ -23,7 +23,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class ExceptionTest extends AbstractTestCase
 {
-
     public function testCommandsExceptionIsThrowable(): void
     {
         $this->expectException(CommandsException::class);

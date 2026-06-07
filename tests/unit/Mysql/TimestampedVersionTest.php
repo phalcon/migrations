@@ -20,7 +20,6 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
 final class TimestampedVersionTest extends AbstractMysqlTestCase
 {
-
     /**
      * @throws ScriptException
      * @throws \Exception

@@ -20,7 +20,6 @@ use Phalcon\Migrations\Version\TimestampedItem;
 
 final class TimestampedItemTest extends AbstractTestCase
 {
-
     public function testConstructorThrowsOnAlphaVersion(): void
     {
         $this->expectException(InvalidArgumentException::class);

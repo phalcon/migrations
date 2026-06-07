@@ -114,6 +114,30 @@ final class AdapterTest extends AbstractMysqlTestCase
         $this->assertCount(1, $rows);
     }
 
+    public function testCreateTableWithCurrentTimestampDefault(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+
+        $this->adapter->createTable('adapter_ts_default_test', $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+                new Column('created_at', [
+                    'type'    => Column::TYPE_TIMESTAMP,
+                    'notNull' => true,
+                    'default' => 'current_timestamp()',
+                ]),
+            ],
+        ]);
+
+        $this->adapter->execute('INSERT INTO `adapter_ts_default_test` (id) VALUES (1)');
+        $row = $this->adapter->fetchOne('SELECT created_at FROM `adapter_ts_default_test`');
+
+        $this->assertMatchesRegularExpression(
+            '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',
+            (string) $row['created_at']
+        );
+    }
+
     public function testCreateTableWithIndexesAndReferences(): void
     {
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];

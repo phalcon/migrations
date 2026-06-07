@@ -23,7 +23,6 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
  */
 final class Issue94Test extends AbstractMysqlTestCase
 {
-
     public function testGenerateIssue94(): void
     {
         $engine        = 'MyISAM';

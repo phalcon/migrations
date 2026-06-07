@@ -20,7 +20,6 @@ use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
 final class MigrationsTest extends AbstractPostgresqlTestCase
 {
-
     /**
      * @throws Exception
      */

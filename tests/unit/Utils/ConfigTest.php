@@ -18,7 +18,6 @@ use Phalcon\Migrations\Utils\Config;
 
 final class ConfigTest extends AbstractTestCase
 {
-
     public function testFromArrayWithApplicationFields(): void
     {
         $config = Config::fromArray([
