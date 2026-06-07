@@ -3,21 +3,6 @@
 name: ${PROJECT_PREFIX:-migrations}
 
 services:
-  migrations-dev-8.1:
-    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.1
-    hostname: ${PROJECT_PREFIX:-migrations}-dev-81
-    build:
-      dockerfile: resources/docker/develop/Dockerfile
-      args:
-        PHP_VERSION: 8.1
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-    working_dir: /srv
-    volumes:
-      - .:/srv
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
   migrations-dev-8.2:
     container_name: ${PROJECT_PREFIX:-migrations}-dev-8.2
     hostname: ${PROJECT_PREFIX:-migrations}-dev-82
