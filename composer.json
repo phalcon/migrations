@@ -33,6 +33,7 @@
     },
     "require-dev": {
         "ext-pdo": "*",
+        "friendsofphp/php-cs-fixer": "^3.95",
         "pds/skeleton": "^1.0",
         "pds/composer-script-names": "^1.0",
         "phpunit/phpunit": "^11.5",
@@ -68,22 +69,23 @@
             ".codacy.yml",
             ".codecov.yml",
             "CHANGELOG.md",
-            "codeception.yml",
-            "phpcs.xml",
-            "phpstan.neon.dist",
-            "psalm.xml.dist"
+            "resources/phpcs.xml",
+            "resources/phpstan.neon.dist",
+            "resources/psalm.xml.dist"
         ]
     },
     "bin": [
         "bin/phalcon-migrations"
     ],
   "scripts": {
-    "analyze": "vendor/bin/phpstan analyse -c phpstan.neon.dist",
-    "analyze-psalm": "vendor/bin/psalm",
-    "cs": "vendor/bin/phpcs --standard=phpcs.xml",
-    "cs-fix": "vendor/bin/phpcbf --standard=phpcs.xml",
-    "test": "vendor/bin/phpunit -c phpunit.xml.dist",
-    "test-coverage": "vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover tests/_output/coverage/clover.xml",
-    "test-coverage-html": "vendor/bin/phpunit -c phpunit.xml.dist --coverage-html tests/_output/coverage/html/"
+    "analyze": "vendor/bin/phpstan analyse -c resources/phpstan.neon.dist",
+    "analyze-psalm": "vendor/bin/psalm -c resources/psalm.xml.dist",
+    "cs": "vendor/bin/phpcs --standard=resources/phpcs.xml",
+    "cs-fix": "vendor/bin/phpcbf --standard=resources/phpcs.xml",
+    "cs-fixer": "vendor/bin/php-cs-fixer fix --config=resources/php-cs-fixer.php --dry-run --diff",
+    "cs-fixer-fix": "vendor/bin/php-cs-fixer fix --config=resources/php-cs-fixer.php",
+    "test": "vendor/bin/phpunit -c resources/phpunit.xml.dist",
+    "test-coverage": "vendor/bin/phpunit -c resources/phpunit.xml.dist --coverage-clover tests/_output/coverage/clover.xml",
+    "test-coverage-html": "vendor/bin/phpunit -c resources/phpunit.xml.dist --coverage-html tests/_output/coverage/html/"
   }
 }
