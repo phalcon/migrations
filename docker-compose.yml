@@ -1,73 +1,85 @@
 # For local development only.
 
+name: ${PROJECT_PREFIX:-migrations}
+
 services:
-  migrations-8.1:
-    container_name: migrations-8.1
-    hostname: migrations-81
+  migrations-dev-8.1:
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.1
+    hostname: ${PROJECT_PREFIX:-migrations}-dev-81
     build:
       dockerfile: resources/docker/develop/Dockerfile
       args:
-        PHP_VERSION: "8.1"
-    working_dir: /app
+        PHP_VERSION: 8.1
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /srv
     volumes:
-      - .:/app
+      - .:/srv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  migrations-8.2:
-    container_name: migrations-8.2
-    hostname: migrations-82
+  migrations-dev-8.2:
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.2
+    hostname: ${PROJECT_PREFIX:-migrations}-dev-82
     build:
       dockerfile: resources/docker/develop/Dockerfile
       args:
-        PHP_VERSION: "8.2"
-    working_dir: /app
+        PHP_VERSION: 8.2
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /srv
     volumes:
-      - .:/app
+      - .:/srv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  migrations-8.3:
-    container_name: migrations-8.3
-    hostname: migrations-83
+  migrations-dev-8.3:
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.3
+    hostname: ${PROJECT_PREFIX:-migrations}-dev-83
     build:
       dockerfile: resources/docker/develop/Dockerfile
       args:
-        PHP_VERSION: "8.3"
-    working_dir: /app
+        PHP_VERSION: 8.3
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /srv
     volumes:
-      - .:/app
+      - .:/srv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  migrations-8.4:
-    container_name: migrations-8.4
-    hostname: migrations-84
+  migrations-dev-8.4:
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.4
+    hostname: ${PROJECT_PREFIX:-migrations}-dev-84
     build:
       dockerfile: resources/docker/develop/Dockerfile
       args:
-        PHP_VERSION: "8.4"
-    working_dir: /app
+        PHP_VERSION: 8.4
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /srv
     volumes:
-      - .:/app
+      - .:/srv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  migrations-8.5:
-    container_name: migrations-8.5
-    hostname: migrations-85
+  migrations-dev-8.5:
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.5
+    hostname: ${PROJECT_PREFIX:-migrations}-dev-85
     build:
       dockerfile: resources/docker/develop/Dockerfile
       args:
-        PHP_VERSION: "8.5"
-    working_dir: /app
+        PHP_VERSION: 8.5
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /srv
     volumes:
-      - .:/app
+      - .:/srv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   mysql:
-    container_name: migrations-mysql
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-mysql
     image: mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=secret
@@ -78,7 +90,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   postgres:
-    container_name: migrations-postgres
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-postgres
     image: postgres:18-alpine
     environment:
       - POSTGRES_PASSWORD=secret
