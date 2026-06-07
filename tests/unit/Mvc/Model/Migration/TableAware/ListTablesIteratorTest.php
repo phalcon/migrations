@@ -28,18 +28,17 @@ final class ListTablesIteratorTest extends AbstractTestCase
         $this->iterator = new ListTablesIterator();
     }
 
-    public function testListTablesForPrefixThrowsOnEmptyPrefix(): void
+    public function testListTablesForPrefixDeduplicatesFiles(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $dir = $this->getOutputDir('list-tables-dedup');
+        touch($dir . '/prefix_table1.php');
+        touch($dir . '/prefix_table1.dat');
 
-        $this->iterator->listTablesForPrefix('');
-    }
+        $dirIterator = new DirectoryIterator($dir);
+        $result      = $this->iterator->listTablesForPrefix('prefix_', $dirIterator);
 
-    public function testListTablesForPrefixThrowsOnNullIterator(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-
-        $this->iterator->listTablesForPrefix('prefix_', null);
+        $tables = explode(',', $result);
+        $this->assertSame(['prefix_table1'], array_values(array_unique($tables)));
     }
 
     public function testListTablesForPrefixFiltersFiles(): void
@@ -69,16 +68,17 @@ final class ListTablesIteratorTest extends AbstractTestCase
         $this->assertSame('', $result);
     }
 
-    public function testListTablesForPrefixDeduplicatesFiles(): void
+    public function testListTablesForPrefixThrowsOnEmptyPrefix(): void
     {
-        $dir = $this->getOutputDir('list-tables-dedup');
-        touch($dir . '/prefix_table1.php');
-        touch($dir . '/prefix_table1.dat');
+        $this->expectException(InvalidArgumentException::class);
 
-        $dirIterator = new DirectoryIterator($dir);
-        $result      = $this->iterator->listTablesForPrefix('prefix_', $dirIterator);
+        $this->iterator->listTablesForPrefix('');
+    }
 
-        $tables = explode(',', $result);
-        $this->assertSame(['prefix_table1'], array_values(array_unique($tables)));
+    public function testListTablesForPrefixThrowsOnNullIterator(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->iterator->listTablesForPrefix('prefix_', null);
     }
 }

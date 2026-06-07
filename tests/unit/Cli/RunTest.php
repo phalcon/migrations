@@ -21,38 +21,6 @@ final class RunTest extends AbstractCliTestCase
 {
     private string $configPath = 'tests/_data/cli/migrations.php';
 
-    public function testRunCommandWithoutDbConfig(): void
-    {
-        $directory = $this->getOutputDir();
-
-        $this->runCommand('php bin/phalcon-migrations run --directory=' . $directory);
-
-        $this->assertInOutput('Phalcon Migrations');
-        $this->assertInOutput("Error: Can't locate the configuration file.");
-        $this->assertExitCode(1);
-    }
-
-    public function testGenerateAndRun(): void
-    {
-        $this->getPhalconDb()->createTable('cli-first-test', '', [
-            'columns' => [
-                new Column('id', [
-                    'type'    => Column::TYPE_INTEGER,
-                    'size'    => 10,
-                    'notNull' => true,
-                ]),
-            ],
-        ]);
-
-        $this->runCommand('php bin/phalcon-migrations generate --config=' . $this->configPath);
-        $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
-        $this->assertExitCode(0);
-
-        $this->runCommand('php bin/phalcon-migrations run --config=' . $this->configPath);
-        $this->assertInOutput('Success: Version 1.0.0 was successfully migrated');
-        $this->assertExitCode(0);
-    }
-
     public function testExpectForeignKeyDbError1822(): void
     {
         $table1 = 'z-client';
@@ -119,6 +87,38 @@ final class RunTest extends AbstractCliTestCase
 
         $this->runCommand('php bin/phalcon-migrations run --config=' . $this->configPath);
         $this->assertInOutput('SQLSTATE[HY000]: General error: 3734 Failed to add the foreign key constraint');
+        $this->assertExitCode(1);
+    }
+
+    public function testGenerateAndRun(): void
+    {
+        $this->getPhalconDb()->createTable('cli-first-test', '', [
+            'columns' => [
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
+                    'size'    => 10,
+                    'notNull' => true,
+                ]),
+            ],
+        ]);
+
+        $this->runCommand('php bin/phalcon-migrations generate --config=' . $this->configPath);
+        $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
+        $this->assertExitCode(0);
+
+        $this->runCommand('php bin/phalcon-migrations run --config=' . $this->configPath);
+        $this->assertInOutput('Success: Version 1.0.0 was successfully migrated');
+        $this->assertExitCode(0);
+    }
+
+    public function testRunCommandWithoutDbConfig(): void
+    {
+        $directory = $this->getOutputDir();
+
+        $this->runCommand('php bin/phalcon-migrations run --directory=' . $directory);
+
+        $this->assertInOutput('Phalcon Migrations');
+        $this->assertInOutput("Error: Can't locate the configuration file.");
         $this->assertExitCode(1);
     }
 

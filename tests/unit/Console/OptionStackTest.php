@@ -22,16 +22,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class OptionStackTest extends AbstractTestCase
 {
-    /**
-     * @see testSetOptionAndGetOption11
-     */
-    public static function setOptionAndGetOption11DataProvider(): array
-    {
-        return [
-            ['foo-bar', 'bar-foo', 'foo-bar'],
-            [null, 'bar-foo', 'bar-foo'],
-        ];
-    }
 
     /**
      * @see testSetDefaultOptionIfOptionDidntExist
@@ -41,6 +31,16 @@ final class OptionStackTest extends AbstractTestCase
         return [
             ['test', 'foo-bar', 'bar'],
             ['test2', 'bar-foo', 'bar-foo'],
+        ];
+    }
+    /**
+     * @see testSetOptionAndGetOption11
+     */
+    public static function setOptionAndGetOption11DataProvider(): array
+    {
+        return [
+            ['foo-bar', 'bar-foo', 'foo-bar'],
+            [null, 'bar-foo', 'bar-foo'],
         ];
     }
 
@@ -56,43 +56,6 @@ final class OptionStackTest extends AbstractTestCase
         $this->assertSame($data, $options->getOptions());
     }
 
-    #[DataProvider('setOptionAndGetOption11DataProvider')]
-    public function testSetOptionAndGetOption11($option, $defaultValue, $expected): void
-    {
-        $key = 'set-test';
-        $options = new OptionStack();
-        $options->offsetSetOrDefault($key, $option, $defaultValue);
-
-        $this->assertSame($expected, $options->offsetGet($key));
-    }
-
-    #[DataProvider('setDefaultOptionIfOptionDidntExistDataProvider')]
-    public function testSetDefaultOptionIfOptionDidntExist($key, $defaultValue, $expected): void
-    {
-        $options = new OptionStack();
-
-        $options->offsetSet('test', 'bar');
-        $options->offsetSetDefault($key, $defaultValue);
-
-        $this->assertSame($expected, $options->offsetGet($key));
-    }
-
-    public function testReturnPrefixFromOptionWithoutSetPrefix(): void
-    {
-        $options = new OptionStack(['test' => 'foo', 'test2' => 'bar']);
-
-        $this->assertSame('foo', $options->getPrefixOption('foo*'));
-        $this->assertSame('bar', $options->getPrefixOption('bar*'));
-    }
-
-    public function testReturnPrefixFromOptionWithSetPrefix(): void
-    {
-        $options = new OptionStack(['test' => 'foo', 'test2' => 'bar']);
-
-        $this->assertSame('foo', $options->getPrefixOption('foo^', '^'));
-        $this->assertSame('bar', $options->getPrefixOption('bar?', '?'));
-    }
-
     public function testGetPrefixOptionWithoutStarSuffixReturnsEmpty(): void
     {
         $options = new OptionStack();
@@ -100,29 +63,16 @@ final class OptionStackTest extends AbstractTestCase
         $this->assertSame('', $options->getPrefixOption('foo'));
     }
 
-    public function testOffsetExistsReturnsTrueForSetKey(): void
+    public function testGetVersionNameGeneratingMigrationAutoReturnsFirstVersion(): void
     {
-        $options = new OptionStack(['key' => 'value']);
+        $options = new OptionStack([
+            'migrationsDir' => [],
+        ]);
 
-        $this->assertTrue($options->offsetExists('key'));
-        $this->assertFalse($options->offsetExists('missing'));
-    }
+        $version = $options->getVersionNameGeneratingMigration();
 
-    public function testOffsetUnsetRemovesKey(): void
-    {
-        $options = new OptionStack(['key' => 'value', 'other' => 'val']);
-        $options->offsetUnset('key');
-
-        $this->assertFalse($options->offsetExists('key'));
-        $this->assertTrue($options->offsetExists('other'));
-    }
-
-    public function testOffsetUnsetIgnoresMissingKey(): void
-    {
-        $options = new OptionStack(['key' => 'value']);
-        $options->offsetUnset('missing');
-
-        $this->assertSame(['key' => 'value'], $options->getOptions());
+        $this->assertInstanceOf(IncrementalItem::class, $version);
+        $this->assertSame('1.0.0', $version->getVersion());
     }
 
     public function testGetVersionNameGeneratingMigrationWithDescr(): void
@@ -153,15 +103,65 @@ final class OptionStackTest extends AbstractTestCase
         $this->assertSame('2.0.0', $version->getVersion());
     }
 
-    public function testGetVersionNameGeneratingMigrationAutoReturnsFirstVersion(): void
+    public function testOffsetExistsReturnsTrueForSetKey(): void
     {
-        $options = new OptionStack([
-            'migrationsDir' => [],
-        ]);
+        $options = new OptionStack(['key' => 'value']);
 
-        $version = $options->getVersionNameGeneratingMigration();
+        $this->assertTrue($options->offsetExists('key'));
+        $this->assertFalse($options->offsetExists('missing'));
+    }
 
-        $this->assertInstanceOf(IncrementalItem::class, $version);
-        $this->assertSame('1.0.0', $version->getVersion());
+    public function testOffsetUnsetIgnoresMissingKey(): void
+    {
+        $options = new OptionStack(['key' => 'value']);
+        $options->offsetUnset('missing');
+
+        $this->assertSame(['key' => 'value'], $options->getOptions());
+    }
+
+    public function testOffsetUnsetRemovesKey(): void
+    {
+        $options = new OptionStack(['key' => 'value', 'other' => 'val']);
+        $options->offsetUnset('key');
+
+        $this->assertFalse($options->offsetExists('key'));
+        $this->assertTrue($options->offsetExists('other'));
+    }
+
+    public function testReturnPrefixFromOptionWithoutSetPrefix(): void
+    {
+        $options = new OptionStack(['test' => 'foo', 'test2' => 'bar']);
+
+        $this->assertSame('foo', $options->getPrefixOption('foo*'));
+        $this->assertSame('bar', $options->getPrefixOption('bar*'));
+    }
+
+    public function testReturnPrefixFromOptionWithSetPrefix(): void
+    {
+        $options = new OptionStack(['test' => 'foo', 'test2' => 'bar']);
+
+        $this->assertSame('foo', $options->getPrefixOption('foo^', '^'));
+        $this->assertSame('bar', $options->getPrefixOption('bar?', '?'));
+    }
+
+    #[DataProvider('setDefaultOptionIfOptionDidntExistDataProvider')]
+    public function testSetDefaultOptionIfOptionDidntExist($key, $defaultValue, $expected): void
+    {
+        $options = new OptionStack();
+
+        $options->offsetSet('test', 'bar');
+        $options->offsetSetDefault($key, $defaultValue);
+
+        $this->assertSame($expected, $options->offsetGet($key));
+    }
+
+    #[DataProvider('setOptionAndGetOption11DataProvider')]
+    public function testSetOptionAndGetOption11($option, $defaultValue, $expected): void
+    {
+        $key = 'set-test';
+        $options = new OptionStack();
+        $options->offsetSetOrDefault($key, $option, $defaultValue);
+
+        $this->assertSame($expected, $options->offsetGet($key));
     }
 }

@@ -20,12 +20,18 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class MigrateFilesTest extends AbstractTestCase
 {
-    private function makeParser(array $argv): Parser
-    {
-        $parser = new Parser();
-        $parser->parse(array_merge(['script'], $argv));
 
-        return $parser;
+    public function testGetHelp(): void
+    {
+        $command = new MigrateFiles($this->makeParser([]));
+
+        ob_start();
+        $command->getHelp();
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Help', $output);
+        $this->assertStringContainsString('migrate-files', $output);
+        $this->assertStringContainsString('--migrations', $output);
     }
 
     public function testGetPossibleParams(): void
@@ -37,59 +43,6 @@ final class MigrateFilesTest extends AbstractTestCase
         $this->assertIsArray($params);
         $this->assertArrayHasKey('migrations=s', $params);
         $this->assertArrayHasKey('dry-run', $params);
-    }
-
-    public function testRunThrowsWhenMigrationsNotProvided(): void
-    {
-        $command = new MigrateFiles($this->makeParser([]));
-
-        $this->expectException(CommandsException::class);
-        $this->expectExceptionMessage('Migrations directory is required');
-
-        $command->run();
-    }
-
-    public function testRunThrowsWhenDirectoryNotFound(): void
-    {
-        $command = new MigrateFiles($this->makeParser(['--migrations=/nonexistent/path/xyz']));
-
-        $this->expectException(CommandsException::class);
-        $this->expectExceptionMessage('Directory not found');
-
-        $command->run();
-    }
-
-    public function testRunWithDryRunReportsChanges(): void
-    {
-        $dir = $this->getOutputDir('migrate-files-dry');
-        file_put_contents($dir . '/migration.php', "<?php\nuse Phalcon\\Db\\Column;\n");
-
-        $command = new MigrateFiles($this->makeParser(['--migrations=' . $dir, '--dry-run']));
-
-        ob_start();
-        $command->run();
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('dry-run', $output);
-        $this->assertStringContainsString('migration.php', $output);
-        $this->assertStringContainsString('1 file(s)', $output);
-    }
-
-    public function testRunUpdatesMatchingFiles(): void
-    {
-        $dir  = $this->getOutputDir('migrate-files-update');
-        $file = $dir . '/migration.php';
-        file_put_contents($file, "<?php\nuse Phalcon\\Db\\Column;\nuse Phalcon\\Db\\Index;\n");
-
-        $command = new MigrateFiles($this->makeParser(['--migrations=' . $dir]));
-
-        ob_start();
-        $command->run();
-        ob_end_clean();
-
-        $content = file_get_contents($file);
-        $this->assertStringContainsString('use Phalcon\\Migrations\\Db\\Column;', $content);
-        $this->assertStringContainsString('use Phalcon\\Migrations\\Db\\Index;', $content);
     }
 
     public function testRunSkipsFilesWithoutMatches(): void
@@ -121,6 +74,59 @@ final class MigrateFilesTest extends AbstractTestCase
         $this->assertStringContainsString('0 file(s)', $output);
     }
 
+    public function testRunThrowsWhenDirectoryNotFound(): void
+    {
+        $command = new MigrateFiles($this->makeParser(['--migrations=/nonexistent/path/xyz']));
+
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage('Directory not found');
+
+        $command->run();
+    }
+
+    public function testRunThrowsWhenMigrationsNotProvided(): void
+    {
+        $command = new MigrateFiles($this->makeParser([]));
+
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage('Migrations directory is required');
+
+        $command->run();
+    }
+
+    public function testRunUpdatesMatchingFiles(): void
+    {
+        $dir  = $this->getOutputDir('migrate-files-update');
+        $file = $dir . '/migration.php';
+        file_put_contents($file, "<?php\nuse Phalcon\\Db\\Column;\nuse Phalcon\\Db\\Index;\n");
+
+        $command = new MigrateFiles($this->makeParser(['--migrations=' . $dir]));
+
+        ob_start();
+        $command->run();
+        ob_end_clean();
+
+        $content = file_get_contents($file);
+        $this->assertStringContainsString('use Phalcon\\Migrations\\Db\\Column;', $content);
+        $this->assertStringContainsString('use Phalcon\\Migrations\\Db\\Index;', $content);
+    }
+
+    public function testRunWithDryRunReportsChanges(): void
+    {
+        $dir = $this->getOutputDir('migrate-files-dry');
+        file_put_contents($dir . '/migration.php', "<?php\nuse Phalcon\\Db\\Column;\n");
+
+        $command = new MigrateFiles($this->makeParser(['--migrations=' . $dir, '--dry-run']));
+
+        ob_start();
+        $command->run();
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('dry-run', $output);
+        $this->assertStringContainsString('migration.php', $output);
+        $this->assertStringContainsString('1 file(s)', $output);
+    }
+
     public function testRunWithPositionalArgument(): void
     {
         $dir = $this->getOutputDir('migrate-files-positional');
@@ -138,17 +144,11 @@ final class MigrateFilesTest extends AbstractTestCase
         $content = file_get_contents($dir . '/m.php');
         $this->assertStringContainsString('use Phalcon\\Migrations\\Db\\Reference;', $content);
     }
-
-    public function testGetHelp(): void
+    private function makeParser(array $argv): Parser
     {
-        $command = new MigrateFiles($this->makeParser([]));
+        $parser = new Parser();
+        $parser->parse(array_merge(['script'], $argv));
 
-        ob_start();
-        $command->getHelp();
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('Help', $output);
-        $this->assertStringContainsString('migrate-files', $output);
-        $this->assertStringContainsString('--migrations', $output);
+        return $parser;
     }
 }

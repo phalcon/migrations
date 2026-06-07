@@ -23,12 +23,13 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class ExceptionTest extends AbstractTestCase
 {
-    public function testRuntimeExceptionIsThrowable(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('test message');
 
-        throw new RuntimeException('test message');
+    public function testCommandsExceptionIsThrowable(): void
+    {
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage('commands error');
+
+        throw new CommandsException('commands error');
     }
 
     public function testInvalidArgumentExceptionIsThrowable(): void
@@ -38,13 +39,12 @@ final class ExceptionTest extends AbstractTestCase
 
         throw new InvalidArgumentException('invalid arg');
     }
-
-    public function testCommandsExceptionIsThrowable(): void
+    public function testRuntimeExceptionIsThrowable(): void
     {
-        $this->expectException(CommandsException::class);
-        $this->expectExceptionMessage('commands error');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('test message');
 
-        throw new CommandsException('commands error');
+        throw new RuntimeException('test message');
     }
 
     public function testScriptExceptionIsThrowable(): void

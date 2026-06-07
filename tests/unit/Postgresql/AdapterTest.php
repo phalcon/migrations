@@ -22,8 +22,8 @@ use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
 final class AdapterTest extends AbstractPostgresqlTestCase
 {
-    private Connection $connection;
     private Postgresql $adapter;
+    private Connection $connection;
     private string $schema;
 
     protected function setUp(): void
@@ -35,6 +35,124 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $this->schema     = static::$defaultSchema;
     }
 
+    public function testAddAndDropColumn(): void
+    {
+        $this->adapter->createTable('pg_colops_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+            ],
+        ]);
+
+        $this->adapter->addColumn(
+            'pg_colops_test',
+            $this->schema,
+            new Column('extra', ['type' => Column::TYPE_VARCHAR, 'size' => 50])
+        );
+        $cols = $this->adapter->listColumns($this->schema, 'pg_colops_test');
+        $this->assertArrayHasKey('extra', $cols);
+
+        $this->adapter->dropColumn('pg_colops_test', $this->schema, 'extra');
+        $cols = $this->adapter->listColumns($this->schema, 'pg_colops_test');
+        $this->assertArrayNotHasKey('extra', $cols);
+    }
+
+    public function testAddAndDropForeignKey(): void
+    {
+        $this->adapter->createTable('pg_fk_parent', $this->schema, [
+            'columns' => [
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
+                    'notNull' => true,
+                    'primary' => true,
+                    'first'   => true,
+                ]),
+            ],
+            'indexes' => [
+                new Index('pg_fk_parent_pkey', ['id'], Index::TYPE_PRIMARY),
+            ],
+        ]);
+
+        $this->adapter->createTable('pg_fk_child', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('parent_id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+            ],
+        ]);
+
+        $ref = new Reference('fk_pg_add', [
+            'referencedSchema'  => $this->schema,
+            'referencedTable'   => 'pg_fk_parent',
+            'columns'           => ['parent_id'],
+            'referencedColumns' => ['id'],
+            'onUpdate'          => 'NO ACTION',
+            'onDelete'          => 'NO ACTION',
+        ]);
+
+        $this->adapter->addForeignKey('pg_fk_child', $this->schema, $ref);
+        $refs = $this->adapter->listReferences($this->schema, 'pg_fk_child');
+        $this->assertArrayHasKey('fk_pg_add', $refs);
+
+        $this->adapter->dropForeignKey('pg_fk_child', $this->schema, 'fk_pg_add');
+        $refs = $this->adapter->listReferences($this->schema, 'pg_fk_child');
+        $this->assertArrayNotHasKey('fk_pg_add', $refs);
+    }
+
+    public function testBeginCommitRollback(): void
+    {
+        $this->adapter->createTable('pg_tx_test', $this->schema, [
+            'columns' => [new Column('v', ['type' => Column::TYPE_INTEGER])],
+        ]);
+
+        $this->adapter->begin();
+        $this->adapter->execute('INSERT INTO pg_tx_test VALUES (1)');
+        $this->adapter->commit();
+
+        $row = $this->adapter->fetchOne('SELECT v FROM pg_tx_test');
+        $this->assertSame('1', (string) $row['v']);
+
+        $this->adapter->begin();
+        $this->adapter->execute('INSERT INTO pg_tx_test VALUES (2)');
+        $this->adapter->rollback();
+
+        $rows = $this->adapter->fetchAll('SELECT v FROM pg_tx_test');
+        $this->assertCount(1, $rows);
+    }
+
+    public function testDropIndex(): void
+    {
+        $this->adapter->createTable('pg_dropidx_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100]),
+            ],
+        ]);
+
+        $this->adapter->addIndex('pg_dropidx_test', '', new Index('pg_dropidx_idx', ['name'], ''));
+
+        $this->adapter->dropIndex('pg_dropidx_test', '', 'pg_dropidx_idx');
+
+        $indexes = $this->adapter->listIndexes($this->schema, 'pg_dropidx_test');
+        $this->assertArrayNotHasKey('pg_dropidx_idx', $indexes);
+    }
+
+    public function testDropPrimaryKey(): void
+    {
+        $this->adapter->createTable('pg_droppk_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+            ],
+            'indexes' => [
+                new Index('pg_droppk_test_pkey', ['id'], Index::TYPE_PRIMARY),
+            ],
+        ]);
+
+        $this->adapter->dropPrimaryKey('pg_droppk_test', $this->schema);
+
+        $indexes = $this->adapter->listIndexes($this->schema, 'pg_droppk_test');
+        $pkeys   = array_filter($indexes, fn($i) => $i->getType() === Index::TYPE_PRIMARY);
+        $this->assertCount(0, $pkeys);
+    }
+
     public function testGetCurrentSchema(): void
     {
         $schema = $this->adapter->getCurrentSchema();
@@ -42,25 +160,15 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $this->assertSame($this->schema, $schema);
     }
 
-    public function testListTables(): void
+    public function testGetTableOptionsReturnsEmptyArray(): void
     {
-        $this->adapter->createTable('pg_list_test', $this->schema, [
+        $this->adapter->createTable('pg_opts_test', $this->schema, [
             'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
         ]);
 
-        $tables = $this->adapter->listTables($this->schema);
+        $options = $this->adapter->getTableOptions($this->schema, 'pg_opts_test');
 
-        $this->assertContains('pg_list_test', $tables);
-    }
-
-    public function testTableExists(): void
-    {
-        $this->adapter->createTable('pg_exists_test', $this->schema, [
-            'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
-        ]);
-
-        $this->assertTrue($this->adapter->tableExists('pg_exists_test', $this->schema));
-        $this->assertFalse($this->adapter->tableExists('pg_missing', $this->schema));
+        $this->assertSame([], $options);
     }
 
     public function testListColumns(): void
@@ -132,15 +240,15 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $this->assertArrayHasKey('fk_pg_ref', $refs);
     }
 
-    public function testGetTableOptionsReturnsEmptyArray(): void
+    public function testListTables(): void
     {
-        $this->adapter->createTable('pg_opts_test', $this->schema, [
+        $this->adapter->createTable('pg_list_test', $this->schema, [
             'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
         ]);
 
-        $options = $this->adapter->getTableOptions($this->schema, 'pg_opts_test');
+        $tables = $this->adapter->listTables($this->schema);
 
-        $this->assertSame([], $options);
+        $this->assertContains('pg_list_test', $tables);
     }
 
     public function testModifyColumn(): void
@@ -159,160 +267,6 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $columns = $this->adapter->listColumns($this->schema, 'pg_modify_test');
         $this->assertArrayHasKey('id', $columns);
         $this->assertSame(Column::TYPE_BIGINTEGER, $columns['id']->getType());
-    }
-
-    public function testDropIndex(): void
-    {
-        $this->adapter->createTable('pg_dropidx_test', $this->schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
-                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100]),
-            ],
-        ]);
-
-        $this->adapter->addIndex('pg_dropidx_test', '', new Index('pg_dropidx_idx', ['name'], ''));
-
-        $this->adapter->dropIndex('pg_dropidx_test', '', 'pg_dropidx_idx');
-
-        $indexes = $this->adapter->listIndexes($this->schema, 'pg_dropidx_test');
-        $this->assertArrayNotHasKey('pg_dropidx_idx', $indexes);
-    }
-
-    public function testDropPrimaryKey(): void
-    {
-        $this->adapter->createTable('pg_droppk_test', $this->schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
-            ],
-            'indexes' => [
-                new Index('pg_droppk_test_pkey', ['id'], Index::TYPE_PRIMARY),
-            ],
-        ]);
-
-        $this->adapter->dropPrimaryKey('pg_droppk_test', $this->schema);
-
-        $indexes = $this->adapter->listIndexes($this->schema, 'pg_droppk_test');
-        $pkeys   = array_filter($indexes, fn($i) => $i->getType() === Index::TYPE_PRIMARY);
-        $this->assertCount(0, $pkeys);
-    }
-
-    public function testAddAndDropForeignKey(): void
-    {
-        $this->adapter->createTable('pg_fk_parent', $this->schema, [
-            'columns' => [
-                new Column('id', [
-                    'type'    => Column::TYPE_INTEGER,
-                    'notNull' => true,
-                    'primary' => true,
-                    'first'   => true,
-                ]),
-            ],
-            'indexes' => [
-                new Index('pg_fk_parent_pkey', ['id'], Index::TYPE_PRIMARY),
-            ],
-        ]);
-
-        $this->adapter->createTable('pg_fk_child', $this->schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
-                new Column('parent_id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
-            ],
-        ]);
-
-        $ref = new Reference('fk_pg_add', [
-            'referencedSchema'  => $this->schema,
-            'referencedTable'   => 'pg_fk_parent',
-            'columns'           => ['parent_id'],
-            'referencedColumns' => ['id'],
-            'onUpdate'          => 'NO ACTION',
-            'onDelete'          => 'NO ACTION',
-        ]);
-
-        $this->adapter->addForeignKey('pg_fk_child', $this->schema, $ref);
-        $refs = $this->adapter->listReferences($this->schema, 'pg_fk_child');
-        $this->assertArrayHasKey('fk_pg_add', $refs);
-
-        $this->adapter->dropForeignKey('pg_fk_child', $this->schema, 'fk_pg_add');
-        $refs = $this->adapter->listReferences($this->schema, 'pg_fk_child');
-        $this->assertArrayNotHasKey('fk_pg_add', $refs);
-    }
-
-    public function testAddAndDropColumn(): void
-    {
-        $this->adapter->createTable('pg_colops_test', $this->schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
-            ],
-        ]);
-
-        $this->adapter->addColumn(
-            'pg_colops_test',
-            $this->schema,
-            new Column('extra', ['type' => Column::TYPE_VARCHAR, 'size' => 50])
-        );
-        $cols = $this->adapter->listColumns($this->schema, 'pg_colops_test');
-        $this->assertArrayHasKey('extra', $cols);
-
-        $this->adapter->dropColumn('pg_colops_test', $this->schema, 'extra');
-        $cols = $this->adapter->listColumns($this->schema, 'pg_colops_test');
-        $this->assertArrayNotHasKey('extra', $cols);
-    }
-
-    public function testBeginCommitRollback(): void
-    {
-        $this->adapter->createTable('pg_tx_test', $this->schema, [
-            'columns' => [new Column('v', ['type' => Column::TYPE_INTEGER])],
-        ]);
-
-        $this->adapter->begin();
-        $this->adapter->execute('INSERT INTO pg_tx_test VALUES (1)');
-        $this->adapter->commit();
-
-        $row = $this->adapter->fetchOne('SELECT v FROM pg_tx_test');
-        $this->assertSame('1', (string) $row['v']);
-
-        $this->adapter->begin();
-        $this->adapter->execute('INSERT INTO pg_tx_test VALUES (2)');
-        $this->adapter->rollback();
-
-        $rows = $this->adapter->fetchAll('SELECT v FROM pg_tx_test');
-        $this->assertCount(1, $rows);
-    }
-
-    public function testModifyColumnWithDefaultChange(): void
-    {
-        $this->adapter->createTable('pg_moddef_test', $this->schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
-                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100]),
-            ],
-        ]);
-
-        $old = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100]);
-        $new = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => 'test']);
-
-        $this->adapter->modifyColumn('pg_moddef_test', $this->schema, $new, $old);
-
-        $cols = $this->adapter->listColumns($this->schema, 'pg_moddef_test');
-        $this->assertArrayHasKey('name', $cols);
-    }
-
-    public function testModifyColumnNullDefault(): void
-    {
-        $this->adapter->createTable('pg_modnull_test', $this->schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
-                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => 'old']),
-            ],
-        ]);
-
-        $old = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => 'old']);
-        $new = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => null]);
-
-        $this->adapter->modifyColumn('pg_modnull_test', $this->schema, $new, $old);
-
-        $cols = $this->adapter->listColumns($this->schema, 'pg_modnull_test');
-        $this->assertArrayHasKey('name', $cols);
     }
 
     public function testModifyColumnNotNullChange(): void
@@ -334,6 +288,24 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $this->assertTrue($cols['name']->isNotNull());
     }
 
+    public function testModifyColumnNullDefault(): void
+    {
+        $this->adapter->createTable('pg_modnull_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => 'old']),
+            ],
+        ]);
+
+        $old = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => 'old']);
+        $new = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => null]);
+
+        $this->adapter->modifyColumn('pg_modnull_test', $this->schema, $new, $old);
+
+        $cols = $this->adapter->listColumns($this->schema, 'pg_modnull_test');
+        $this->assertArrayHasKey('name', $cols);
+    }
+
     public function testModifyColumnRename(): void
     {
         $this->adapter->createTable('pg_rename_test', $this->schema, [
@@ -351,5 +323,33 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         $cols = $this->adapter->listColumns($this->schema, 'pg_rename_test');
         $this->assertArrayHasKey('new_name', $cols);
         $this->assertArrayNotHasKey('old_name', $cols);
+    }
+
+    public function testModifyColumnWithDefaultChange(): void
+    {
+        $this->adapter->createTable('pg_moddef_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100]),
+            ],
+        ]);
+
+        $old = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100]);
+        $new = new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'default' => 'test']);
+
+        $this->adapter->modifyColumn('pg_moddef_test', $this->schema, $new, $old);
+
+        $cols = $this->adapter->listColumns($this->schema, 'pg_moddef_test');
+        $this->assertArrayHasKey('name', $cols);
+    }
+
+    public function testTableExists(): void
+    {
+        $this->adapter->createTable('pg_exists_test', $this->schema, [
+            'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
+        ]);
+
+        $this->assertTrue($this->adapter->tableExists('pg_exists_test', $this->schema));
+        $this->assertFalse($this->adapter->tableExists('pg_missing', $this->schema));
     }
 }

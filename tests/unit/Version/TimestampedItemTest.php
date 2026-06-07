@@ -20,32 +20,13 @@ use Phalcon\Migrations\Version\TimestampedItem;
 
 final class TimestampedItemTest extends AbstractTestCase
 {
-    public function testImplementsItemInterface(): void
+
+    public function testConstructorThrowsOnAlphaVersion(): void
     {
-        $item = new TimestampedItem('1234567_1');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Wrong version number provided');
 
-        $this->assertInstanceOf(ItemInterface::class, $item);
-    }
-
-    public function testConstructorWithFullVersion(): void
-    {
-        $item = new TimestampedItem('1234567_abc');
-
-        $this->assertSame('1234567_abc', $item->getVersion());
-    }
-
-    public function testConstructorWithTimestampOnly(): void
-    {
-        $item = new TimestampedItem('1234567');
-
-        $this->assertSame('1234567', $item->getVersion());
-    }
-
-    public function testConstructorWithSpecialCase000(): void
-    {
-        $item = new TimestampedItem('000');
-
-        $this->assertSame('000', $item->getVersion());
+        new TimestampedItem('abc');
     }
 
     public function testConstructorThrowsOnInvalidVersion(): void
@@ -56,26 +37,25 @@ final class TimestampedItemTest extends AbstractTestCase
         new TimestampedItem('123456');
     }
 
-    public function testConstructorThrowsOnAlphaVersion(): void
+    public function testConstructorWithFullVersion(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Wrong version number provided');
+        $item = new TimestampedItem('1234567_abc');
 
-        new TimestampedItem('abc');
+        $this->assertSame('1234567_abc', $item->getVersion());
     }
 
-    public function testGetStampReturnsTimestampPart(): void
+    public function testConstructorWithSpecialCase000(): void
     {
-        $item = new TimestampedItem('1234567_1');
+        $item = new TimestampedItem('000');
 
-        $this->assertSame(1234567, $item->getStamp());
+        $this->assertSame('000', $item->getVersion());
     }
 
-    public function testGetStampWithTimestampOnly(): void
+    public function testConstructorWithTimestampOnly(): void
     {
-        $item = new TimestampedItem('1777342845124457');
+        $item = new TimestampedItem('1234567');
 
-        $this->assertSame(1777342845124457, $item->getStamp());
+        $this->assertSame('1234567', $item->getVersion());
     }
 
     public function testGetDescriptionReturnsDescriptionPartWhenFull(): void
@@ -92,11 +72,38 @@ final class TimestampedItemTest extends AbstractTestCase
         $this->assertSame('', $item->getDescription());
     }
 
-    public function testIsFullVersionReturnsTrueWhenFull(): void
+    public function testGetPathReturnsEmptyByDefault(): void
     {
-        $item = new TimestampedItem('1234567_abc');
+        $item = new TimestampedItem('1234567_1');
 
-        $this->assertTrue($item->isFullVersion());
+        $this->assertSame('', $item->getPath());
+    }
+
+    public function testGetStampReturnsTimestampPart(): void
+    {
+        $item = new TimestampedItem('1234567_1');
+
+        $this->assertSame(1234567, $item->getStamp());
+    }
+
+    public function testGetStampWithTimestampOnly(): void
+    {
+        $item = new TimestampedItem('1777342845124457');
+
+        $this->assertSame(1777342845124457, $item->getStamp());
+    }
+
+    public function testGetVersion(): void
+    {
+        $item = new TimestampedItem('1234567_1');
+
+        $this->assertSame('1234567_1', $item->getVersion());
+    }
+    public function testImplementsItemInterface(): void
+    {
+        $item = new TimestampedItem('1234567_1');
+
+        $this->assertInstanceOf(ItemInterface::class, $item);
     }
 
     public function testIsFullVersionReturnsFalseWhenNotFull(): void
@@ -106,11 +113,11 @@ final class TimestampedItemTest extends AbstractTestCase
         $this->assertFalse($item->isFullVersion());
     }
 
-    public function testGetPathReturnsEmptyByDefault(): void
+    public function testIsFullVersionReturnsTrueWhenFull(): void
     {
-        $item = new TimestampedItem('1234567_1');
+        $item = new TimestampedItem('1234567_abc');
 
-        $this->assertSame('', $item->getPath());
+        $this->assertTrue($item->isFullVersion());
     }
 
     public function testSetPathAndGetPath(): void
@@ -119,13 +126,6 @@ final class TimestampedItemTest extends AbstractTestCase
         $item->setPath('/migrations/1234567_1');
 
         $this->assertSame('/migrations/1234567_1', $item->getPath());
-    }
-
-    public function testGetVersion(): void
-    {
-        $item = new TimestampedItem('1234567_1');
-
-        $this->assertSame('1234567_1', $item->getVersion());
     }
 
     public function testToString(): void

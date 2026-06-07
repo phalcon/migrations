@@ -18,30 +18,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class ProfilerTest extends AbstractTestCase
 {
-    public function testStartOutputsTimestampAndSql(): void
-    {
-        $profiler  = new Profiler();
-        $sql       = 'SELECT 1';
-        $startTime = microtime(true);
-
-        ob_start();
-        $profiler->start($sql, $startTime);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString($sql, $output);
-        $this->assertStringContainsString((string) $startTime, $output);
-    }
-
-    public function testStartNormalizesWhitespaceInSql(): void
-    {
-        $profiler = new Profiler();
-
-        ob_start();
-        $profiler->start("SELECT\n\t1", 1.0);
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('SELECT  1', $output);
-    }
 
     public function testEndOutputsDuration(): void
     {
@@ -55,5 +31,29 @@ final class ProfilerTest extends AbstractTestCase
 
         $this->assertStringContainsString((string) $endTime, $output);
         $this->assertStringContainsString('0.5', $output);
+    }
+
+    public function testStartNormalizesWhitespaceInSql(): void
+    {
+        $profiler = new Profiler();
+
+        ob_start();
+        $profiler->start("SELECT\n\t1", 1.0);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('SELECT  1', $output);
+    }
+    public function testStartOutputsTimestampAndSql(): void
+    {
+        $profiler  = new Profiler();
+        $sql       = 'SELECT 1';
+        $startTime = microtime(true);
+
+        ob_start();
+        $profiler->start($sql, $startTime);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString($sql, $output);
+        $this->assertStringContainsString((string) $startTime, $output);
     }
 }

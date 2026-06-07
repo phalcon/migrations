@@ -18,49 +18,6 @@ use Phalcon\Migrations\Utils\Config;
 
 final class ConfigTest extends AbstractTestCase
 {
-    public function testFromArrayWithEmptyData(): void
-    {
-        $config = Config::fromArray([]);
-
-        $this->assertNull($config->adapter);
-        $this->assertNull($config->dbname);
-        $this->assertNull($config->descr);
-        $this->assertSame([], $config->exportDataFromTables);
-        $this->assertNull($config->host);
-        $this->assertFalse($config->logInDb);
-        $this->assertNull($config->migrationsDir);
-        $this->assertFalse($config->migrationsTsBased);
-        $this->assertFalse($config->noAutoIncrement);
-        $this->assertNull($config->password);
-        $this->assertNull($config->port);
-        $this->assertNull($config->schema);
-        $this->assertFalse($config->skipForeignChecks);
-        $this->assertFalse($config->skipRefSchema);
-        $this->assertNull($config->username);
-    }
-
-    public function testFromArrayWithDatabaseFields(): void
-    {
-        $config = Config::fromArray([
-            'database' => [
-                'adapter'  => 'mysql',
-                'dbname'   => 'test_db',
-                'host'     => 'localhost',
-                'password' => 'secret',
-                'port'     => '3306',
-                'schema'   => 'public',
-                'username' => 'root',
-            ],
-        ]);
-
-        $this->assertSame('mysql', $config->adapter);
-        $this->assertSame('test_db', $config->dbname);
-        $this->assertSame('localhost', $config->host);
-        $this->assertSame('secret', $config->password);
-        $this->assertSame(3306, $config->port);
-        $this->assertSame('public', $config->schema);
-        $this->assertSame('root', $config->username);
-    }
 
     public function testFromArrayWithApplicationFields(): void
     {
@@ -85,6 +42,49 @@ final class ConfigTest extends AbstractTestCase
         $this->assertTrue($config->noAutoIncrement);
         $this->assertTrue($config->skipForeignChecks);
         $this->assertTrue($config->skipRefSchema);
+    }
+
+    public function testFromArrayWithDatabaseFields(): void
+    {
+        $config = Config::fromArray([
+            'database' => [
+                'adapter'  => 'mysql',
+                'dbname'   => 'test_db',
+                'host'     => 'localhost',
+                'password' => 'secret',
+                'port'     => '3306',
+                'schema'   => 'public',
+                'username' => 'root',
+            ],
+        ]);
+
+        $this->assertSame('mysql', $config->adapter);
+        $this->assertSame('test_db', $config->dbname);
+        $this->assertSame('localhost', $config->host);
+        $this->assertSame('secret', $config->password);
+        $this->assertSame(3306, $config->port);
+        $this->assertSame('public', $config->schema);
+        $this->assertSame('root', $config->username);
+    }
+    public function testFromArrayWithEmptyData(): void
+    {
+        $config = Config::fromArray([]);
+
+        $this->assertNull($config->adapter);
+        $this->assertNull($config->dbname);
+        $this->assertNull($config->descr);
+        $this->assertSame([], $config->exportDataFromTables);
+        $this->assertNull($config->host);
+        $this->assertFalse($config->logInDb);
+        $this->assertNull($config->migrationsDir);
+        $this->assertFalse($config->migrationsTsBased);
+        $this->assertFalse($config->noAutoIncrement);
+        $this->assertNull($config->password);
+        $this->assertNull($config->port);
+        $this->assertNull($config->schema);
+        $this->assertFalse($config->skipForeignChecks);
+        $this->assertFalse($config->skipRefSchema);
+        $this->assertNull($config->username);
     }
 
     public function testFromArrayWithExportDataFromTablesAsString(): void

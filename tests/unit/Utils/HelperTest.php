@@ -30,24 +30,6 @@ final class HelperTest extends AbstractTestCase
         $this->helper = new Helper();
     }
 
-    public function testGetMigrationsDirWithString(): void
-    {
-        $dir = $this->getOutputDir('helper-string');
-
-        $result = $this->helper->getMigrationsDir($dir);
-
-        $this->assertSame($dir, $result);
-    }
-
-    public function testGetMigrationsDirWithSingleElementArray(): void
-    {
-        $dir = $this->getOutputDir('helper-array');
-
-        $result = $this->helper->getMigrationsDir([$dir]);
-
-        $this->assertSame($dir, $result);
-    }
-
     public function testGetMigrationsDirCreatesNonExistentDirectory(): void
     {
         $baseDir = $this->getOutputDir('helper-create');
@@ -65,6 +47,24 @@ final class HelperTest extends AbstractTestCase
         $this->expectExceptionMessage('Migrations directory is not defined. Cannot proceed');
 
         $this->helper->getMigrationsDir('');
+    }
+
+    public function testGetMigrationsDirWithSingleElementArray(): void
+    {
+        $dir = $this->getOutputDir('helper-array');
+
+        $result = $this->helper->getMigrationsDir([$dir]);
+
+        $this->assertSame($dir, $result);
+    }
+
+    public function testGetMigrationsDirWithString(): void
+    {
+        $dir = $this->getOutputDir('helper-string');
+
+        $result = $this->helper->getMigrationsDir($dir);
+
+        $this->assertSame($dir, $result);
     }
 
     public function testGetMigrationsPathCreatesVersionDirectory(): void
@@ -93,6 +93,18 @@ final class HelperTest extends AbstractTestCase
         $this->helper->getMigrationsPath($version, $baseDir, false, false);
     }
 
+    public function testGetMigrationsPathVerboseSkipsDirectoryCreation(): void
+    {
+        $baseDir  = $this->getOutputDir('helper-path-verbose');
+        $version  = new IncrementalItem('1.0.0');
+        $expected = rtrim($baseDir, '\\/') . DIRECTORY_SEPARATOR . '1.0.0';
+
+        $result = $this->helper->getMigrationsPath($version, $baseDir, true, false);
+
+        $this->assertSame($expected, $result);
+        $this->assertFalse(is_dir($result));
+    }
+
     public function testGetMigrationsPathWithForceAllowsExistingVersion(): void
     {
         $baseDir    = $this->getOutputDir('helper-path-force');
@@ -104,17 +116,5 @@ final class HelperTest extends AbstractTestCase
         $result = $this->helper->getMigrationsPath($version, $baseDir, false, true);
 
         $this->assertSame($versionDir, $result);
-    }
-
-    public function testGetMigrationsPathVerboseSkipsDirectoryCreation(): void
-    {
-        $baseDir  = $this->getOutputDir('helper-path-verbose');
-        $version  = new IncrementalItem('1.0.0');
-        $expected = rtrim($baseDir, '\\/') . DIRECTORY_SEPARATOR . '1.0.0';
-
-        $result = $this->helper->getMigrationsPath($version, $baseDir, true, false);
-
-        $this->assertSame($expected, $result);
-        $this->assertFalse(is_dir($result));
     }
 }

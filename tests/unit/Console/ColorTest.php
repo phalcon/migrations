@@ -18,10 +18,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class ColorTest extends AbstractTestCase
 {
-    public function testIsSupportedShellReturnsBool(): void
-    {
-        $this->assertIsBool(Color::isSupportedShell());
-    }
 
     public function testColorizeReturnsOriginalStringWhenShellNotSupported(): void
     {
@@ -46,18 +42,18 @@ final class ColorTest extends AbstractTestCase
         $this->assertStringContainsString("\033[", $result);
     }
 
-    public function testHeadContainsMessage(): void
-    {
-        $result = Color::head('test message');
-
-        $this->assertStringContainsString('test message', $result);
-    }
-
     public function testErrorContainsMessage(): void
     {
         $result = Color::error('something went wrong');
 
         $this->assertStringContainsString('Error: something went wrong', $result);
+    }
+
+    public function testErrorReturnsThreeLines(): void
+    {
+        $result = Color::error('msg');
+
+        $this->assertSame(3, substr_count($result, PHP_EOL));
     }
 
     public function testErrorWithCustomPrefix(): void
@@ -74,6 +70,13 @@ final class ColorTest extends AbstractTestCase
         $this->assertStringContainsString('Fatal Error: critical failure', $result);
     }
 
+    public function testFatalReturnsThreeLines(): void
+    {
+        $result = Color::fatal('msg');
+
+        $this->assertSame(3, substr_count($result, PHP_EOL));
+    }
+
     public function testFatalWithCustomPrefix(): void
     {
         $result = Color::fatal('critical failure', 'Custom: ');
@@ -81,11 +84,11 @@ final class ColorTest extends AbstractTestCase
         $this->assertStringContainsString('Custom: critical failure', $result);
     }
 
-    public function testSuccessContainsMessage(): void
+    public function testHeadContainsMessage(): void
     {
-        $result = Color::success('all done');
+        $result = Color::head('test message');
 
-        $this->assertStringContainsString('Success: all done', $result);
+        $this->assertStringContainsString('test message', $result);
     }
 
     public function testInfoContainsMessage(): void
@@ -95,30 +98,27 @@ final class ColorTest extends AbstractTestCase
         $this->assertStringContainsString('Info: some info', $result);
     }
 
-    public function testErrorReturnsThreeLines(): void
+    public function testInfoReturnsThreeLines(): void
     {
-        $result = Color::error('msg');
+        $result = Color::info('msg');
 
         $this->assertSame(3, substr_count($result, PHP_EOL));
     }
-
-    public function testFatalReturnsThreeLines(): void
+    public function testIsSupportedShellReturnsBool(): void
     {
-        $result = Color::fatal('msg');
+        $this->assertIsBool(Color::isSupportedShell());
+    }
 
-        $this->assertSame(3, substr_count($result, PHP_EOL));
+    public function testSuccessContainsMessage(): void
+    {
+        $result = Color::success('all done');
+
+        $this->assertStringContainsString('Success: all done', $result);
     }
 
     public function testSuccessReturnsThreeLines(): void
     {
         $result = Color::success('msg');
-
-        $this->assertSame(3, substr_count($result, PHP_EOL));
-    }
-
-    public function testInfoReturnsThreeLines(): void
-    {
-        $result = Color::info('msg');
 
         $this->assertSame(3, substr_count($result, PHP_EOL));
     }

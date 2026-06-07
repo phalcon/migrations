@@ -20,52 +20,6 @@ use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
 final class MigrationsTest extends AbstractPostgresqlTestCase
 {
-    /**
-     * @throws Exception
-     */
-    public function testPostgresPhalconMigrationsTable(): void
-    {
-        $tableName     = 'pg_phalcon_migrations';
-        $migrationsDir = $this->getOutputDir(__FUNCTION__);
-
-        $this->getPhalconDb()->createTable($tableName, $this->getDefaultSchema(), [
-            'columns' => [
-                new Column('column_name', [
-                    'type'    => Column::TYPE_INTEGER,
-                    'size'    => 10,
-                    'notNull' => true,
-                    'first'   => true,
-                ]),
-            ],
-        ]);
-
-        ob_start();
-        try {
-            Migrations::generate([
-                'migrationsDir' => [$migrationsDir],
-                'config'        => static::getMigrationsConfig(),
-                'tableName'     => '@',
-            ]);
-            $this->getPhalconDb()->dropTable($tableName, $this->getDefaultSchema());
-            Migrations::run([
-                'migrationsDir'  => $migrationsDir,
-                'config'         => static::getMigrationsConfig(),
-                'migrationsInDb' => true,
-            ]);
-        } finally {
-            ob_end_clean();
-        }
-
-        $indexes = $this->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
-
-        $this->assertTrue(
-            $this->getPhalconDb()->tableExists($tableName, $this->getDefaultSchema())
-        );
-        $this->assertTrue(
-            $this->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $this->getDefaultSchema())
-        );
-        $this->assertSame(1, count($indexes));
-    }
 
     /**
      * @throws Exception
@@ -112,5 +66,51 @@ final class MigrationsTest extends AbstractPostgresqlTestCase
             '3',
             file_get_contents($migrationsDir . '/1.0.0/' . $tableName . '.dat')
         );
+    }
+    /**
+     * @throws Exception
+     */
+    public function testPostgresPhalconMigrationsTable(): void
+    {
+        $tableName     = 'pg_phalcon_migrations';
+        $migrationsDir = $this->getOutputDir(__FUNCTION__);
+
+        $this->getPhalconDb()->createTable($tableName, $this->getDefaultSchema(), [
+            'columns' => [
+                new Column('column_name', [
+                    'type'    => Column::TYPE_INTEGER,
+                    'size'    => 10,
+                    'notNull' => true,
+                    'first'   => true,
+                ]),
+            ],
+        ]);
+
+        ob_start();
+        try {
+            Migrations::generate([
+                'migrationsDir' => [$migrationsDir],
+                'config'        => static::getMigrationsConfig(),
+                'tableName'     => '@',
+            ]);
+            $this->getPhalconDb()->dropTable($tableName, $this->getDefaultSchema());
+            Migrations::run([
+                'migrationsDir'  => $migrationsDir,
+                'config'         => static::getMigrationsConfig(),
+                'migrationsInDb' => true,
+            ]);
+        } finally {
+            ob_end_clean();
+        }
+
+        $indexes = $this->describeIndexes(Migrations::MIGRATION_LOG_TABLE);
+
+        $this->assertTrue(
+            $this->getPhalconDb()->tableExists($tableName, $this->getDefaultSchema())
+        );
+        $this->assertTrue(
+            $this->getPhalconDb()->tableExists(Migrations::MIGRATION_LOG_TABLE, $this->getDefaultSchema())
+        );
+        $this->assertSame(1, count($indexes));
     }
 }

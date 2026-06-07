@@ -29,54 +29,11 @@ final class ConnectionTest extends AbstractPostgresqlTestCase
         $this->connection->connect();
     }
 
-    public function testGetDriverName(): void
-    {
-        $this->assertSame('pgsql', $this->connection->getDriverName());
-    }
-
-    public function testQuoteIdentifierForPgsqlUsesDoubleQuotes(): void
-    {
-        $result = $this->connection->quoteIdentifier('column_name');
-
-        $this->assertSame('"column_name"', $result);
-    }
-
     public function testAdapterFactoryCreatesPostgresqlAdapter(): void
     {
         $adapter = AdapterFactory::create($this->connection);
 
         $this->assertInstanceOf(Postgresql::class, $adapter);
-    }
-
-    public function testFetchValueReturnsScalar(): void
-    {
-        $result = $this->connection->fetchValue('SELECT 1');
-
-        $this->assertSame('1', (string) $result);
-    }
-
-    public function testFetchPairsReturnsKeyValueArray(): void
-    {
-        $this->connection->execute(
-            'CREATE TABLE IF NOT EXISTS conn_pairs_pg (k VARCHAR(10), v VARCHAR(10))'
-        );
-        $this->connection->execute("INSERT INTO conn_pairs_pg VALUES ('a', '1'), ('b', '2')");
-
-        $result = $this->connection->fetchPairs('SELECT k, v FROM conn_pairs_pg');
-
-        $this->connection->execute('DROP TABLE conn_pairs_pg');
-
-        $this->assertSame(['a' => '1', 'b' => '2'], $result);
-    }
-
-    public function testIterateYieldsRows(): void
-    {
-        $rows = [];
-        foreach ($this->connection->iterate('SELECT 1 AS n UNION SELECT 2') as $row) {
-            $rows[] = $row;
-        }
-
-        $this->assertCount(2, $rows);
     }
 
     public function testBeginCommitRollback(): void
@@ -98,6 +55,49 @@ final class ConnectionTest extends AbstractPostgresqlTestCase
         $this->assertCount(1, $rows);
 
         $this->connection->execute('DROP TABLE conn_tx_pg');
+    }
+
+    public function testFetchPairsReturnsKeyValueArray(): void
+    {
+        $this->connection->execute(
+            'CREATE TABLE IF NOT EXISTS conn_pairs_pg (k VARCHAR(10), v VARCHAR(10))'
+        );
+        $this->connection->execute("INSERT INTO conn_pairs_pg VALUES ('a', '1'), ('b', '2')");
+
+        $result = $this->connection->fetchPairs('SELECT k, v FROM conn_pairs_pg');
+
+        $this->connection->execute('DROP TABLE conn_pairs_pg');
+
+        $this->assertSame(['a' => '1', 'b' => '2'], $result);
+    }
+
+    public function testFetchValueReturnsScalar(): void
+    {
+        $result = $this->connection->fetchValue('SELECT 1');
+
+        $this->assertSame('1', (string) $result);
+    }
+
+    public function testGetDriverName(): void
+    {
+        $this->assertSame('pgsql', $this->connection->getDriverName());
+    }
+
+    public function testIterateYieldsRows(): void
+    {
+        $rows = [];
+        foreach ($this->connection->iterate('SELECT 1 AS n UNION SELECT 2') as $row) {
+            $rows[] = $row;
+        }
+
+        $this->assertCount(2, $rows);
+    }
+
+    public function testQuoteIdentifierForPgsqlUsesDoubleQuotes(): void
+    {
+        $result = $this->connection->quoteIdentifier('column_name');
+
+        $this->assertSame('"column_name"', $result);
     }
 
     public function testSetLoggerIsInvokedOnExecute(): void

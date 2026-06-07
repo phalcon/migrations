@@ -31,64 +31,11 @@ final class ConnectionTest extends AbstractMysqlTestCase
         $this->connection->connect();
     }
 
-    public function testIsConnectedReturnsTrueAfterConnect(): void
+    public function testAdapterFactoryCreatesMysqlAdapter(): void
     {
-        $this->assertTrue($this->connection->isConnected());
-    }
+        $adapter = AdapterFactory::create($this->connection);
 
-    public function testIsConnectedReturnsFalseBeforeConnect(): void
-    {
-        $connection = Connection::fromConfig(static::getMigrationsConfig());
-
-        $this->assertFalse($connection->isConnected());
-    }
-
-    public function testGetDriverName(): void
-    {
-        $this->assertSame('mysql', $this->connection->getDriverName());
-    }
-
-    public function testQuoteWrapsString(): void
-    {
-        $result = $this->connection->quote('hello');
-
-        $this->assertStringContainsString('hello', $result);
-    }
-
-    public function testQuoteIdentifierForMysqlUseBackticks(): void
-    {
-        $result = $this->connection->quoteIdentifier('column_name');
-
-        $this->assertSame('`column_name`', $result);
-    }
-
-    public function testFetchValueReturnsScalar(): void
-    {
-        $result = $this->connection->fetchValue('SELECT 1');
-
-        $this->assertSame('1', (string) $result);
-    }
-
-    public function testFetchPairsReturnsKeyValueArray(): void
-    {
-        $this->connection->execute('CREATE TABLE IF NOT EXISTS `conn_pairs_test` (`k` VARCHAR(10), `v` VARCHAR(10))');
-        $this->connection->execute("INSERT INTO `conn_pairs_test` VALUES ('a', '1'), ('b', '2')");
-
-        $result = $this->connection->fetchPairs('SELECT `k`, `v` FROM `conn_pairs_test`');
-
-        $this->connection->execute('DROP TABLE `conn_pairs_test`');
-
-        $this->assertSame(['a' => '1', 'b' => '2'], $result);
-    }
-
-    public function testIterateYieldsRows(): void
-    {
-        $rows = [];
-        foreach ($this->connection->iterate('SELECT 1 AS n UNION SELECT 2') as $row) {
-            $rows[] = $row;
-        }
-
-        $this->assertCount(2, $rows);
+        $this->assertInstanceOf(Mysql::class, $adapter);
     }
 
     public function testBeginCommitRollback(): void
@@ -112,6 +59,83 @@ final class ConnectionTest extends AbstractMysqlTestCase
         $this->connection->execute('DROP TABLE `conn_tx_test`');
     }
 
+    public function testConnectIsIdempotent(): void
+    {
+        $this->connection->connect();
+        $this->connection->connect();
+
+        $this->assertTrue($this->connection->isConnected());
+    }
+
+    public function testFetchPairsReturnsKeyValueArray(): void
+    {
+        $this->connection->execute('CREATE TABLE IF NOT EXISTS `conn_pairs_test` (`k` VARCHAR(10), `v` VARCHAR(10))');
+        $this->connection->execute("INSERT INTO `conn_pairs_test` VALUES ('a', '1'), ('b', '2')");
+
+        $result = $this->connection->fetchPairs('SELECT `k`, `v` FROM `conn_pairs_test`');
+
+        $this->connection->execute('DROP TABLE `conn_pairs_test`');
+
+        $this->assertSame(['a' => '1', 'b' => '2'], $result);
+    }
+
+    public function testFetchValueReturnsScalar(): void
+    {
+        $result = $this->connection->fetchValue('SELECT 1');
+
+        $this->assertSame('1', (string) $result);
+    }
+
+    public function testFromConfigThrowsOnUnsupportedAdapter(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Connection::fromConfig(Config::fromArray([
+            'database' => ['adapter' => 'oracle', 'host' => 'localhost', 'dbname' => 'test'],
+        ]));
+    }
+
+    public function testGetDriverName(): void
+    {
+        $this->assertSame('mysql', $this->connection->getDriverName());
+    }
+
+    public function testIsConnectedReturnsFalseBeforeConnect(): void
+    {
+        $connection = Connection::fromConfig(static::getMigrationsConfig());
+
+        $this->assertFalse($connection->isConnected());
+    }
+
+    public function testIsConnectedReturnsTrueAfterConnect(): void
+    {
+        $this->assertTrue($this->connection->isConnected());
+    }
+
+    public function testIterateYieldsRows(): void
+    {
+        $rows = [];
+        foreach ($this->connection->iterate('SELECT 1 AS n UNION SELECT 2') as $row) {
+            $rows[] = $row;
+        }
+
+        $this->assertCount(2, $rows);
+    }
+
+    public function testQuoteIdentifierForMysqlUseBackticks(): void
+    {
+        $result = $this->connection->quoteIdentifier('column_name');
+
+        $this->assertSame('`column_name`', $result);
+    }
+
+    public function testQuoteWrapsString(): void
+    {
+        $result = $this->connection->quote('hello');
+
+        $this->assertStringContainsString('hello', $result);
+    }
+
     public function testSetLoggerIsInvokedOnExecute(): void
     {
         $logged = [];
@@ -125,29 +149,5 @@ final class ConnectionTest extends AbstractMysqlTestCase
         $this->assertStringContainsString('SELECT 1', $logged[0]);
 
         $this->connection->setLogger(null);
-    }
-
-    public function testAdapterFactoryCreatesMysqlAdapter(): void
-    {
-        $adapter = AdapterFactory::create($this->connection);
-
-        $this->assertInstanceOf(Mysql::class, $adapter);
-    }
-
-    public function testFromConfigThrowsOnUnsupportedAdapter(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-
-        Connection::fromConfig(Config::fromArray([
-            'database' => ['adapter' => 'oracle', 'host' => 'localhost', 'dbname' => 'test'],
-        ]));
-    }
-
-    public function testConnectIsIdempotent(): void
-    {
-        $this->connection->connect();
-        $this->connection->connect();
-
-        $this->assertTrue($this->connection->isConnected());
     }
 }

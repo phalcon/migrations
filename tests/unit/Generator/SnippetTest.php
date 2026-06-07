@@ -26,12 +26,20 @@ final class SnippetTest extends AbstractTestCase
         $this->snippet = new Snippet();
     }
 
-    public function testGetMorphTemplateReturnsString(): void
+    public function testDefinitionToStringWithEmptyItemsReturnsEmptyString(): void
     {
-        $template = $this->snippet->getMorphTemplate();
+        $result = $this->snippet->definitionToString('columns', []);
 
-        $this->assertStringContainsString('morphTable', $template);
-        $this->assertStringContainsString('%s', $template);
+        $this->assertSame('', $result);
+    }
+
+    public function testDefinitionToStringWithItems(): void
+    {
+        $result = $this->snippet->definitionToString('columns', ['item1', 'item2']);
+
+        $this->assertStringContainsString("'columns'", $result);
+        $this->assertStringContainsString('item1', $result);
+        $this->assertStringContainsString('item2', $result);
     }
 
     public function testGetColumnTemplateReturnsString(): void
@@ -50,11 +58,11 @@ final class SnippetTest extends AbstractTestCase
         $this->assertStringContainsString('%s', $template);
     }
 
-    public function testGetReferenceTemplateReturnsString(): void
+    public function testGetMorphTemplateReturnsString(): void
     {
-        $template = $this->snippet->getReferenceTemplate();
+        $template = $this->snippet->getMorphTemplate();
 
-        $this->assertStringContainsString('new Reference', $template);
+        $this->assertStringContainsString('morphTable', $template);
         $this->assertStringContainsString('%s', $template);
     }
 
@@ -65,19 +73,11 @@ final class SnippetTest extends AbstractTestCase
         $this->assertSame('%s', $template);
     }
 
-    public function testDefinitionToStringWithItems(): void
+    public function testGetReferenceTemplateReturnsString(): void
     {
-        $result = $this->snippet->definitionToString('columns', ['item1', 'item2']);
+        $template = $this->snippet->getReferenceTemplate();
 
-        $this->assertStringContainsString("'columns'", $result);
-        $this->assertStringContainsString('item1', $result);
-        $this->assertStringContainsString('item2', $result);
-    }
-
-    public function testDefinitionToStringWithEmptyItemsReturnsEmptyString(): void
-    {
-        $result = $this->snippet->definitionToString('columns', []);
-
-        $this->assertSame('', $result);
+        $this->assertStringContainsString('new Reference', $template);
+        $this->assertStringContainsString('%s', $template);
     }
 }

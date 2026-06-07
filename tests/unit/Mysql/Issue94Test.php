@@ -23,20 +23,6 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
  */
 final class Issue94Test extends AbstractMysqlTestCase
 {
-    public function testIssue94(): void
-    {
-        ob_start();
-        Migrations::run([
-            'migrationsDir'  => $this->getDataDir('issues/94'),
-            'config'         => static::getMigrationsConfig(),
-            'migrationsInDb' => true,
-        ]);
-        ob_end_clean();
-
-        $options = $this->tableOptions('memory_table');
-
-        $this->assertSame('MEMORY', $options['engine']);
-    }
 
     public function testGenerateIssue94(): void
     {
@@ -78,5 +64,19 @@ final class Issue94Test extends AbstractMysqlTestCase
         ob_end_clean();
 
         $this->assertSame($engine, $this->tableOptions($tableName)['engine']);
+    }
+    public function testIssue94(): void
+    {
+        ob_start();
+        Migrations::run([
+            'migrationsDir'  => $this->getDataDir('issues/94'),
+            'config'         => static::getMigrationsConfig(),
+            'migrationsInDb' => true,
+        ]);
+        ob_end_clean();
+
+        $options = $this->tableOptions('memory_table');
+
+        $this->assertSame('MEMORY', $options['engine']);
     }
 }

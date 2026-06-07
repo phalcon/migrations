@@ -22,8 +22,8 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
 final class AdapterTest extends AbstractMysqlTestCase
 {
-    private Connection $connection;
     private Mysql $adapter;
+    private Connection $connection;
 
     protected function setUp(): void
     {
@@ -31,6 +31,143 @@ final class AdapterTest extends AbstractMysqlTestCase
         $this->connection = Connection::fromConfig(static::getMigrationsConfig());
         $this->connection->connect();
         $this->adapter    = new Mysql($this->connection);
+    }
+
+    public function testAddAndDropColumn(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+        $table  = 'adapter_col_ops_test';
+
+        $this->adapter->createTable($table, $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+            ],
+        ]);
+
+        $this->adapter->addColumn($table, $schema, new Column('extra', ['type' => Column::TYPE_VARCHAR, 'size' => 50]));
+        $cols = $this->adapter->listColumns($schema, $table);
+        $this->assertArrayHasKey('extra', $cols);
+
+        $this->adapter->dropColumn($table, $schema, 'extra');
+        $cols = $this->adapter->listColumns($schema, $table);
+        $this->assertArrayNotHasKey('extra', $cols);
+    }
+
+    public function testAddAndDropForeignKey(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+
+        $this->adapter->createTable('adapter_fk_parent', $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+            ],
+            'indexes' => [
+                new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
+            ],
+        ]);
+
+        $this->adapter->createTable('adapter_fk_child', $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+                new Column('parent_id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
+            ],
+        ]);
+
+        $ref = new Reference('fk_test_add', [
+            'referencedSchema'  => $schema,
+            'referencedTable'   => 'adapter_fk_parent',
+            'columns'           => ['parent_id'],
+            'referencedColumns' => ['id'],
+            'onUpdate'          => 'NO ACTION',
+            'onDelete'          => 'NO ACTION',
+        ]);
+
+        $this->adapter->addForeignKey('adapter_fk_child', $schema, $ref);
+        $refs = $this->adapter->listReferences($schema, 'adapter_fk_child');
+        $this->assertArrayHasKey('fk_test_add', $refs);
+
+        $this->adapter->dropForeignKey('adapter_fk_child', $schema, 'fk_test_add');
+        $refs = $this->adapter->listReferences($schema, 'adapter_fk_child');
+        $this->assertArrayNotHasKey('fk_test_add', $refs);
+    }
+
+    public function testBeginCommitRollback(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+
+        $this->adapter->createTable('adapter_tx_test', $schema, [
+            'columns' => [new Column('v', ['type' => Column::TYPE_INTEGER])],
+        ]);
+
+        $this->adapter->begin();
+        $this->adapter->execute('INSERT INTO `adapter_tx_test` VALUES (1)');
+        $this->adapter->commit();
+
+        $row = $this->adapter->fetchOne('SELECT v FROM `adapter_tx_test`');
+        $this->assertSame('1', (string) $row['v']);
+
+        $this->adapter->begin();
+        $this->adapter->execute('INSERT INTO `adapter_tx_test` VALUES (2)');
+        $this->adapter->rollback();
+
+        $rows = $this->adapter->fetchAll('SELECT v FROM `adapter_tx_test`');
+        $this->assertCount(1, $rows);
+    }
+
+    public function testCreateTableWithIndexesAndReferences(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+
+        $this->adapter->createTable('adapter_full_test', $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('idx_name', ['name'], ''),
+            ],
+            'options' => ['ENGINE' => 'InnoDB'],
+        ]);
+
+        $tables = $this->adapter->listTables($schema);
+        $this->assertContains('adapter_full_test', $tables);
+    }
+
+    public function testDropIndex(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+        $table  = 'adapter_drop_idx_test';
+
+        $this->adapter->createTable($table, $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => false]),
+            ],
+        ]);
+
+        $this->adapter->addIndex($table, $schema, new Index('idx_name', ['name'], ''));
+        $this->adapter->dropIndex($table, $schema, 'idx_name');
+
+        $indexes = $this->adapter->listIndexes($schema, $table);
+        $this->assertArrayNotHasKey('idx_name', $indexes);
+    }
+
+    public function testDropPrimaryKey(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+        $table  = 'adapter_drop_pk_test';
+
+        $this->adapter->createTable($table, $schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
+            ],
+        ]);
+
+        $this->adapter->addPrimaryKey($table, $schema, new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY));
+        $this->adapter->dropPrimaryKey($table, $schema);
+
+        $indexes = $this->adapter->listIndexes($schema, $table);
+        $this->assertArrayNotHasKey('PRIMARY', $indexes);
     }
 
     public function testGetConnection(): void
@@ -45,29 +182,17 @@ final class AdapterTest extends AbstractMysqlTestCase
         $this->assertSame($_ENV['MYSQL_TEST_DB_DATABASE'], $schema);
     }
 
-    public function testListTables(): void
+    public function testGetTableOptions(): void
     {
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
 
-        $this->adapter->createTable('adapter_list_test', $schema, [
+        $this->adapter->createTable('adapter_opts_test', $schema, [
             'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
         ]);
 
-        $tables = $this->adapter->listTables($schema);
+        $options = $this->adapter->getTableOptions($schema, 'adapter_opts_test');
 
-        $this->assertContains('adapter_list_test', $tables);
-    }
-
-    public function testTableExistsReturnsTrueForExistingTable(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-
-        $this->adapter->createTable('adapter_exists_test', $schema, [
-            'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
-        ]);
-
-        $this->assertTrue($this->adapter->tableExists('adapter_exists_test', $schema));
-        $this->assertFalse($this->adapter->tableExists('adapter_missing_table', $schema));
+        $this->assertIsArray($options);
     }
 
     public function testListColumns(): void
@@ -143,17 +268,17 @@ final class AdapterTest extends AbstractMysqlTestCase
         $this->assertArrayHasKey('fk_adapter_ref', $refs);
     }
 
-    public function testGetTableOptions(): void
+    public function testListTables(): void
     {
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
 
-        $this->adapter->createTable('adapter_opts_test', $schema, [
+        $this->adapter->createTable('adapter_list_test', $schema, [
             'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
         ]);
 
-        $options = $this->adapter->getTableOptions($schema, 'adapter_opts_test');
+        $tables = $this->adapter->listTables($schema);
 
-        $this->assertIsArray($options);
+        $this->assertContains('adapter_list_test', $tables);
     }
 
     public function testModifyColumn(): void
@@ -176,147 +301,22 @@ final class AdapterTest extends AbstractMysqlTestCase
         $this->assertArrayHasKey('id', $columns);
     }
 
-    public function testDropIndex(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-        $table  = 'adapter_drop_idx_test';
-
-        $this->adapter->createTable($table, $schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
-                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => false]),
-            ],
-        ]);
-
-        $this->adapter->addIndex($table, $schema, new Index('idx_name', ['name'], ''));
-        $this->adapter->dropIndex($table, $schema, 'idx_name');
-
-        $indexes = $this->adapter->listIndexes($schema, $table);
-        $this->assertArrayNotHasKey('idx_name', $indexes);
-    }
-
-    public function testDropPrimaryKey(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-        $table  = 'adapter_drop_pk_test';
-
-        $this->adapter->createTable($table, $schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
-            ],
-        ]);
-
-        $this->adapter->addPrimaryKey($table, $schema, new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY));
-        $this->adapter->dropPrimaryKey($table, $schema);
-
-        $indexes = $this->adapter->listIndexes($schema, $table);
-        $this->assertArrayNotHasKey('PRIMARY', $indexes);
-    }
-
-    public function testAddAndDropColumn(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-        $table  = 'adapter_col_ops_test';
-
-        $this->adapter->createTable($table, $schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
-            ],
-        ]);
-
-        $this->adapter->addColumn($table, $schema, new Column('extra', ['type' => Column::TYPE_VARCHAR, 'size' => 50]));
-        $cols = $this->adapter->listColumns($schema, $table);
-        $this->assertArrayHasKey('extra', $cols);
-
-        $this->adapter->dropColumn($table, $schema, 'extra');
-        $cols = $this->adapter->listColumns($schema, $table);
-        $this->assertArrayNotHasKey('extra', $cols);
-    }
-
-    public function testAddAndDropForeignKey(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-
-        $this->adapter->createTable('adapter_fk_parent', $schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
-            ],
-            'indexes' => [
-                new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
-            ],
-        ]);
-
-        $this->adapter->createTable('adapter_fk_child', $schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
-                new Column('parent_id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
-            ],
-        ]);
-
-        $ref = new Reference('fk_test_add', [
-            'referencedSchema'  => $schema,
-            'referencedTable'   => 'adapter_fk_parent',
-            'columns'           => ['parent_id'],
-            'referencedColumns' => ['id'],
-            'onUpdate'          => 'NO ACTION',
-            'onDelete'          => 'NO ACTION',
-        ]);
-
-        $this->adapter->addForeignKey('adapter_fk_child', $schema, $ref);
-        $refs = $this->adapter->listReferences($schema, 'adapter_fk_child');
-        $this->assertArrayHasKey('fk_test_add', $refs);
-
-        $this->adapter->dropForeignKey('adapter_fk_child', $schema, 'fk_test_add');
-        $refs = $this->adapter->listReferences($schema, 'adapter_fk_child');
-        $this->assertArrayNotHasKey('fk_test_add', $refs);
-    }
-
-    public function testCreateTableWithIndexesAndReferences(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-
-        $this->adapter->createTable('adapter_full_test', $schema, [
-            'columns' => [
-                new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true, 'first' => true]),
-                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => true]),
-            ],
-            'indexes' => [
-                new Index('idx_name', ['name'], ''),
-            ],
-            'options' => ['ENGINE' => 'InnoDB'],
-        ]);
-
-        $tables = $this->adapter->listTables($schema);
-        $this->assertContains('adapter_full_test', $tables);
-    }
-
-    public function testBeginCommitRollback(): void
-    {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
-
-        $this->adapter->createTable('adapter_tx_test', $schema, [
-            'columns' => [new Column('v', ['type' => Column::TYPE_INTEGER])],
-        ]);
-
-        $this->adapter->begin();
-        $this->adapter->execute('INSERT INTO `adapter_tx_test` VALUES (1)');
-        $this->adapter->commit();
-
-        $row = $this->adapter->fetchOne('SELECT v FROM `adapter_tx_test`');
-        $this->assertSame('1', (string) $row['v']);
-
-        $this->adapter->begin();
-        $this->adapter->execute('INSERT INTO `adapter_tx_test` VALUES (2)');
-        $this->adapter->rollback();
-
-        $rows = $this->adapter->fetchAll('SELECT v FROM `adapter_tx_test`');
-        $this->assertCount(1, $rows);
-    }
-
     public function testQuote(): void
     {
         $result = $this->adapter->quote('hello');
 
         $this->assertStringContainsString('hello', $result);
+    }
+
+    public function testTableExistsReturnsTrueForExistingTable(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+
+        $this->adapter->createTable('adapter_exists_test', $schema, [
+            'columns' => [new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
+        ]);
+
+        $this->assertTrue($this->adapter->tableExists('adapter_exists_test', $schema));
+        $this->assertFalse($this->adapter->tableExists('adapter_missing_table', $schema));
     }
 }

@@ -20,32 +20,6 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
 final class TimestampedVersionTest extends AbstractMysqlTestCase
 {
-    /**
-     * @throws ScriptException
-     * @throws \Exception
-     */
-    public function testSingleVersion(): void
-    {
-        $options   = $this->getOptions($this->getOutputDir('timestamp-single-version'));
-        $tableName = 'timestamp-versions-1';
-
-        $this->getPhalconDb()->createTable($tableName, '', [
-            'columns' => [
-                new Column('name', [
-                    'type' => Column::TYPE_VARCHAR,
-                    'size' => 25,
-                ]),
-            ],
-        ]);
-
-        ob_start();
-        Migrations::generate($options);
-        $this->getPhalconDb()->dropTable($tableName);
-        Migrations::run($options);
-        ob_end_clean();
-
-        $this->assertTrue($this->getPhalconDb()->tableExists($tableName));
-    }
 
     /**
      * @throws ScriptException
@@ -87,6 +61,32 @@ final class TimestampedVersionTest extends AbstractMysqlTestCase
 
         $this->assertTrue($this->getPhalconDb()->tableExists($tableName1));
         $this->assertTrue($this->getPhalconDb()->tableExists($tableName2));
+    }
+    /**
+     * @throws ScriptException
+     * @throws \Exception
+     */
+    public function testSingleVersion(): void
+    {
+        $options   = $this->getOptions($this->getOutputDir('timestamp-single-version'));
+        $tableName = 'timestamp-versions-1';
+
+        $this->getPhalconDb()->createTable($tableName, '', [
+            'columns' => [
+                new Column('name', [
+                    'type' => Column::TYPE_VARCHAR,
+                    'size' => 25,
+                ]),
+            ],
+        ]);
+
+        ob_start();
+        Migrations::generate($options);
+        $this->getPhalconDb()->dropTable($tableName);
+        Migrations::run($options);
+        ob_end_clean();
+
+        $this->assertTrue($this->getPhalconDb()->tableExists($tableName));
     }
 
     private function getOptions(string $path): array

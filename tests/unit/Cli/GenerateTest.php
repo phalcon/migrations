@@ -21,17 +21,6 @@ final class GenerateTest extends AbstractCliTestCase
 {
     private string $configPath = 'tests/_data/cli/migrations.php';
 
-    public function testTryWithoutDbConfig(): void
-    {
-        $directory = $this->getOutputDir();
-
-        $this->runCommand('php bin/phalcon-migrations generate --directory=' . $directory);
-
-        $this->assertInOutput('Phalcon Migrations');
-        $this->assertInOutput("Error: Can't locate the configuration file.");
-        $this->assertExitCode(1);
-    }
-
     public function testGenerateEmptyDb(): void
     {
         $this->runCommand('php bin/phalcon-migrations generate --config=' . $this->configPath);
@@ -62,6 +51,23 @@ final class GenerateTest extends AbstractCliTestCase
         $this->assertExitCode(0);
     }
 
+    public function testGenerateWithRefSchema(): void
+    {
+        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+
+        $this->createFKTables();
+
+        $this->runCommand('php bin/phalcon-migrations generate --config=' . $this->configPath);
+
+        $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
+        $this->assertExitCode(0);
+
+        $content = file_get_contents($this->getOutputPath('1.0.0/cli-skip-ref-schema.php'));
+
+        $this->assertStringContainsString("'referencedSchema' => '$schema',", $content);
+        $this->assertStringContainsString("'referencedTable' => 'client',", $content);
+    }
+
     public function testGenerateWithSkipRefSchema(): void
     {
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
@@ -79,21 +85,15 @@ final class GenerateTest extends AbstractCliTestCase
         $this->assertStringContainsString("'referencedTable' => 'client',", $content);
     }
 
-    public function testGenerateWithRefSchema(): void
+    public function testTryWithoutDbConfig(): void
     {
-        $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
+        $directory = $this->getOutputDir();
 
-        $this->createFKTables();
+        $this->runCommand('php bin/phalcon-migrations generate --directory=' . $directory);
 
-        $this->runCommand('php bin/phalcon-migrations generate --config=' . $this->configPath);
-
-        $this->assertInOutput('Success: Version 1.0.0 was successfully generated');
-        $this->assertExitCode(0);
-
-        $content = file_get_contents($this->getOutputPath('1.0.0/cli-skip-ref-schema.php'));
-
-        $this->assertStringContainsString("'referencedSchema' => '$schema',", $content);
-        $this->assertStringContainsString("'referencedTable' => 'client',", $content);
+        $this->assertInOutput('Phalcon Migrations');
+        $this->assertInOutput("Error: Can't locate the configuration file.");
+        $this->assertExitCode(1);
     }
 
     private function createFKTables(): void

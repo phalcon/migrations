@@ -18,14 +18,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class BasicTest extends AbstractCliTestCase
 {
-    public function testRunCommand(): void
-    {
-        $this->runCommand('php bin/phalcon-migrations');
-
-        $this->assertInOutput('Phalcon Migrations');
-        $this->assertInOutput('Help');
-        $this->assertExitCode(0);
-    }
 
     public static function helpArgumentsDataProvider(): array
     {
@@ -36,6 +28,14 @@ final class BasicTest extends AbstractCliTestCase
             ['?'],
             [null],
         ];
+    }
+    public function testRunCommand(): void
+    {
+        $this->runCommand('php bin/phalcon-migrations');
+
+        $this->assertInOutput('Phalcon Migrations');
+        $this->assertInOutput('Help');
+        $this->assertExitCode(0);
     }
 
     #[DataProvider('helpArgumentsDataProvider')]

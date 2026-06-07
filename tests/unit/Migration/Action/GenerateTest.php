@@ -25,6 +25,156 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class GenerateTest extends AbstractTestCase
 {
+
+    public function testAddAfterCreateTableWithOnCreate(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
+        ];
+
+        $class = new Generate('mysql', $columns);
+        $class->createEntity('TestMigration');
+        foreach ($class->getColumns() as $name => $def) {
+        }
+        $class->addAfterCreateTable('test_table', 'oncreate');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString('afterCreateTable', $code);
+    }
+
+    public function testAddAfterCreateTableWithoutOnCreate(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+        $class->addAfterCreateTable('test_table', null);
+
+        $this->assertInstanceOf(PhpFile::class, $class->getEntity());
+    }
+
+    public function testAddDownGeneratesDownMethod(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+        $class->addDown('test_table');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString('function down', $code);
+    }
+
+    public function testAddDownWithAlwaysExportData(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+        $class->addDown('test_table', 'always');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString('batchDelete', $code);
+    }
+
+    public function testAddMorphGeneratesMorphMethod(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
+        ];
+
+        $class = new Generate('mysql', $columns);
+        $class->createEntity('TestMigration');
+        $class->addMorph(new Snippet(), 'test_table');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString('morph', $code);
+        $this->assertStringContainsString('test_table', $code);
+    }
+
+    public function testAddUpGeneratesUpMethod(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+        $class->addUp('test_table');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString('function up', $code);
+    }
+
+    public function testAddUpWithAlwaysExportData(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
+        ];
+
+        $class = new Generate('mysql', $columns);
+        $class->createEntity('TestMigration');
+        foreach ($class->getColumns() as $name => $def) {
+        }
+        $class->addUp('test_table', 'always');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString('batchInsert', $code);
+    }
+
+    public function testCheckEntityExistsThrowsWhenEntityNotCreated(): void
+    {
+        $class = new Generate('mysql');
+
+        $this->expectException(RuntimeException::class);
+
+        $class->getEntity();
+    }
+
+    /**
+     * @throws UnknownColumnTypeException
+     */
+    public function testColumnHasDefault(): void
+    {
+        $expected           = "'default' => \"0\"";
+        $columnsWithDefault = [
+            new Column('column_default', [
+                'type'    => Column::TYPE_INTEGER,
+                'size'    => 10,
+                'notNull' => true,
+                'default' => 0,
+            ]),
+        ];
+
+        $columnsWithDefaultAndAI = [
+            new Column('column_ai', [
+                'type'          => Column::TYPE_INTEGER,
+                'size'          => 10,
+                'notNull'       => true,
+                'autoIncrement' => true,
+                'first'         => true,
+                'primary'       => true,
+                'default'       => 0,
+            ]),
+        ];
+
+        $class1 = new Generate(Migration::DB_ADAPTER_MYSQL, $columnsWithDefault);
+        $class2 = new Generate(Migration::DB_ADAPTER_MYSQL, $columnsWithDefaultAndAI);
+        $class3 = new Generate(Migration::DB_ADAPTER_POSTGRESQL, $columnsWithDefault);
+        $class4 = new Generate(Migration::DB_ADAPTER_POSTGRESQL, $columnsWithDefaultAndAI);
+        $class5 = new Generate(Migration::DB_ADAPTER_SQLITE, $columnsWithDefault);
+        $class6 = new Generate(Migration::DB_ADAPTER_SQLITE, $columnsWithDefaultAndAI);
+
+        $array1 = current(iterator_to_array($class1->getColumns()));
+        $array2 = current(iterator_to_array($class2->getColumns()));
+        $array3 = current(iterator_to_array($class3->getColumns()));
+        $array4 = current(iterator_to_array($class4->getColumns()));
+        $array5 = current(iterator_to_array($class5->getColumns()));
+        $array6 = current(iterator_to_array($class6->getColumns()));
+
+        $this->assertSame($expected, $array1[1]);
+        $this->assertFalse(in_array($expected, $array2));
+        $this->assertSame($expected, $array3[1]);
+        $this->assertFalse(in_array($expected, $array4));
+        $this->assertSame($expected, $array5[1]);
+        $this->assertFalse(in_array($expected, $array6));
+    }
     /**
      * @throws UnknownColumnTypeException
      */
@@ -57,6 +207,128 @@ final class GenerateTest extends AbstractTestCase
         $this->assertIsArray($class->getOptions(false));
         $this->assertIsArray($class->getNumericColumns());
         $this->assertNull($class->getPrimaryColumnName());
+    }
+
+    public function testCreateEntityIsIdempotent(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+        $class->createEntity('TestMigration');
+
+        $entity = $class->getEntity();
+
+        $this->assertInstanceOf(PhpFile::class, $entity);
+    }
+
+    public function testCreateEntityReturnsPhpFile(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+
+        $entity = $class->getEntity();
+
+        $this->assertInstanceOf(PhpFile::class, $entity);
+    }
+
+    public function testCreateEntityWithRecreateFlagCreatesNewEntity(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+        $first = $class->getEntity();
+
+        $class->createEntity('TestMigration', true);
+        $second = $class->getEntity();
+
+        $this->assertNotSame($first, $second);
+    }
+
+    public function testGetColumnSizeSkipsForEnumType(): void
+    {
+        $columns = [
+            new Column('status', ['type' => Column::TYPE_ENUM, 'notNull' => true]),
+        ];
+
+        $class  = new Generate('mysql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $found = false;
+        foreach ($result['status'] as $item) {
+            if (strpos($item, "'size'") !== false) {
+                $found = true;
+            }
+        }
+        $this->assertFalse($found, 'ENUM column should have no size');
+    }
+
+    public function testGetColumnSizeSkipsForPostgresqlNoSizeTypes(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+        ];
+
+        $class  = new Generate('postgresql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $found = false;
+        foreach ($result['id'] as $item) {
+            if (strpos($item, "'size'") !== false) {
+                $found = true;
+            }
+        }
+        $this->assertFalse($found, 'Integer column in PostgreSQL should have no size');
+    }
+
+    public function testGetIndexesWithPrimaryAndRegularIndexes(): void
+    {
+        $indexes = [
+            'PRIMARY'  => new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
+            'idx_name' => new Index('idx_name', ['name'], ''),
+        ];
+
+        $class  = new Generate('mysql', [], $indexes);
+        $result = [];
+        foreach ($class->getIndexes() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $this->assertArrayHasKey('PRIMARY', $result);
+        $this->assertArrayHasKey('idx_name', $result);
+    }
+
+    /**
+     * @throws UnknownColumnTypeException
+     */
+    public function testGetQuoteWrappedColumns(): void
+    {
+        $columns = [
+            new Column('column1', [
+                'type'    => Column::TYPE_INTEGER,
+                'size'    => 10,
+                'notNull' => true,
+            ]),
+            new Column('column2', [
+                'type'    => Column::TYPE_VARCHAR,
+                'size'    => 255,
+                'notNull' => true,
+            ]),
+        ];
+
+        $class           = new Generate('mysql', $columns);
+        $preparedColumns = [];
+        foreach ($class->getColumns() as $name => $definition) {
+            $preparedColumns[$name] = $definition;
+        }
+
+        $this->assertSame(count($columns), count($preparedColumns));
+        $this->assertSame(count($columns), count($class->getQuoteWrappedColumns()));
+        $this->assertSame("'column1'", $class->getQuoteWrappedColumns()[0]);
+        $this->assertSame("'column2'", $class->getQuoteWrappedColumns()[1]);
     }
 
     public function testGetReferences(): void
@@ -178,36 +450,6 @@ final class GenerateTest extends AbstractTestCase
         $this->assertFalse($schemaFound);
     }
 
-    /**
-     * @throws UnknownColumnTypeException
-     */
-    public function testGetQuoteWrappedColumns(): void
-    {
-        $columns = [
-            new Column('column1', [
-                'type'    => Column::TYPE_INTEGER,
-                'size'    => 10,
-                'notNull' => true,
-            ]),
-            new Column('column2', [
-                'type'    => Column::TYPE_VARCHAR,
-                'size'    => 255,
-                'notNull' => true,
-            ]),
-        ];
-
-        $class           = new Generate('mysql', $columns);
-        $preparedColumns = [];
-        foreach ($class->getColumns() as $name => $definition) {
-            $preparedColumns[$name] = $definition;
-        }
-
-        $this->assertSame(count($columns), count($preparedColumns));
-        $this->assertSame(count($columns), count($class->getQuoteWrappedColumns()));
-        $this->assertSame("'column1'", $class->getQuoteWrappedColumns()[0]);
-        $this->assertSame("'column2'", $class->getQuoteWrappedColumns()[1]);
-    }
-
     public function testThrowUnknownColumnTypeException(): void
     {
         $this->expectException(\Phalcon\Migrations\Exception\Db\UnknownColumnTypeException::class);
@@ -227,253 +469,11 @@ final class GenerateTest extends AbstractTestCase
         }
     }
 
-    public function testCheckEntityExistsThrowsWhenEntityNotCreated(): void
-    {
-        $class = new Generate('mysql');
-
-        $this->expectException(RuntimeException::class);
-
-        $class->getEntity();
-    }
-
-    public function testCreateEntityReturnsPhpFile(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-
-        $entity = $class->getEntity();
-
-        $this->assertInstanceOf(PhpFile::class, $entity);
-    }
-
-    public function testCreateEntityIsIdempotent(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-        $class->createEntity('TestMigration');
-
-        $entity = $class->getEntity();
-
-        $this->assertInstanceOf(PhpFile::class, $entity);
-    }
-
-    public function testCreateEntityWithRecreateFlagCreatesNewEntity(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-        $first = $class->getEntity();
-
-        $class->createEntity('TestMigration', true);
-        $second = $class->getEntity();
-
-        $this->assertNotSame($first, $second);
-    }
-
-    public function testAddMorphGeneratesMorphMethod(): void
-    {
-        $columns = [
-            new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
-        ];
-
-        $class = new Generate('mysql', $columns);
-        $class->createEntity('TestMigration');
-        $class->addMorph(new Snippet(), 'test_table');
-
-        $code = (string) $class->getEntity();
-
-        $this->assertStringContainsString('morph', $code);
-        $this->assertStringContainsString('test_table', $code);
-    }
-
-    public function testAddUpGeneratesUpMethod(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-        $class->addUp('test_table');
-
-        $code = (string) $class->getEntity();
-
-        $this->assertStringContainsString('function up', $code);
-    }
-
-    public function testAddUpWithAlwaysExportData(): void
-    {
-        $columns = [
-            new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
-        ];
-
-        $class = new Generate('mysql', $columns);
-        $class->createEntity('TestMigration');
-        foreach ($class->getColumns() as $name => $def) {
-        }
-        $class->addUp('test_table', 'always');
-
-        $code = (string) $class->getEntity();
-
-        $this->assertStringContainsString('batchInsert', $code);
-    }
-
-    public function testAddDownGeneratesDownMethod(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-        $class->addDown('test_table');
-
-        $code = (string) $class->getEntity();
-
-        $this->assertStringContainsString('function down', $code);
-    }
-
-    public function testAddDownWithAlwaysExportData(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-        $class->addDown('test_table', 'always');
-
-        $code = (string) $class->getEntity();
-
-        $this->assertStringContainsString('batchDelete', $code);
-    }
-
-    public function testAddAfterCreateTableWithOnCreate(): void
-    {
-        $columns = [
-            new Column('id', ['type' => Column::TYPE_INTEGER, 'size' => 11, 'notNull' => true]),
-        ];
-
-        $class = new Generate('mysql', $columns);
-        $class->createEntity('TestMigration');
-        foreach ($class->getColumns() as $name => $def) {
-        }
-        $class->addAfterCreateTable('test_table', 'oncreate');
-
-        $code = (string) $class->getEntity();
-
-        $this->assertStringContainsString('afterCreateTable', $code);
-    }
-
-    public function testAddAfterCreateTableWithoutOnCreate(): void
-    {
-        $class = new Generate('mysql');
-        $class->createEntity('TestMigration');
-        $class->addAfterCreateTable('test_table', null);
-
-        $this->assertInstanceOf(PhpFile::class, $class->getEntity());
-    }
-
-    public function testGetIndexesWithPrimaryAndRegularIndexes(): void
-    {
-        $indexes = [
-            'PRIMARY'  => new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
-            'idx_name' => new Index('idx_name', ['name'], ''),
-        ];
-
-        $class  = new Generate('mysql', [], $indexes);
-        $result = [];
-        foreach ($class->getIndexes() as $name => $def) {
-            $result[$name] = $def;
-        }
-
-        $this->assertArrayHasKey('PRIMARY', $result);
-        $this->assertArrayHasKey('idx_name', $result);
-    }
-
-    public function testGetColumnSizeSkipsForPostgresqlNoSizeTypes(): void
-    {
-        $columns = [
-            new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
-        ];
-
-        $class  = new Generate('postgresql', $columns);
-        $result = [];
-        foreach ($class->getColumns() as $name => $def) {
-            $result[$name] = $def;
-        }
-
-        $found = false;
-        foreach ($result['id'] as $item) {
-            if (strpos($item, "'size'") !== false) {
-                $found = true;
-            }
-        }
-        $this->assertFalse($found, 'Integer column in PostgreSQL should have no size');
-    }
-
-    public function testGetColumnSizeSkipsForEnumType(): void
-    {
-        $columns = [
-            new Column('status', ['type' => Column::TYPE_ENUM, 'notNull' => true]),
-        ];
-
-        $class  = new Generate('mysql', $columns);
-        $result = [];
-        foreach ($class->getColumns() as $name => $def) {
-            $result[$name] = $def;
-        }
-
-        $found = false;
-        foreach ($result['status'] as $item) {
-            if (strpos($item, "'size'") !== false) {
-                $found = true;
-            }
-        }
-        $this->assertFalse($found, 'ENUM column should have no size');
-    }
-
     public function testWrapWithQuotes(): void
     {
         $class = new Generate('mysql');
 
         $this->assertSame("'column'", $class->wrapWithQuotes('column'));
         $this->assertSame('"column"', $class->wrapWithQuotes('column', '"'));
-    }
-
-    /**
-     * @throws UnknownColumnTypeException
-     */
-    public function testColumnHasDefault(): void
-    {
-        $expected           = "'default' => \"0\"";
-        $columnsWithDefault = [
-            new Column('column_default', [
-                'type'    => Column::TYPE_INTEGER,
-                'size'    => 10,
-                'notNull' => true,
-                'default' => 0,
-            ]),
-        ];
-
-        $columnsWithDefaultAndAI = [
-            new Column('column_ai', [
-                'type'          => Column::TYPE_INTEGER,
-                'size'          => 10,
-                'notNull'       => true,
-                'autoIncrement' => true,
-                'first'         => true,
-                'primary'       => true,
-                'default'       => 0,
-            ]),
-        ];
-
-        $class1 = new Generate(Migration::DB_ADAPTER_MYSQL, $columnsWithDefault);
-        $class2 = new Generate(Migration::DB_ADAPTER_MYSQL, $columnsWithDefaultAndAI);
-        $class3 = new Generate(Migration::DB_ADAPTER_POSTGRESQL, $columnsWithDefault);
-        $class4 = new Generate(Migration::DB_ADAPTER_POSTGRESQL, $columnsWithDefaultAndAI);
-        $class5 = new Generate(Migration::DB_ADAPTER_SQLITE, $columnsWithDefault);
-        $class6 = new Generate(Migration::DB_ADAPTER_SQLITE, $columnsWithDefaultAndAI);
-
-        $array1 = current(iterator_to_array($class1->getColumns()));
-        $array2 = current(iterator_to_array($class2->getColumns()));
-        $array3 = current(iterator_to_array($class3->getColumns()));
-        $array4 = current(iterator_to_array($class4->getColumns()));
-        $array5 = current(iterator_to_array($class5->getColumns()));
-        $array6 = current(iterator_to_array($class6->getColumns()));
-
-        $this->assertSame($expected, $array1[1]);
-        $this->assertFalse(in_array($expected, $array2));
-        $this->assertSame($expected, $array3[1]);
-        $this->assertFalse(in_array($expected, $array4));
-        $this->assertSame($expected, $array5[1]);
-        $this->assertFalse(in_array($expected, $array6));
     }
 }
