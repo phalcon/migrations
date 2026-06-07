@@ -18,7 +18,6 @@ use function sprintf;
 
 class Snippet
 {
-
     public function definitionToString(string $key, array $items): string
     {
         if (empty($items)) {

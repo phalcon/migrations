@@ -47,7 +47,6 @@ use function strtoupper;
  */
 class Generate
 {
-
     protected array $noSizeColumnTypes = [
         Column::TYPE_BLOB,
         Column::TYPE_DATE,

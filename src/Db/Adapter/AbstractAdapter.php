@@ -20,9 +20,11 @@ use Phalcon\Migrations\Db\Reference;
 
 use function implode;
 use function in_array;
+use function is_string;
 use function str_getcsv;
 use function stripos;
 use function strtolower;
+use function strtoupper;
 use function substr;
 use function trim;
 
@@ -452,6 +454,12 @@ abstract class AbstractAdapter implements AdapterInterface
     // -------------------------------------------------------------------------
     // Helpers used by both introspection and DDL
     // -------------------------------------------------------------------------
+
+    protected function isCurrentTimestampDefault(mixed $default): bool
+    {
+        return is_string($default)
+            && in_array(strtoupper($default), ['CURRENT_TIMESTAMP', 'CURRENT_TIMESTAMP()', 'NOW()'], true);
+    }
 
     protected function isPrimaryIndex(Index $index): bool
     {

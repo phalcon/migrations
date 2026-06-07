@@ -22,7 +22,6 @@ use const PHP_EOL;
  */
 class Profiler
 {
-
     public function end(string $sql, float $startTime, float $endTime): void
     {
         echo '  => ', $endTime, ' (', ($endTime - $startTime), ')', PHP_EOL;
