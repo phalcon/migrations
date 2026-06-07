@@ -1,0 +1,9 @@
+parameters:
+    bootstrapFiles:
+        - %rootDir%/../../../vendor/autoload.php
+
+    level: 5
+
+    paths:
+        - ../src/
+
