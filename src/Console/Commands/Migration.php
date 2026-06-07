@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Phalcon\Migrations\Console\Commands;
 
 use Exception;
-use Phalcon\Migrations\Utils\Config;
 use Phalcon\Cop\Parser;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Migrations;
+use Phalcon\Migrations\Utils\Config;
 
 use function explode;
 use function file_exists;
@@ -27,7 +27,6 @@ use function is_array;
 use function json_decode;
 use function parse_ini_file;
 use function pathinfo;
-use function yaml_parse_file;
 use function preg_match;
 use function realpath;
 use function str_repeat;
@@ -36,6 +35,7 @@ use function strtolower;
 use function strtoupper;
 use function substr;
 use function trim;
+use function yaml_parse_file;
 
 use const DIRECTORY_SEPARATOR;
 use const PHP_EOL;
@@ -50,6 +50,33 @@ class Migration implements CommandsInterface
 {
     final public function __construct(protected Parser $parser)
     {
+    }
+
+    /**
+     * Print Help information
+     */
+    public function getHelp(): void
+    {
+        print Color::head('Help:') . PHP_EOL;
+        print Color::colorize('  Generates/Run a Migration') . PHP_EOL . PHP_EOL;
+
+        print Color::head('Usage: Generate a Migration') . PHP_EOL;
+        print Color::colorize('  migration generate', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Usage: Run a Migration') . PHP_EOL;
+        print Color::colorize('  migration run', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Usage: List all available migrations') . PHP_EOL;
+        print Color::colorize('  migration list', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Usage: Update migration files to Phalcon\Migrations\Db namespace') . PHP_EOL;
+        print Color::colorize('  migration migrate-files --migrations=<path>', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Arguments:') . PHP_EOL;
+        print Color::colorize('  help', Color::FG_GREEN);
+        print Color::colorize("\tShows this help text") . PHP_EOL . PHP_EOL;
+
+        $this->printParameters($this->getPossibleParams());
     }
 
     public function getPossibleParams(): array
@@ -199,33 +226,6 @@ class Migration implements CommandsInterface
         }
     }
 
-    /**
-     * Print Help information
-     */
-    public function getHelp(): void
-    {
-        print Color::head('Help:') . PHP_EOL;
-        print Color::colorize('  Generates/Run a Migration') . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: Generate a Migration') . PHP_EOL;
-        print Color::colorize('  migration generate', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: Run a Migration') . PHP_EOL;
-        print Color::colorize('  migration run', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: List all available migrations') . PHP_EOL;
-        print Color::colorize('  migration list', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: Update migration files to Phalcon\Migrations\Db namespace') . PHP_EOL;
-        print Color::colorize('  migration migrate-files --migrations=<path>', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Arguments:') . PHP_EOL;
-        print Color::colorize('  help', Color::FG_GREEN);
-        print Color::colorize("\tShows this help text") . PHP_EOL . PHP_EOL;
-
-        $this->printParameters($this->getPossibleParams());
-    }
-
     protected function exportFromTables(Config $config): array
     {
         if ($this->parser->has('exportDataFromTables')) {
@@ -253,6 +253,24 @@ class Migration implements CommandsInterface
         }
 
         throw CommandsException::configNotFound();
+    }
+
+    /**
+     * Check if a path is absolute
+     */
+    protected function isAbsolutePath(string $path): bool
+    {
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            if (preg_match('/^[A-Z]:\\\\/', $path)) {
+                return true;
+            }
+        } else {
+            if (substr($path, 0, 1) == DIRECTORY_SEPARATOR) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -317,23 +335,5 @@ class Migration implements CommandsInterface
             );
             print Color::colorize('    ' . $description) . PHP_EOL;
         }
-    }
-
-    /**
-     * Check if a path is absolute
-     */
-    protected function isAbsolutePath(string $path): bool
-    {
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            if (preg_match('/^[A-Z]:\\\\/', $path)) {
-                return true;
-            }
-        } else {
-            if (substr($path, 0, 1) == DIRECTORY_SEPARATOR) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

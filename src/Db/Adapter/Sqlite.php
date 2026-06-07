@@ -31,28 +31,6 @@ use const PREG_SET_ORDER;
 
 class Sqlite extends AbstractAdapter
 {
-    private const TYPE_MAP = [
-        'bigint'   => Column::TYPE_BIGINTEGER,
-        'blob'     => Column::TYPE_BLOB,
-        'boolean'  => Column::TYPE_BOOLEAN,
-        'char'     => Column::TYPE_CHAR,
-        'date'     => Column::TYPE_DATE,
-        'datetime' => Column::TYPE_DATETIME,
-        'decimal'  => Column::TYPE_DECIMAL,
-        'double'   => Column::TYPE_DOUBLE,
-        'float'    => Column::TYPE_FLOAT,
-        'integer'  => Column::TYPE_INTEGER,
-        'int'      => Column::TYPE_INTEGER,
-        'longtext' => Column::TYPE_LONGTEXT,
-        'numeric'  => Column::TYPE_DECIMAL,
-        'real'     => Column::TYPE_FLOAT,
-        'smallint' => Column::TYPE_SMALLINTEGER,
-        'text'     => Column::TYPE_TEXT,
-        'time'     => Column::TYPE_TIME,
-        'timestamp' => Column::TYPE_TIMESTAMP,
-        'tinyint'  => Column::TYPE_TINYINTEGER,
-        'varchar'  => Column::TYPE_VARCHAR,
-    ];
 
     private const DDL_TYPE_MAP = [
         Column::TYPE_BIGINTEGER   => 'INTEGER',
@@ -83,87 +61,37 @@ class Sqlite extends AbstractAdapter
         Column::TYPE_TINYTEXT     => 'TEXT',
         Column::TYPE_VARCHAR      => 'TEXT',
     ];
+    private const TYPE_MAP = [
+        'bigint'   => Column::TYPE_BIGINTEGER,
+        'blob'     => Column::TYPE_BLOB,
+        'boolean'  => Column::TYPE_BOOLEAN,
+        'char'     => Column::TYPE_CHAR,
+        'date'     => Column::TYPE_DATE,
+        'datetime' => Column::TYPE_DATETIME,
+        'decimal'  => Column::TYPE_DECIMAL,
+        'double'   => Column::TYPE_DOUBLE,
+        'float'    => Column::TYPE_FLOAT,
+        'integer'  => Column::TYPE_INTEGER,
+        'int'      => Column::TYPE_INTEGER,
+        'longtext' => Column::TYPE_LONGTEXT,
+        'numeric'  => Column::TYPE_DECIMAL,
+        'real'     => Column::TYPE_FLOAT,
+        'smallint' => Column::TYPE_SMALLINTEGER,
+        'text'     => Column::TYPE_TEXT,
+        'time'     => Column::TYPE_TIME,
+        'timestamp' => Column::TYPE_TIMESTAMP,
+        'tinyint'  => Column::TYPE_TINYINTEGER,
+        'varchar'  => Column::TYPE_VARCHAR,
+    ];
 
-    public function getCurrentSchema(): string
+    public function addForeignKey(string $table, string $schema, Reference $reference): void
     {
-        return 'main';
+        // SQLite foreign keys are defined at table creation only.
     }
 
-    public function listTables(string $schema): array
+    public function dropForeignKey(string $table, string $schema, string $name): void
     {
-        $s = $this->quoteName($schema ?: 'main');
-
-        return $this->connection->fetchColumn(
-            "SELECT name FROM {$s}.sqlite_master WHERE type = 'table' ORDER BY name"
-        );
-    }
-
-    public function listIndexes(string $schema, string $table): array
-    {
-        $s       = $this->quoteName($schema ?: 'main');
-        $t       = $this->quoteName($table);
-        $list    = $this->connection->fetchAll("PRAGMA {$s}.index_list({$t})");
-        $indexes = [];
-
-        foreach ($list as $idx) {
-            $name   = $idx['name'];
-            $unique = (bool) $idx['unique'];
-            $cols   = $this->connection->fetchColumn(
-                "PRAGMA {$s}.index_info({$this->quoteName($name)})",
-                [],
-                2
-            );
-
-            $type         = $unique ? Index::TYPE_UNIQUE : '';
-            $indexes[$name] = new Index($name, $cols, $type);
-        }
-
-        return $indexes;
-    }
-
-    public function listReferences(string $schema, string $table): array
-    {
-        $s    = $this->quoteName($schema ?: 'main');
-        $t    = $this->quoteName($table);
-        $rows = $this->connection->fetchAll("PRAGMA {$s}.foreign_key_list({$t})");
-
-        $groups = [];
-        foreach ($rows as $row) {
-            $id = (int) $row['id'];
-            if (!isset($groups[$id])) {
-                $groups[$id] = [
-                    'referencedSchema'  => '',
-                    'referencedTable'   => $row['table'],
-                    'onUpdate'          => $row['on_update'],
-                    'onDelete'          => $row['on_delete'],
-                    'columns'           => [],
-                    'referencedColumns' => [],
-                ];
-            }
-
-            $groups[$id]['columns'][]           = $row['from'];
-            $groups[$id]['referencedColumns'][] = $row['to'];
-        }
-
-        $references = [];
-        foreach ($groups as $id => $data) {
-            $name              = 'fk_' . $table . '_' . $id;
-            $references[$name] = new Reference($name, $data);
-        }
-
-        return $references;
-    }
-
-    public function getTableOptions(string $schema, string $table): array
-    {
-        return [];
-    }
-
-    public function modifyColumn(string $table, string $schema, Column $new, Column $current): void
-    {
-        // SQLite has no ALTER COLUMN — the full table-rebuild approach is outside
-        // the scope of this migration library's morph() workflow for SQLite.
-        // morphTable() only adds/drops columns at the SQLite level, not modifies.
+        // SQLite does not support dropping foreign keys without recreating the table.
     }
 
     public function dropIndex(string $table, string $schema, string $name): void
@@ -177,14 +105,14 @@ class Sqlite extends AbstractAdapter
         // SQLite does not support dropping a primary key without recreating the table.
     }
 
-    public function addForeignKey(string $table, string $schema, Reference $reference): void
+    public function getCurrentSchema(): string
     {
-        // SQLite foreign keys are defined at table creation only.
+        return 'main';
     }
 
-    public function dropForeignKey(string $table, string $schema, string $name): void
+    public function getTableOptions(string $schema, string $table): array
     {
-        // SQLite does not support dropping foreign keys without recreating the table.
+        return [];
     }
 
     // -------------------------------------------------------------------------
@@ -253,11 +181,86 @@ class Sqlite extends AbstractAdapter
         return $columns;
     }
 
-    // -------------------------------------------------------------------------
-
-    protected function mapType(string $infoType, string $extended): string
+    public function listIndexes(string $schema, string $table): array
     {
-        return self::TYPE_MAP[strtolower($infoType)] ?? Column::TYPE_VARCHAR;
+        $s       = $this->quoteName($schema ?: 'main');
+        $t       = $this->quoteName($table);
+        $list    = $this->connection->fetchAll("PRAGMA {$s}.index_list({$t})");
+        $indexes = [];
+
+        foreach ($list as $idx) {
+            $name   = $idx['name'];
+            $unique = (bool) $idx['unique'];
+            $cols   = $this->connection->fetchColumn(
+                "PRAGMA {$s}.index_info({$this->quoteName($name)})",
+                [],
+                2
+            );
+
+            $type         = $unique ? Index::TYPE_UNIQUE : '';
+            $indexes[$name] = new Index($name, $cols, $type);
+        }
+
+        return $indexes;
+    }
+
+    public function listReferences(string $schema, string $table): array
+    {
+        $s    = $this->quoteName($schema ?: 'main');
+        $t    = $this->quoteName($table);
+        $rows = $this->connection->fetchAll("PRAGMA {$s}.foreign_key_list({$t})");
+
+        $groups = [];
+        foreach ($rows as $row) {
+            $id = (int) $row['id'];
+            if (!isset($groups[$id])) {
+                $groups[$id] = [
+                    'referencedSchema'  => '',
+                    'referencedTable'   => $row['table'],
+                    'onUpdate'          => $row['on_update'],
+                    'onDelete'          => $row['on_delete'],
+                    'columns'           => [],
+                    'referencedColumns' => [],
+                ];
+            }
+
+            $groups[$id]['columns'][]           = $row['from'];
+            $groups[$id]['referencedColumns'][] = $row['to'];
+        }
+
+        $references = [];
+        foreach ($groups as $id => $data) {
+            $name              = 'fk_' . $table . '_' . $id;
+            $references[$name] = new Reference($name, $data);
+        }
+
+        return $references;
+    }
+
+    public function listTables(string $schema): array
+    {
+        $s = $this->quoteName($schema ?: 'main');
+
+        return $this->connection->fetchColumn(
+            "SELECT name FROM {$s}.sqlite_master WHERE type = 'table' ORDER BY name"
+        );
+    }
+
+    public function modifyColumn(string $table, string $schema, Column $new, Column $current): void
+    {
+        // SQLite has no ALTER COLUMN — the full table-rebuild approach is outside
+        // the scope of this migration library's morph() workflow for SQLite.
+        // morphTable() only adds/drops columns at the SQLite level, not modifies.
+    }
+
+    protected function buildAddIndexSql(string $table, string $schema, Index $index): string
+    {
+        $name   = $this->connection->quoteIdentifier($index->getName());
+        $t      = $this->qualifyTable($table, $schema);
+        $cols   = $this->quoteColumns($index->getColumns());
+        $unique = strtolower($index->getType()) === 'unique' ? 'UNIQUE ' : '';
+
+        return "CREATE {$unique}INDEX IF NOT EXISTS {$name} ON {$t} ({$cols})";
     }
 
     protected function buildColumnDefinitionSql(Column $column): string
@@ -287,16 +290,6 @@ class Sqlite extends AbstractAdapter
         return $sql;
     }
 
-    protected function buildAddIndexSql(string $table, string $schema, Index $index): string
-    {
-        $name   = $this->connection->quoteIdentifier($index->getName());
-        $t      = $this->qualifyTable($table, $schema);
-        $cols   = $this->quoteColumns($index->getColumns());
-        $unique = strtolower($index->getType()) === 'unique' ? 'UNIQUE ' : '';
-
-        return "CREATE {$unique}INDEX IF NOT EXISTS {$name} ON {$t} ({$cols})";
-    }
-
     protected function buildCreateTableSql(string $table, string $schema, array $definition): string
     {
         $t     = $this->qualifyTable($table, $schema);
@@ -314,6 +307,13 @@ class Sqlite extends AbstractAdapter
         }
 
         return "CREATE TABLE {$t} (\n" . implode(",\n", $parts) . "\n)";
+    }
+
+    // -------------------------------------------------------------------------
+
+    protected function mapType(string $infoType, string $extended): string
+    {
+        return self::TYPE_MAP[strtolower($infoType)] ?? Column::TYPE_VARCHAR;
     }
 
     private function getTableSql(string $schema, string $table): string

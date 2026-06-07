@@ -18,9 +18,18 @@ use function sprintf;
 
 class Snippet
 {
-    public function getMorphTemplate(): string
+
+    public function definitionToString(string $key, array $items): string
     {
-        return "\$this->morphTable('%s', [\n%s]);";
+        if (empty($items)) {
+            return '';
+        }
+
+        $template = "    '%s' => [
+        %s,
+    ],\n";
+
+        return sprintf($template, $key, implode(",\n        ", $items));
     }
 
     public function getColumnTemplate(): string
@@ -37,6 +46,15 @@ class Snippet
     {
         return "new Index('%s', [%s], %s)";
     }
+    public function getMorphTemplate(): string
+    {
+        return "\$this->morphTable('%s', [\n%s]);";
+    }
+
+    public function getOptionTemplate(): string
+    {
+        return "%s";
+    }
 
     public function getReferenceTemplate(): string
     {
@@ -46,23 +64,5 @@ class Snippet
                 %s
             ]
         )";
-    }
-
-    public function getOptionTemplate(): string
-    {
-        return "%s";
-    }
-
-    public function definitionToString(string $key, array $items): string
-    {
-        if (empty($items)) {
-            return '';
-        }
-
-        $template = "    '%s' => [
-        %s,
-    ],\n";
-
-        return sprintf($template, $key, implode(",\n        ", $items));
     }
 }

@@ -24,36 +24,6 @@ use function strtoupper;
 
 class Mysql extends AbstractAdapter
 {
-    protected string $currentSchemaSql = 'SELECT DATABASE()';
-
-    /** @var array<string,string> maps info_schema data_type → Column::TYPE_* */
-    private const TYPE_MAP = [
-        'bigint'            => Column::TYPE_BIGINTEGER,
-        'bit'               => Column::TYPE_BIT,
-        'blob'              => Column::TYPE_BLOB,
-        'char'              => Column::TYPE_CHAR,
-        'date'              => Column::TYPE_DATE,
-        'datetime'          => Column::TYPE_DATETIME,
-        'decimal'           => Column::TYPE_DECIMAL,
-        'double'            => Column::TYPE_DOUBLE,
-        'enum'              => Column::TYPE_ENUM,
-        'float'             => Column::TYPE_FLOAT,
-        'int'               => Column::TYPE_INTEGER,
-        'json'              => Column::TYPE_JSON,
-        'longblob'          => Column::TYPE_LONGBLOB,
-        'longtext'          => Column::TYPE_LONGTEXT,
-        'mediumblob'        => Column::TYPE_MEDIUMBLOB,
-        'mediumint'         => Column::TYPE_MEDIUMINTEGER,
-        'mediumtext'        => Column::TYPE_MEDIUMTEXT,
-        'smallint'          => Column::TYPE_SMALLINTEGER,
-        'text'              => Column::TYPE_TEXT,
-        'time'              => Column::TYPE_TIME,
-        'timestamp'         => Column::TYPE_TIMESTAMP,
-        'tinyblob'          => Column::TYPE_TINYBLOB,
-        'tinyint'           => Column::TYPE_TINYINTEGER,
-        'tinytext'          => Column::TYPE_TINYTEXT,
-        'varchar'           => Column::TYPE_VARCHAR,
-    ];
 
     /** @var array<string,string> maps Column::TYPE_* → SQL DDL type */
     private const DDL_TYPE_MAP = [
@@ -104,15 +74,59 @@ class Mysql extends AbstractAdapter
         Column::TYPE_TINYTEXT,
     ];
 
-    public function listTables(string $schema): array
+    /** @var array<string,string> maps info_schema data_type → Column::TYPE_* */
+    private const TYPE_MAP = [
+        'bigint'            => Column::TYPE_BIGINTEGER,
+        'bit'               => Column::TYPE_BIT,
+        'blob'              => Column::TYPE_BLOB,
+        'char'              => Column::TYPE_CHAR,
+        'date'              => Column::TYPE_DATE,
+        'datetime'          => Column::TYPE_DATETIME,
+        'decimal'           => Column::TYPE_DECIMAL,
+        'double'            => Column::TYPE_DOUBLE,
+        'enum'              => Column::TYPE_ENUM,
+        'float'             => Column::TYPE_FLOAT,
+        'int'               => Column::TYPE_INTEGER,
+        'json'              => Column::TYPE_JSON,
+        'longblob'          => Column::TYPE_LONGBLOB,
+        'longtext'          => Column::TYPE_LONGTEXT,
+        'mediumblob'        => Column::TYPE_MEDIUMBLOB,
+        'mediumint'         => Column::TYPE_MEDIUMINTEGER,
+        'mediumtext'        => Column::TYPE_MEDIUMTEXT,
+        'smallint'          => Column::TYPE_SMALLINTEGER,
+        'text'              => Column::TYPE_TEXT,
+        'time'              => Column::TYPE_TIME,
+        'timestamp'         => Column::TYPE_TIMESTAMP,
+        'tinyblob'          => Column::TYPE_TINYBLOB,
+        'tinyint'           => Column::TYPE_TINYINTEGER,
+        'tinytext'          => Column::TYPE_TINYTEXT,
+        'varchar'           => Column::TYPE_VARCHAR,
+    ];
+    protected string $currentSchemaSql = 'SELECT DATABASE()';
+
+    public function dropIndex(string $table, string $schema, string $name): void
     {
-        return $this->connection->fetchColumn(
-            "SELECT table_name
+        $t = $this->qualifyTable($table, $schema);
+        $n = $this->connection->quoteIdentifier($name);
+        $this->connection->execute("ALTER TABLE {$t} DROP INDEX {$n}");
+    }
+
+    public function dropPrimaryKey(string $table, string $schema): void
+    {
+        $t = $this->qualifyTable($table, $schema);
+        $this->connection->execute("ALTER TABLE {$t} DROP PRIMARY KEY");
+    }
+
+    public function getTableOptions(string $schema, string $table): array
+    {
+        return $this->connection->fetchOne(
+            "SELECT engine           AS engine,
+                    table_collation  AS table_collation,
+                    auto_increment   AS auto_increment
              FROM   information_schema.tables
              WHERE  table_schema = :schema
-             AND    UPPER(table_type) = 'BASE TABLE'
-             ORDER BY table_name",
-            ['schema' => $schema]
+             AND    table_name   = :table",
+            ['schema' => $schema, 'table' => $table]
         );
     }
 
@@ -199,16 +213,15 @@ class Mysql extends AbstractAdapter
         return $references;
     }
 
-    public function getTableOptions(string $schema, string $table): array
+    public function listTables(string $schema): array
     {
-        return $this->connection->fetchOne(
-            "SELECT engine           AS engine,
-                    table_collation  AS table_collation,
-                    auto_increment   AS auto_increment
+        return $this->connection->fetchColumn(
+            "SELECT table_name
              FROM   information_schema.tables
              WHERE  table_schema = :schema
-             AND    table_name   = :table",
-            ['schema' => $schema, 'table' => $table]
+             AND    UPPER(table_type) = 'BASE TABLE'
+             ORDER BY table_name",
+            ['schema' => $schema]
         );
     }
 
@@ -226,60 +239,6 @@ class Mysql extends AbstractAdapter
         }
 
         $this->connection->execute($sql);
-    }
-
-    public function dropIndex(string $table, string $schema, string $name): void
-    {
-        $t = $this->qualifyTable($table, $schema);
-        $n = $this->connection->quoteIdentifier($name);
-        $this->connection->execute("ALTER TABLE {$t} DROP INDEX {$n}");
-    }
-
-    public function dropPrimaryKey(string $table, string $schema): void
-    {
-        $t = $this->qualifyTable($table, $schema);
-        $this->connection->execute("ALTER TABLE {$t} DROP PRIMARY KEY");
-    }
-
-    // -------------------------------------------------------------------------
-    // Driver-specific SQL fragments
-    // -------------------------------------------------------------------------
-
-    protected function getAutoIncSql(): string
-    {
-        return "IF(LOCATE('auto_increment', c.extra) > 0, 1, 0)";
-    }
-
-    protected function getCommentSql(): string
-    {
-        return 'c.column_comment';
-    }
-
-    protected function getExtendedSql(): string
-    {
-        return 'c.column_type';
-    }
-
-    protected function getUnsignedSql(): string
-    {
-        return "CASE
-            WHEN POSITION('int' IN c.data_type) > 0
-                 AND POSITION('unsigned' IN c.column_type) > 0 THEN 1
-            WHEN POSITION('int' IN c.data_type) > 0
-                 AND POSITION('unsigned' IN c.column_type) = 0 THEN 0
-            ELSE NULL
-        END";
-    }
-
-    protected function mapType(string $infoType, string $extended): string
-    {
-        $base = strtolower($infoType);
-
-        if ($base === 'tinyint' && str_contains($extended, 'tinyint(1)')) {
-            return Column::TYPE_BOOLEAN;
-        }
-
-        return self::TYPE_MAP[$base] ?? Column::TYPE_VARCHAR;
     }
 
     protected function buildColumnDefinitionSql(Column $column): string
@@ -355,5 +314,46 @@ class Mysql extends AbstractAdapter
         }
 
         return $parts !== [] ? ' ' . implode(' ', $parts) : '';
+    }
+
+    // -------------------------------------------------------------------------
+    // Driver-specific SQL fragments
+    // -------------------------------------------------------------------------
+
+    protected function getAutoIncSql(): string
+    {
+        return "IF(LOCATE('auto_increment', c.extra) > 0, 1, 0)";
+    }
+
+    protected function getCommentSql(): string
+    {
+        return 'c.column_comment';
+    }
+
+    protected function getExtendedSql(): string
+    {
+        return 'c.column_type';
+    }
+
+    protected function getUnsignedSql(): string
+    {
+        return "CASE
+            WHEN POSITION('int' IN c.data_type) > 0
+                 AND POSITION('unsigned' IN c.column_type) > 0 THEN 1
+            WHEN POSITION('int' IN c.data_type) > 0
+                 AND POSITION('unsigned' IN c.column_type) = 0 THEN 0
+            ELSE NULL
+        END";
+    }
+
+    protected function mapType(string $infoType, string $extended): string
+    {
+        $base = strtolower($infoType);
+
+        if ($base === 'tinyint' && str_contains($extended, 'tinyint(1)')) {
+            return Column::TYPE_BOOLEAN;
+        }
+
+        return self::TYPE_MAP[$base] ?? Column::TYPE_VARCHAR;
     }
 }

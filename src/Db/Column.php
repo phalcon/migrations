@@ -42,20 +42,20 @@ final class Column
     public const TYPE_TINYINTEGER  = 'tinyinteger';
     public const TYPE_TINYTEXT     = 'tinytext';
     public const TYPE_VARCHAR      = 'varchar';
-
-    private string $type;
-    private int|string|null $size;
-    private ?int $scale;
+    private ?string $after;
+    private bool $autoIncrement;
+    private string $comment;
     private mixed $default;
+    private bool $first;
     private bool $hasDefault;
     private bool $notNull;
-    private bool $unsigned;
-    private bool $autoIncrement;
-    private bool $primary;
-    private bool $first;
-    private ?string $after;
-    private string $comment;
     private ?array $options;
+    private bool $primary;
+    private ?int $scale;
+    private int|string|null $size;
+
+    private string $type;
+    private bool $unsigned;
 
     public function __construct(
         private readonly string $name,
@@ -82,61 +82,6 @@ final class Column
         }
     }
 
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    public function getSize(): int|string|null
-    {
-        return $this->size;
-    }
-
-    public function getScale(): ?int
-    {
-        return $this->scale;
-    }
-
-    public function getDefault(): mixed
-    {
-        return $this->default;
-    }
-
-    public function hasDefault(): bool
-    {
-        return $this->hasDefault;
-    }
-
-    public function isNotNull(): bool
-    {
-        return $this->notNull;
-    }
-
-    public function isUnsigned(): bool
-    {
-        return $this->unsigned;
-    }
-
-    public function isAutoIncrement(): bool
-    {
-        return $this->autoIncrement;
-    }
-
-    public function isPrimary(): bool
-    {
-        return $this->primary;
-    }
-
-    public function isFirst(): bool
-    {
-        return $this->first;
-    }
-
     public function getAfterPosition(): ?string
     {
         return $this->after;
@@ -147,8 +92,63 @@ final class Column
         return $this->comment;
     }
 
+    public function getDefault(): mixed
+    {
+        return $this->default;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function getOptions(): ?array
     {
         return $this->options;
+    }
+
+    public function getScale(): ?int
+    {
+        return $this->scale;
+    }
+
+    public function getSize(): int|string|null
+    {
+        return $this->size;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function hasDefault(): bool
+    {
+        return $this->hasDefault;
+    }
+
+    public function isAutoIncrement(): bool
+    {
+        return $this->autoIncrement;
+    }
+
+    public function isFirst(): bool
+    {
+        return $this->first;
+    }
+
+    public function isNotNull(): bool
+    {
+        return $this->notNull;
+    }
+
+    public function isPrimary(): bool
+    {
+        return $this->primary;
+    }
+
+    public function isUnsigned(): bool
+    {
+        return $this->unsigned;
     }
 }

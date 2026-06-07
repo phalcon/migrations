@@ -38,11 +38,40 @@ class ItemCollection
     public static int $type = self::TYPE_INCREMENTAL;
 
     /**
-     * Set collection type
+     * Get all the versions between two limitary version items
+     *
+     * @param ItemInterface   $initialVersion
+     * @param ItemInterface   $finalVersion
+     * @param ItemInterface[] $versions
+     *
+     * @return ItemInterface[]|array
      */
-    public static function setType(int $type): void
+    public static function between(ItemInterface $initialVersion, ItemInterface $finalVersion, array $versions): array
     {
-        self::$type = $type;
+        $versions = self::sortAsc($versions);
+
+        $betweenVersions = [];
+        if ($initialVersion->getStamp() == $finalVersion->getStamp()) {
+            return $betweenVersions; // nothing to do
+        }
+
+        if ($initialVersion->getStamp() < $finalVersion->getStamp()) {
+            $versions = self::sortAsc($versions);
+        } else {
+            $versions = self::sortDesc($versions);
+            list($initialVersion, $finalVersion) = [$finalVersion, $initialVersion];
+        }
+
+        foreach ($versions as $version) {
+            if (
+                $version->getStamp() >= $initialVersion->getStamp() &&
+                $version->getStamp() <= $finalVersion->getStamp()
+            ) {
+                $betweenVersions[] = $version;
+            }
+        }
+
+        return $betweenVersions;
     }
 
     /**
@@ -92,58 +121,11 @@ class ItemCollection
     }
 
     /**
-     * Sort items in the descending order
-     *
-     * @param ItemInterface[] $versions
-     *
-     * @return ItemInterface[]
+     * Set collection type
      */
-    public static function sortDesc(array $versions): array
+    public static function setType(int $type): void
     {
-        $sortData = [];
-        foreach ($versions as $version) {
-            $sortData[$version->getStamp()] = $version;
-        }
-        krsort($sortData);
-
-        return array_values($sortData);
-    }
-
-    /**
-     * Get all the versions between two limitary version items
-     *
-     * @param ItemInterface   $initialVersion
-     * @param ItemInterface   $finalVersion
-     * @param ItemInterface[] $versions
-     *
-     * @return ItemInterface[]|array
-     */
-    public static function between(ItemInterface $initialVersion, ItemInterface $finalVersion, array $versions): array
-    {
-        $versions = self::sortAsc($versions);
-
-        $betweenVersions = [];
-        if ($initialVersion->getStamp() == $finalVersion->getStamp()) {
-            return $betweenVersions; // nothing to do
-        }
-
-        if ($initialVersion->getStamp() < $finalVersion->getStamp()) {
-            $versions = self::sortAsc($versions);
-        } else {
-            $versions = self::sortDesc($versions);
-            list($initialVersion, $finalVersion) = [$finalVersion, $initialVersion];
-        }
-
-        foreach ($versions as $version) {
-            if (
-                $version->getStamp() >= $initialVersion->getStamp() &&
-                $version->getStamp() <= $finalVersion->getStamp()
-            ) {
-                $betweenVersions[] = $version;
-            }
-        }
-
-        return $betweenVersions;
+        self::$type = $type;
     }
 
     /**
@@ -160,6 +142,24 @@ class ItemCollection
             $sortData[$version->getStamp()] = $version;
         }
         ksort($sortData);
+
+        return array_values($sortData);
+    }
+
+    /**
+     * Sort items in the descending order
+     *
+     * @param ItemInterface[] $versions
+     *
+     * @return ItemInterface[]
+     */
+    public static function sortDesc(array $versions): array
+    {
+        $sortData = [];
+        foreach ($versions as $version) {
+            $sortData[$version->getStamp()] = $version;
+        }
+        krsort($sortData);
 
         return array_values($sortData);
     }

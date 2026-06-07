@@ -24,10 +24,10 @@ use function is_int;
 
 final class Connection
 {
-    private ?PDO $pdo      = null;
-    private ?Profiler $profiler = null;
     /** @var callable|null */
     private $logger = null;
+    private ?PDO $pdo      = null;
+    private ?Profiler $profiler = null;
 
     private function __construct(
         private readonly string $dsn,
@@ -78,6 +78,16 @@ final class Connection
         return new self($dsn, $config->username, $config->password, $options, $queries);
     }
 
+    public function begin(): void
+    {
+        $this->pdo()->beginTransaction();
+    }
+
+    public function commit(): void
+    {
+        $this->pdo()->commit();
+    }
+
     public function connect(): void
     {
         if ($this->pdo !== null) {
@@ -89,16 +99,6 @@ final class Connection
         foreach ($this->queries as $query) {
             $this->pdo->exec($query);
         }
-    }
-
-    public function isConnected(): bool
-    {
-        return $this->pdo !== null;
-    }
-
-    public function getDriverName(): string
-    {
-        return (string) $this->pdo()->getAttribute(PDO::ATTR_DRIVER_NAME);
     }
 
     public function execute(string $sql, array $values = []): void
@@ -114,6 +114,13 @@ final class Connection
         return $this->perform($sql, $values)->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function fetchColumn(string $sql, array $values = [], int $column = 0): array
+    {
+        $this->log($sql);
+
+        return $this->perform($sql, $values)->fetchAll(PDO::FETCH_COLUMN, $column);
+    }
+
     public function fetchOne(string $sql, array $values = []): array
     {
         $this->log($sql);
@@ -122,11 +129,11 @@ final class Connection
         return is_array($result) ? $result : [];
     }
 
-    public function fetchColumn(string $sql, array $values = [], int $column = 0): array
+    public function fetchPairs(string $sql, array $values = []): array
     {
         $this->log($sql);
 
-        return $this->perform($sql, $values)->fetchAll(PDO::FETCH_COLUMN, $column);
+        return $this->perform($sql, $values)->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 
     public function fetchValue(string $sql, array $values = []): mixed
@@ -136,11 +143,14 @@ final class Connection
         return $this->perform($sql, $values)->fetchColumn(0);
     }
 
-    public function fetchPairs(string $sql, array $values = []): array
+    public function getDriverName(): string
     {
-        $this->log($sql);
+        return (string) $this->pdo()->getAttribute(PDO::ATTR_DRIVER_NAME);
+    }
 
-        return $this->perform($sql, $values)->fetchAll(PDO::FETCH_KEY_PAIR);
+    public function isConnected(): bool
+    {
+        return $this->pdo !== null;
     }
 
     public function iterate(string $sql, array $values = []): Generator
@@ -152,21 +162,6 @@ final class Connection
         while ($row = $sth->fetch()) {
             yield $row;
         }
-    }
-
-    public function begin(): void
-    {
-        $this->pdo()->beginTransaction();
-    }
-
-    public function commit(): void
-    {
-        $this->pdo()->commit();
-    }
-
-    public function rollback(): void
-    {
-        $this->pdo()->rollBack();
     }
 
     public function quote(string $value): string
@@ -185,6 +180,11 @@ final class Connection
         return '"' . str_replace('"', '""', $name) . '"';
     }
 
+    public function rollback(): void
+    {
+        $this->pdo()->rollBack();
+    }
+
     public function setLogger(?callable $logger): void
     {
         $this->logger = $logger;
@@ -193,6 +193,13 @@ final class Connection
     public function setProfiler(?Profiler $profiler): void
     {
         $this->profiler = $profiler;
+    }
+
+    private function log(string $sql): void
+    {
+        if ($this->logger !== null) {
+            ($this->logger)($sql);
+        }
     }
 
     private function pdo(): PDO
@@ -220,12 +227,5 @@ final class Connection
         $this->profiler?->end($sql, $start, microtime(true));
 
         return $sth;
-    }
-
-    private function log(string $sql): void
-    {
-        if ($this->logger !== null) {
-            ($this->logger)($sql);
-        }
     }
 }

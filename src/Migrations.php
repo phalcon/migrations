@@ -90,13 +90,71 @@ class Migrations
     protected static $storage = null;
 
     /**
-     * Check if the script is running on Console mode
+     * Add migration version to log
      *
-     * @return bool
+     * @param array       $options   Applications options
+     * @param string      $version   Migration version to store
+     * @param string|null $startTime Migration start timestamp
      */
-    public static function isConsole(): bool
+    public static function addCurrentVersion(
+        array $options,
+        string $version,
+        ?string $startTime = null
+    ): void {
+        self::connectionSetup($options);
+
+        $startTime = $startTime === null ? date('Y-m-d H:i:s') : $startTime;
+        $endTime = date('Y-m-d H:i:s');
+
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $storage->execute(
+                'INSERT INTO '
+                . self::MIGRATION_LOG_TABLE
+                . ' (version, start_time, end_time) VALUES (?, ?, ?)',
+                [$version, $startTime, $endTime]
+            );
+        } else {
+            $currentVersions           = self::getCompletedVersions($options);
+            $currentVersions[$version] = 1;
+            $currentVersions           = array_keys($currentVersions);
+            sort($currentVersions);
+            file_put_contents(self::$storage, implode("\n", $currentVersions));
+        }
+    }
+
+    /**
+     * Executes creation of Migrations Log Table
+     */
+    public static function createLogTable(): void
     {
-        return PHP_SAPI === 'cli';
+        /** @var AdapterInterface $storage */
+        $storage = self::$storage;
+        $storage->createTable(self::MIGRATION_LOG_TABLE, '', [
+            'columns' => [
+                new Column('version', [
+                    'type'    => Column::TYPE_VARCHAR,
+                    'size'    => 255,
+                    'notNull' => true,
+                    'first'   => true,
+                    'primary' => true,
+                ]),
+                new Column('start_time', [
+                    'type'    => Column::TYPE_TIMESTAMP,
+                    'notNull' => true,
+                    'default' => 'CURRENT_TIMESTAMP',
+                ]),
+                new Column('end_time', [
+                    'type'    => Column::TYPE_TIMESTAMP,
+                    'notNull' => true,
+                    'default' => 'CURRENT_TIMESTAMP',
+                ]),
+            ],
+            'indexes' => [
+                new Index('PRIMARY', ['version'], Index::TYPE_PRIMARY),
+            ],
+        ]);
     }
 
     /**
@@ -190,6 +248,191 @@ class Migrations
                 print Color::info('Nothing to generate. You should create tables first.') . PHP_EOL;
             }
         }
+    }
+
+    /**
+     * Scan $storage for all completed versions
+     */
+    public static function getCompletedVersions(array $options): array
+    {
+        self::connectionSetup($options);
+
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
+            /** @var AdapterInterface $storage */
+            $storage           = self::$storage;
+            $query             = 'SELECT version FROM '
+                . self::MIGRATION_LOG_TABLE
+                . ' ORDER BY version DESC';
+            $completedVersions = $storage->fetchAll($query);
+            $completedVersions = array_column($completedVersions, 'version');
+        } else {
+            $completedVersions = file(self::$storage, FILE_IGNORE_NEW_LINES);
+        }
+
+        return array_flip($completedVersions);
+    }
+
+    /**
+     * Get latest completed migration version
+     *
+     * @return IncrementalItem|TimestampedItem
+     */
+    public static function getCurrentVersion(array $options): IncrementalItem|TimestampedItem
+    {
+        self::connectionSetup($options);
+
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $query   = 'SELECT version FROM '
+                       . self::MIGRATION_LOG_TABLE
+                       . ' ORDER BY version DESC LIMIT 1';
+            $row     = $storage->fetchOne($query);
+
+            if ($row === []) {
+                return VersionCollection::createItem();
+            }
+
+            return VersionCollection::createItem($row['version']);
+        }
+
+        // Get and clean migration
+        $version = file_exists(self::$storage) ? file_get_contents(self::$storage) : null;
+        $version = $version ? trim($version) : null;
+
+        if ($version !== null) {
+            $version = preg_split(
+                '/\r\n|\r|\n/',
+                $version,
+                -1,
+                PREG_SPLIT_NO_EMPTY
+            );
+            natsort($version);
+            $version = array_pop($version);
+        }
+
+        return VersionCollection::createItem($version);
+    }
+
+    /**
+     * Check if the script is running on Console mode
+     *
+     * @return bool
+     */
+    public static function isConsole(): bool
+    {
+        return PHP_SAPI === 'cli';
+    }
+
+    /**
+     * List migrations along with statuses
+     *
+     * @throws Exception
+     * @throws RuntimeException
+     */
+    public static function listAll(array $options): void
+    {
+        // Define versioning type to be used
+        if (true === $options['tsBased']) {
+            VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
+        } else {
+            VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
+        }
+
+        $config = $options['config'];
+        if (!$config instanceof Config) {
+            throw RuntimeException::configMustBeInstance();
+        }
+
+        // Init ModelMigration
+        if ($config->adapter === null) {
+            throw RuntimeException::cannotLoadDatabaseConfiguration();
+        }
+
+        $versionItems      = [];
+        $migrationsDirList = $options['migrationsDir'];
+        if (is_array($migrationsDirList)) {
+            foreach ($migrationsDirList as $migrationsDir) {
+                $migrationsDir = rtrim($migrationsDir, '/');
+                if (!file_exists($migrationsDir)) {
+                    throw RuntimeException::migrationsDirNotFound();
+                }
+                $versionItem = ModelMigration::scanForVersions($migrationsDir);
+
+                if (!isset($versionItem[0])) {
+                    print Color::info('Migrations were not found at ' . $migrationsDir);
+                    return;
+                }
+                $versionItems = $versionItems + $versionItem;
+            }
+        }
+
+        ModelMigration::setup($config);
+
+        self::connectionSetup($options);
+
+        $completedVersions = self::getCompletedVersions($options);
+        $versionItems      = VersionCollection::sortDesc($versionItems);
+
+        $versionColumnWidth = 27;
+        foreach ($versionItems as $versionItem) {
+            $versionItemLength = strlen($versionItem->__toString());
+            if ($versionItemLength > ($versionColumnWidth - 2)) {
+                $versionColumnWidth = $versionItemLength + 2;
+            }
+        }
+
+        $format = "│ %-" . ($versionColumnWidth - 2) . "s │ %12s │";
+
+        $report = [];
+        foreach ($versionItems as $versionItem) {
+            $versionNumber = $versionItem->getVersion();
+            $report[]      = sprintf($format, $versionNumber, isset($completedVersions[$versionNumber]) ? 'Y' : 'N');
+        }
+
+        $header   = sprintf($format, 'Version', 'Was applied');
+        $report[] = '├' . str_repeat('─', $versionColumnWidth) . '┼' . str_repeat('─', 14) . '┤';
+        $report[] = $header;
+
+        $report = array_reverse($report);
+
+        echo '┌' . str_repeat('─', $versionColumnWidth) . '┬' . str_repeat('─', 14) . '┐' . PHP_EOL;
+        echo join(PHP_EOL, $report) . PHP_EOL;
+        echo '└' . str_repeat('─', $versionColumnWidth) . '┴' . str_repeat('─', 14) . '┘' . PHP_EOL . PHP_EOL;
+    }
+
+    /**
+     * Remove migration version from log
+     *
+     * @param array  $options Applications options
+     * @param string $version Migration version to remove
+     */
+    public static function removeCurrentVersion(array $options, string $version): void
+    {
+        self::connectionSetup($options);
+
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $storage->execute(
+                'DELETE FROM ' . self::MIGRATION_LOG_TABLE . ' WHERE version = ?',
+                [$version]
+            );
+        } else {
+            $currentVersions = self::getCompletedVersions($options);
+            unset($currentVersions[$version]);
+            $currentVersions = array_keys($currentVersions);
+            sort($currentVersions);
+            file_put_contents(self::$storage, implode("\n", $currentVersions));
+        }
+    }
+
+    /**
+     * In case we need to renew our DB connection or file
+     */
+    public static function resetStorage(): void
+    {
+        self::$storage = null;
     }
 
     /**
@@ -420,83 +663,6 @@ class Migrations
     }
 
     /**
-     * List migrations along with statuses
-     *
-     * @throws Exception
-     * @throws RuntimeException
-     */
-    public static function listAll(array $options): void
-    {
-        // Define versioning type to be used
-        if (true === $options['tsBased']) {
-            VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
-        } else {
-            VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);
-        }
-
-        $config = $options['config'];
-        if (!$config instanceof Config) {
-            throw RuntimeException::configMustBeInstance();
-        }
-
-        // Init ModelMigration
-        if ($config->adapter === null) {
-            throw RuntimeException::cannotLoadDatabaseConfiguration();
-        }
-
-        $versionItems      = [];
-        $migrationsDirList = $options['migrationsDir'];
-        if (is_array($migrationsDirList)) {
-            foreach ($migrationsDirList as $migrationsDir) {
-                $migrationsDir = rtrim($migrationsDir, '/');
-                if (!file_exists($migrationsDir)) {
-                    throw RuntimeException::migrationsDirNotFound();
-                }
-                $versionItem = ModelMigration::scanForVersions($migrationsDir);
-
-                if (!isset($versionItem[0])) {
-                    print Color::info('Migrations were not found at ' . $migrationsDir);
-                    return;
-                }
-                $versionItems = $versionItems + $versionItem;
-            }
-        }
-
-        ModelMigration::setup($config);
-
-        self::connectionSetup($options);
-
-        $completedVersions = self::getCompletedVersions($options);
-        $versionItems      = VersionCollection::sortDesc($versionItems);
-
-        $versionColumnWidth = 27;
-        foreach ($versionItems as $versionItem) {
-            $versionItemLength = strlen($versionItem->__toString());
-            if ($versionItemLength > ($versionColumnWidth - 2)) {
-                $versionColumnWidth = $versionItemLength + 2;
-            }
-        }
-
-        $format = "│ %-" . ($versionColumnWidth - 2) . "s │ %12s │";
-
-        $report = [];
-        foreach ($versionItems as $versionItem) {
-            $versionNumber = $versionItem->getVersion();
-            $report[]      = sprintf($format, $versionNumber, isset($completedVersions[$versionNumber]) ? 'Y' : 'N');
-        }
-
-        $header   = sprintf($format, 'Version', 'Was applied');
-        $report[] = '├' . str_repeat('─', $versionColumnWidth) . '┼' . str_repeat('─', 14) . '┤';
-        $report[] = $header;
-
-        $report = array_reverse($report);
-
-        echo '┌' . str_repeat('─', $versionColumnWidth) . '┬' . str_repeat('─', 14) . '┐' . PHP_EOL;
-        echo join(PHP_EOL, $report) . PHP_EOL;
-        echo '└' . str_repeat('─', $versionColumnWidth) . '┴' . str_repeat('─', 14) . '┘' . PHP_EOL . PHP_EOL;
-    }
-
-    /**
      * Initialize migrations log storage
      *
      * @throws RuntimeException
@@ -568,171 +734,5 @@ class Migrations
                 touch(self::$storage);
             }
         }
-    }
-
-    /**
-     * Get latest completed migration version
-     *
-     * @return IncrementalItem|TimestampedItem
-     */
-    public static function getCurrentVersion(array $options): IncrementalItem|TimestampedItem
-    {
-        self::connectionSetup($options);
-
-        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $storage */
-            $storage = self::$storage;
-            $query   = 'SELECT version FROM '
-                       . self::MIGRATION_LOG_TABLE
-                       . ' ORDER BY version DESC LIMIT 1';
-            $row     = $storage->fetchOne($query);
-
-            if ($row === []) {
-                return VersionCollection::createItem();
-            }
-
-            return VersionCollection::createItem($row['version']);
-        }
-
-        // Get and clean migration
-        $version = file_exists(self::$storage) ? file_get_contents(self::$storage) : null;
-        $version = $version ? trim($version) : null;
-
-        if ($version !== null) {
-            $version = preg_split(
-                '/\r\n|\r|\n/',
-                $version,
-                -1,
-                PREG_SPLIT_NO_EMPTY
-            );
-            natsort($version);
-            $version = array_pop($version);
-        }
-
-        return VersionCollection::createItem($version);
-    }
-
-    /**
-     * Add migration version to log
-     *
-     * @param array       $options   Applications options
-     * @param string      $version   Migration version to store
-     * @param string|null $startTime Migration start timestamp
-     */
-    public static function addCurrentVersion(
-        array $options,
-        string $version,
-        ?string $startTime = null
-    ): void {
-        self::connectionSetup($options);
-
-        $startTime = $startTime === null ? date('Y-m-d H:i:s') : $startTime;
-        $endTime = date('Y-m-d H:i:s');
-
-        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $storage */
-            $storage = self::$storage;
-            $storage->execute(
-                'INSERT INTO '
-                . self::MIGRATION_LOG_TABLE
-                . ' (version, start_time, end_time) VALUES (?, ?, ?)',
-                [$version, $startTime, $endTime]
-            );
-        } else {
-            $currentVersions           = self::getCompletedVersions($options);
-            $currentVersions[$version] = 1;
-            $currentVersions           = array_keys($currentVersions);
-            sort($currentVersions);
-            file_put_contents(self::$storage, implode("\n", $currentVersions));
-        }
-    }
-
-    /**
-     * Remove migration version from log
-     *
-     * @param array  $options Applications options
-     * @param string $version Migration version to remove
-     */
-    public static function removeCurrentVersion(array $options, string $version): void
-    {
-        self::connectionSetup($options);
-
-        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $storage */
-            $storage = self::$storage;
-            $storage->execute(
-                'DELETE FROM ' . self::MIGRATION_LOG_TABLE . ' WHERE version = ?',
-                [$version]
-            );
-        } else {
-            $currentVersions = self::getCompletedVersions($options);
-            unset($currentVersions[$version]);
-            $currentVersions = array_keys($currentVersions);
-            sort($currentVersions);
-            file_put_contents(self::$storage, implode("\n", $currentVersions));
-        }
-    }
-
-    /**
-     * Scan $storage for all completed versions
-     */
-    public static function getCompletedVersions(array $options): array
-    {
-        self::connectionSetup($options);
-
-        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $storage */
-            $storage           = self::$storage;
-            $query             = 'SELECT version FROM '
-                . self::MIGRATION_LOG_TABLE
-                . ' ORDER BY version DESC';
-            $completedVersions = $storage->fetchAll($query);
-            $completedVersions = array_column($completedVersions, 'version');
-        } else {
-            $completedVersions = file(self::$storage, FILE_IGNORE_NEW_LINES);
-        }
-
-        return array_flip($completedVersions);
-    }
-
-    /**
-     * In case we need to renew our DB connection or file
-     */
-    public static function resetStorage(): void
-    {
-        self::$storage = null;
-    }
-
-    /**
-     * Executes creation of Migrations Log Table
-     */
-    public static function createLogTable(): void
-    {
-        /** @var AdapterInterface $storage */
-        $storage = self::$storage;
-        $storage->createTable(self::MIGRATION_LOG_TABLE, '', [
-            'columns' => [
-                new Column('version', [
-                    'type'    => Column::TYPE_VARCHAR,
-                    'size'    => 255,
-                    'notNull' => true,
-                    'first'   => true,
-                    'primary' => true,
-                ]),
-                new Column('start_time', [
-                    'type'    => Column::TYPE_TIMESTAMP,
-                    'notNull' => true,
-                    'default' => 'CURRENT_TIMESTAMP',
-                ]),
-                new Column('end_time', [
-                    'type'    => Column::TYPE_TIMESTAMP,
-                    'notNull' => true,
-                    'default' => 'CURRENT_TIMESTAMP',
-                ]),
-            ],
-            'indexes' => [
-                new Index('PRIMARY', ['version'], Index::TYPE_PRIMARY),
-            ],
-        ]);
     }
 }

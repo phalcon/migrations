@@ -42,65 +42,6 @@ class OptionStack implements ArrayAccess
     }
 
     /**
-     * @param mixed $offset
-     * @return bool
-     */
-    public function offsetExists($offset): bool
-    {
-        return isset($this->options[$offset]);
-    }
-
-    /**
-     * @param mixed $offset
-     * @return mixed
-     */
-    #[\ReturnTypeWillChange]
-    public function offsetGet($offset)
-    {
-        return $this->options[$offset] ?? '';
-    }
-
-    /**
-     * @param mixed $offset
-     * @param mixed $value
-     */
-    public function offsetSet($offset, $value): void
-    {
-        $this->options[$offset] = $value;
-    }
-
-    /**
-     * @param mixed       $offset
-     * @param mixed|null  $default
-     */
-    public function offsetSetDefault($offset, $default = null): void
-    {
-        if (!array_key_exists($offset, $this->options)) {
-            $this->options[$offset] = $default;
-        }
-    }
-
-    /**
-     * @param mixed       $offset
-     * @param mixed|null  $value
-     * @param mixed|null  $default
-     */
-    public function offsetSetOrDefault($offset, $value = null, $default = null): void
-    {
-        $this->options[$offset] = $value ?: $default;
-    }
-
-    /**
-     * @param mixed $offset
-     */
-    public function offsetUnset($offset): void
-    {
-        if (array_key_exists($offset, $this->options)) {
-            unset($this->options[$offset]);
-        }
-    }
-
-    /**
      * Get prefix from the option
      *
      * @param string $prefix
@@ -180,5 +121,64 @@ class OptionStack implements ArrayAccess
         }
 
         return $versionItem;
+    }
+
+    /**
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetExists($offset): bool
+    {
+        return isset($this->options[$offset]);
+    }
+
+    /**
+     * @param mixed $offset
+     * @return mixed
+     */
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
+    {
+        return $this->options[$offset] ?? '';
+    }
+
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->options[$offset] = $value;
+    }
+
+    /**
+     * @param mixed       $offset
+     * @param mixed|null  $default
+     */
+    public function offsetSetDefault($offset, $default = null): void
+    {
+        if (!array_key_exists($offset, $this->options)) {
+            $this->options[$offset] = $default;
+        }
+    }
+
+    /**
+     * @param mixed       $offset
+     * @param mixed|null  $value
+     * @param mixed|null  $default
+     */
+    public function offsetSetOrDefault($offset, $value = null, $default = null): void
+    {
+        $this->options[$offset] = $value ?: $default;
+    }
+
+    /**
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset): void
+    {
+        if (array_key_exists($offset, $this->options)) {
+            unset($this->options[$offset]);
+        }
     }
 }

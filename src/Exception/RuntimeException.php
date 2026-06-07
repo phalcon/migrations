@@ -200,14 +200,14 @@ class RuntimeException extends \InvalidArgumentException
         return new self('Migration entity is empty. Call Generate::createEntity()');
     }
 
-    public static function migrationsDirNotFound(): self
-    {
-        return new self('Migrations directory was not found.');
-    }
-
     public static function migrationsDirectoryNotDefined(): self
     {
         return new self('Migrations directory is not defined. Cannot proceed');
+    }
+
+    public static function migrationsDirNotFound(): self
+    {
+        return new self('Migrations directory was not found.');
     }
 
     public static function tableMustHaveAtLeastOneColumn(): self

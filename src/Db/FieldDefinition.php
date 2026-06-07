@@ -17,9 +17,9 @@ class FieldDefinition
 {
     private string $name;
 
-    private ?FieldDefinition $previousField;
-
     private ?FieldDefinition $nextField;
+
+    private ?FieldDefinition $previousField;
 
     public function __construct(
         private Column $currentColumn,
@@ -31,29 +31,14 @@ class FieldDefinition
         $this->nextField     = $nextField;
     }
 
-    public function setPrevious(?FieldDefinition $field = null): void
-    {
-        $this->previousField = $field;
-    }
-
-    public function setNext(?FieldDefinition $field = null): void
-    {
-        $this->nextField = $field;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
     public function getColumn(): Column
     {
         return $this->currentColumn;
     }
 
-    public function getPrevious(): ?FieldDefinition
+    public function getName(): string
     {
-        return $this->previousField ?? null;
+        return $this->name;
     }
 
     public function getNext(): ?FieldDefinition
@@ -96,14 +81,14 @@ class FieldDefinition
         return $possiblePairedField;
     }
 
+    public function getPrevious(): ?FieldDefinition
+    {
+        return $this->previousField ?? null;
+    }
+
     public function isChanged(FieldDefinition $other): bool
     {
         return $this->isChangedName($other) || $this->isChangedData($other);
-    }
-
-    public function isChangedName(FieldDefinition $other): bool
-    {
-        return $this->currentColumn->getName() !== $other->getColumn()->getName();
     }
 
     public function isChangedData(FieldDefinition $other): bool
@@ -120,5 +105,20 @@ class FieldDefinition
             || $a->isPrimary()        !== $b->isPrimary()
             || $a->hasDefault()       !== $b->hasDefault()
             || $a->getDefault()       !== $b->getDefault();
+    }
+
+    public function isChangedName(FieldDefinition $other): bool
+    {
+        return $this->currentColumn->getName() !== $other->getColumn()->getName();
+    }
+
+    public function setNext(?FieldDefinition $field = null): void
+    {
+        $this->nextField = $field;
+    }
+
+    public function setPrevious(?FieldDefinition $field = null): void
+    {
+        $this->previousField = $field;
     }
 }

@@ -26,14 +26,14 @@ final class Index
     ) {
     }
 
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
     public function getColumns(): array
     {
         return $this->columns;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     public function getType(): string

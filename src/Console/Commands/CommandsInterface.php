@@ -20,10 +20,6 @@ namespace Phalcon\Migrations\Console\Commands;
  */
 interface CommandsInterface
 {
-    /**
-     * Executes the command.
-     */
-    public function run(): void;
 
     /**
      * Prints help on the usage of the command.
@@ -38,4 +34,8 @@ interface CommandsInterface
      * Where key is the parameter name and value is the short description.
      */
     public function getPossibleParams(): array;
+    /**
+     * Executes the command.
+     */
+    public function run(): void;
 }

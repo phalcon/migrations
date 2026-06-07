@@ -35,9 +35,24 @@ abstract class AbstractAdapter implements AdapterInterface
     ) {
     }
 
-    public function getConnection(): Connection
+    public function addColumn(string $table, string $schema, Column $column): void
     {
-        return $this->connection;
+        $this->connection->execute($this->buildAddColumnSql($table, $schema, $column));
+    }
+
+    public function addForeignKey(string $table, string $schema, Reference $reference): void
+    {
+        $this->connection->execute($this->buildAddForeignKeySql($table, $schema, $reference));
+    }
+
+    public function addIndex(string $table, string $schema, Index $index): void
+    {
+        $this->connection->execute($this->buildAddIndexSql($table, $schema, $index));
+    }
+
+    public function addPrimaryKey(string $table, string $schema, Index $index): void
+    {
+        $this->connection->execute($this->buildAddPrimaryKeySql($table, $schema, $index));
     }
 
     public function begin(): void
@@ -50,9 +65,28 @@ abstract class AbstractAdapter implements AdapterInterface
         $this->connection->commit();
     }
 
-    public function rollback(): void
+    public function createTable(string $table, string $schema, array $definition): void
     {
-        $this->connection->rollback();
+        $sql = $this->buildCreateTableSql($table, $schema, $definition);
+        $this->connection->execute($sql);
+    }
+
+    public function dropColumn(string $table, string $schema, string $column): void
+    {
+        $t = $this->qualifyTable($table, $schema);
+        $c = $this->connection->quoteIdentifier($column);
+        $this->connection->execute("ALTER TABLE {$t} DROP COLUMN {$c}");
+    }
+
+    public function dropForeignKey(string $table, string $schema, string $name): void
+    {
+        $this->connection->execute($this->buildDropForeignKeySql($table, $schema, $name));
+    }
+
+    public function dropTable(string $table, string $schema = ''): void
+    {
+        $t = $this->qualifyTable($table, $schema);
+        $this->connection->execute("DROP TABLE IF EXISTS {$t}");
     }
 
     public function execute(string $sql, array $values = []): void
@@ -70,24 +104,14 @@ abstract class AbstractAdapter implements AdapterInterface
         return $this->connection->fetchOne($sql, $values);
     }
 
-    public function quote(string $value): string
+    public function getConnection(): Connection
     {
-        return $this->connection->quote($value);
+        return $this->connection;
     }
 
     public function getCurrentSchema(): string
     {
         return (string) $this->connection->fetchValue($this->currentSchemaSql);
-    }
-
-    public function tableExists(string $table, string $schema = ''): bool
-    {
-        $schema = $schema ?: $this->getCurrentSchema();
-
-        return (bool) $this->connection->fetchValue(
-            $this->getTableExistsSql(),
-            ['schema' => $schema, 'table' => $table]
-        );
     }
 
     public function listColumns(string $schema, string $table): array
@@ -107,79 +131,236 @@ abstract class AbstractAdapter implements AdapterInterface
         return $this->processColumnInformation($schema, $table, $columns);
     }
 
-    public function dropTable(string $table, string $schema = ''): void
+    public function quote(string $value): string
     {
-        $t = $this->qualifyTable($table, $schema);
-        $this->connection->execute("DROP TABLE IF EXISTS {$t}");
+        return $this->connection->quote($value);
     }
 
-    public function createTable(string $table, string $schema, array $definition): void
+    public function rollback(): void
     {
-        $sql = $this->buildCreateTableSql($table, $schema, $definition);
-        $this->connection->execute($sql);
+        $this->connection->rollback();
     }
 
-    public function addColumn(string $table, string $schema, Column $column): void
+    public function tableExists(string $table, string $schema = ''): bool
     {
-        $this->connection->execute($this->buildAddColumnSql($table, $schema, $column));
+        $schema = $schema ?: $this->getCurrentSchema();
+
+        return (bool) $this->connection->fetchValue(
+            $this->getTableExistsSql(),
+            ['schema' => $schema, 'table' => $table]
+        );
     }
 
-    public function dropColumn(string $table, string $schema, string $column): void
+    protected function buildAddColumnSql(string $table, string $schema, Column $column): string
     {
-        $t = $this->qualifyTable($table, $schema);
-        $c = $this->connection->quoteIdentifier($column);
-        $this->connection->execute("ALTER TABLE {$t} DROP COLUMN {$c}");
+        $t   = $this->qualifyTable($table, $schema);
+        $def = $this->buildColumnDefinitionSql($column);
+        $sql = "ALTER TABLE {$t} ADD COLUMN {$def}";
+
+        if ($column->isFirst()) {
+            $sql .= ' FIRST';
+        } elseif ($column->getAfterPosition() !== null) {
+            $sql .= ' AFTER ' . $this->connection->quoteIdentifier($column->getAfterPosition());
+        }
+
+        return $sql;
     }
 
-    public function addIndex(string $table, string $schema, Index $index): void
+    protected function buildAddForeignKeySql(string $table, string $schema, Reference $reference): string
     {
-        $this->connection->execute($this->buildAddIndexSql($table, $schema, $index));
+        $t    = $this->qualifyTable($table, $schema);
+        $cols = $this->quoteColumns($reference->getColumns());
+        $rt   = $this->qualifyTable(
+            $reference->getReferencedTable(),
+            $reference->getReferencedSchema() ?? ''
+        );
+        $rcols = $this->quoteColumns($reference->getReferencedColumns());
+
+        $sql = "ALTER TABLE {$t} ADD";
+        if ($reference->getName() !== '') {
+            $sql .= ' CONSTRAINT ' . $this->connection->quoteIdentifier($reference->getName());
+        }
+
+        $sql .= " FOREIGN KEY ({$cols}) REFERENCES {$rt} ({$rcols})";
+
+        if ($reference->getOnDelete() !== '') {
+            $sql .= ' ON DELETE ' . $reference->getOnDelete();
+        }
+        if ($reference->getOnUpdate() !== '') {
+            $sql .= ' ON UPDATE ' . $reference->getOnUpdate();
+        }
+
+        return $sql;
     }
 
-    public function addPrimaryKey(string $table, string $schema, Index $index): void
+    protected function buildAddIndexSql(string $table, string $schema, Index $index): string
     {
-        $this->connection->execute($this->buildAddPrimaryKeySql($table, $schema, $index));
+        $t    = $this->qualifyTable($table, $schema);
+        $name = $this->connection->quoteIdentifier($index->getName());
+        $cols = $this->quoteColumns($index->getColumns());
+
+        $unique = strtolower($index->getType()) === 'unique' ? 'UNIQUE ' : '';
+
+        return "ALTER TABLE {$t} ADD {$unique}INDEX {$name} ({$cols})";
     }
 
-    public function addForeignKey(string $table, string $schema, Reference $reference): void
+    protected function buildAddPrimaryKeySql(string $table, string $schema, Index $index): string
     {
-        $this->connection->execute($this->buildAddForeignKeySql($table, $schema, $reference));
+        $t    = $this->qualifyTable($table, $schema);
+        $cols = $this->quoteColumns($index->getColumns());
+
+        return "ALTER TABLE {$t} ADD PRIMARY KEY ({$cols})";
     }
 
-    public function dropForeignKey(string $table, string $schema, string $name): void
+    protected function buildColumn(array $row, bool $isFirst, ?string $previous): Column
     {
-        $this->connection->execute($this->buildDropForeignKeySql($table, $schema, $name));
+        $type    = $this->mapType($row['type'], (string) ($row['extended'] ?? ''));
+        $default = $this->processDefault($row['default_value'] ?? null, $row['type']);
+
+        $definition = [
+            'type'          => $type,
+            'size'          => isset($row['size'])          ? (int) $row['size']          : null,
+            'scale'         => isset($row['numeric_scale']) ? (int) $row['numeric_scale'] : null,
+            'notNull'       => (bool) ($row['is_not_null']       ?? false),
+            'unsigned'      => (bool) ($row['is_unsigned']       ?? false),
+            'autoIncrement' => (bool) ($row['is_auto_increment'] ?? false),
+            'primary'       => (bool) ($row['is_primary']        ?? false),
+            'first'         => $isFirst,
+            'after'         => $previous,
+            'comment'       => (string) ($row['comment'] ?? ''),
+        ];
+
+        if ($default !== null) {
+            $definition['default'] = $default;
+        }
+
+        $extended = trim((string) ($row['extended'] ?? ''));
+        if (stripos($extended, 'enum') === 0) {
+            $input                = trim(substr($extended, 4), '()');
+            $definition['options'] = array_map(
+                static fn(string $v) => trim($v, "'"),
+                str_getcsv($input)
+            );
+        }
+
+        return new Column((string) $row['name'], $definition);
     }
 
     // -------------------------------------------------------------------------
-    // Helpers used by both introspection and DDL
+    // DDL helpers (drivers override as needed)
     // -------------------------------------------------------------------------
 
-    protected function isPrimaryIndex(Index $index): bool
-    {
-        return $index->getType() === Index::TYPE_PRIMARY
-            || $index->getType() === Index::TYPE_PRIMARY_ALT
-            || $index->getName() === 'PRIMARY';
-    }
+    abstract protected function buildColumnDefinitionSql(Column $column): string;
 
-    protected function qualifyTable(string $table, string $schema): string
+    protected function buildCreateTableSql(string $table, string $schema, array $definition): string
     {
-        $t = $this->connection->quoteIdentifier($table);
-        if ($schema !== '') {
-            return $this->connection->quoteIdentifier($schema) . '.' . $t;
+        $t        = $this->qualifyTable($table, $schema);
+        $parts    = [];
+
+        foreach ($definition['columns'] ?? [] as $column) {
+            $parts[] = '    ' . $this->buildColumnDefinitionSql($column);
         }
 
-        return $t;
-    }
-
-    protected function quoteColumns(array $columns): string
-    {
-        $quoted = [];
-        foreach ($columns as $col) {
-            $quoted[] = $this->connection->quoteIdentifier($col);
+        $hasPrimaryIndex = false;
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if ($this->isPrimaryIndex($index)) {
+                $hasPrimaryIndex = true;
+                break;
+            }
         }
 
-        return implode(', ', $quoted);
+        if (!$hasPrimaryIndex) {
+            $pkCols = [];
+            foreach ($definition['columns'] ?? [] as $column) {
+                if ($column->isPrimary()) {
+                    $pkCols[] = $column->getName();
+                }
+            }
+            if ($pkCols !== []) {
+                $parts[] = '    PRIMARY KEY (' . $this->quoteColumns($pkCols) . ')';
+            }
+        }
+
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if ($this->isPrimaryIndex($index)) {
+                $cols    = $this->quoteColumns($index->getColumns());
+                $parts[] = "    PRIMARY KEY ({$cols})";
+            } elseif ($index->getType() === Index::TYPE_UNIQUE) {
+                $name    = $this->connection->quoteIdentifier($index->getName());
+                $cols    = $this->quoteColumns($index->getColumns());
+                $parts[] = "    UNIQUE KEY {$name} ({$cols})";
+            } else {
+                $name    = $this->connection->quoteIdentifier($index->getName());
+                $cols    = $this->quoteColumns($index->getColumns());
+                $parts[] = "    KEY {$name} ({$cols})";
+            }
+        }
+
+        foreach ($definition['references'] ?? [] as $ref) {
+            $cols  = $this->quoteColumns($ref->getColumns());
+            $rt    = $this->qualifyTable($ref->getReferencedTable(), $ref->getReferencedSchema() ?? '');
+            $rcols = $this->quoteColumns($ref->getReferencedColumns());
+            $cname = $ref->getName() !== ''
+                ? 'CONSTRAINT ' . $this->connection->quoteIdentifier($ref->getName()) . ' '
+                : '';
+
+            $fk = "    {$cname}FOREIGN KEY ({$cols}) REFERENCES {$rt} ({$rcols})";
+            if ($ref->getOnDelete() !== '') {
+                $fk .= ' ON DELETE ' . $ref->getOnDelete();
+            }
+            if ($ref->getOnUpdate() !== '') {
+                $fk .= ' ON UPDATE ' . $ref->getOnUpdate();
+            }
+
+            $parts[] = $fk;
+        }
+
+        $sql = "CREATE TABLE {$t} (\n" . implode(",\n", $parts) . "\n)";
+
+        $options = $definition['options'] ?? [];
+        $sql    .= $this->buildTableOptionsSql($options);
+
+        return $sql;
+    }
+
+    protected function buildDropForeignKeySql(string $table, string $schema, string $name): string
+    {
+        $t    = $this->qualifyTable($table, $schema);
+        $cname = $this->connection->quoteIdentifier($name);
+
+        return "ALTER TABLE {$t} DROP FOREIGN KEY {$cname}";
+    }
+
+    protected function buildTableOptionsSql(array $options): string
+    {
+        return '';
+    }
+
+    protected function fetchColumnRows(string $schema, string $table): array
+    {
+        return $this->connection->fetchAll(
+            $this->getListColumnSql(),
+            ['schema' => $schema, 'table' => $table]
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Hooks for driver-specific SQL fragments
+    // -------------------------------------------------------------------------
+
+    protected function getAutoIncSql(): string
+    {
+        return "''";
+    }
+
+    protected function getCommentSql(): string
+    {
+        return "''";
+    }
+
+    protected function getExtendedSql(): string
+    {
+        return "''";
     }
 
     // -------------------------------------------------------------------------
@@ -253,46 +434,38 @@ abstract class AbstractAdapter implements AdapterInterface
         ";
     }
 
-    protected function fetchColumnRows(string $schema, string $table): array
+    protected function getTableExistsSql(): string
     {
-        return $this->connection->fetchAll(
-            $this->getListColumnSql(),
-            ['schema' => $schema, 'table' => $table]
-        );
+        return "
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_schema = :schema
+            AND   table_name   = :table
+        ";
     }
 
-    protected function buildColumn(array $row, bool $isFirst, ?string $previous): Column
+    protected function getUnsignedSql(): string
     {
-        $type    = $this->mapType($row['type'], (string) ($row['extended'] ?? ''));
-        $default = $this->processDefault($row['default_value'] ?? null, $row['type']);
+        return 'NULL';
+    }
 
-        $definition = [
-            'type'          => $type,
-            'size'          => isset($row['size'])          ? (int) $row['size']          : null,
-            'scale'         => isset($row['numeric_scale']) ? (int) $row['numeric_scale'] : null,
-            'notNull'       => (bool) ($row['is_not_null']       ?? false),
-            'unsigned'      => (bool) ($row['is_unsigned']       ?? false),
-            'autoIncrement' => (bool) ($row['is_auto_increment'] ?? false),
-            'primary'       => (bool) ($row['is_primary']        ?? false),
-            'first'         => $isFirst,
-            'after'         => $previous,
-            'comment'       => (string) ($row['comment'] ?? ''),
-        ];
+    // -------------------------------------------------------------------------
+    // Helpers used by both introspection and DDL
+    // -------------------------------------------------------------------------
 
-        if ($default !== null) {
-            $definition['default'] = $default;
-        }
+    protected function isPrimaryIndex(Index $index): bool
+    {
+        return $index->getType() === Index::TYPE_PRIMARY
+            || $index->getType() === Index::TYPE_PRIMARY_ALT
+            || $index->getName() === 'PRIMARY';
+    }
 
-        $extended = trim((string) ($row['extended'] ?? ''));
-        if (stripos($extended, 'enum') === 0) {
-            $input                = trim(substr($extended, 4), '()');
-            $definition['options'] = array_map(
-                static fn(string $v) => trim($v, "'"),
-                str_getcsv($input)
-            );
-        }
+    abstract protected function mapType(string $infoType, string $extended): string;
 
-        return new Column((string) $row['name'], $definition);
+    /** @param Column[] $columns */
+    protected function processColumnInformation(string $schema, string $table, array $columns): array
+    {
+        return $columns;
     }
 
     protected function processDefault(mixed $value, string $type): mixed
@@ -312,196 +485,23 @@ abstract class AbstractAdapter implements AdapterInterface
         };
     }
 
-    /** @param Column[] $columns */
-    protected function processColumnInformation(string $schema, string $table, array $columns): array
+    protected function qualifyTable(string $table, string $schema): string
     {
-        return $columns;
-    }
-
-    // -------------------------------------------------------------------------
-    // Hooks for driver-specific SQL fragments
-    // -------------------------------------------------------------------------
-
-    protected function getAutoIncSql(): string
-    {
-        return "''";
-    }
-
-    protected function getCommentSql(): string
-    {
-        return "''";
-    }
-
-    protected function getExtendedSql(): string
-    {
-        return "''";
-    }
-
-    protected function getUnsignedSql(): string
-    {
-        return 'NULL';
-    }
-
-    protected function getTableExistsSql(): string
-    {
-        return "
-            SELECT COUNT(*)
-            FROM information_schema.tables
-            WHERE table_schema = :schema
-            AND   table_name   = :table
-        ";
-    }
-
-    abstract protected function mapType(string $infoType, string $extended): string;
-
-    // -------------------------------------------------------------------------
-    // DDL helpers (drivers override as needed)
-    // -------------------------------------------------------------------------
-
-    abstract protected function buildColumnDefinitionSql(Column $column): string;
-
-    protected function buildAddColumnSql(string $table, string $schema, Column $column): string
-    {
-        $t   = $this->qualifyTable($table, $schema);
-        $def = $this->buildColumnDefinitionSql($column);
-        $sql = "ALTER TABLE {$t} ADD COLUMN {$def}";
-
-        if ($column->isFirst()) {
-            $sql .= ' FIRST';
-        } elseif ($column->getAfterPosition() !== null) {
-            $sql .= ' AFTER ' . $this->connection->quoteIdentifier($column->getAfterPosition());
+        $t = $this->connection->quoteIdentifier($table);
+        if ($schema !== '') {
+            return $this->connection->quoteIdentifier($schema) . '.' . $t;
         }
 
-        return $sql;
+        return $t;
     }
 
-    protected function buildAddIndexSql(string $table, string $schema, Index $index): string
+    protected function quoteColumns(array $columns): string
     {
-        $t    = $this->qualifyTable($table, $schema);
-        $name = $this->connection->quoteIdentifier($index->getName());
-        $cols = $this->quoteColumns($index->getColumns());
-
-        $unique = strtolower($index->getType()) === 'unique' ? 'UNIQUE ' : '';
-
-        return "ALTER TABLE {$t} ADD {$unique}INDEX {$name} ({$cols})";
-    }
-
-    protected function buildAddPrimaryKeySql(string $table, string $schema, Index $index): string
-    {
-        $t    = $this->qualifyTable($table, $schema);
-        $cols = $this->quoteColumns($index->getColumns());
-
-        return "ALTER TABLE {$t} ADD PRIMARY KEY ({$cols})";
-    }
-
-    protected function buildAddForeignKeySql(string $table, string $schema, Reference $reference): string
-    {
-        $t    = $this->qualifyTable($table, $schema);
-        $cols = $this->quoteColumns($reference->getColumns());
-        $rt   = $this->qualifyTable(
-            $reference->getReferencedTable(),
-            $reference->getReferencedSchema() ?? ''
-        );
-        $rcols = $this->quoteColumns($reference->getReferencedColumns());
-
-        $sql = "ALTER TABLE {$t} ADD";
-        if ($reference->getName() !== '') {
-            $sql .= ' CONSTRAINT ' . $this->connection->quoteIdentifier($reference->getName());
+        $quoted = [];
+        foreach ($columns as $col) {
+            $quoted[] = $this->connection->quoteIdentifier($col);
         }
 
-        $sql .= " FOREIGN KEY ({$cols}) REFERENCES {$rt} ({$rcols})";
-
-        if ($reference->getOnDelete() !== '') {
-            $sql .= ' ON DELETE ' . $reference->getOnDelete();
-        }
-        if ($reference->getOnUpdate() !== '') {
-            $sql .= ' ON UPDATE ' . $reference->getOnUpdate();
-        }
-
-        return $sql;
-    }
-
-    protected function buildDropForeignKeySql(string $table, string $schema, string $name): string
-    {
-        $t    = $this->qualifyTable($table, $schema);
-        $cname = $this->connection->quoteIdentifier($name);
-
-        return "ALTER TABLE {$t} DROP FOREIGN KEY {$cname}";
-    }
-
-    protected function buildCreateTableSql(string $table, string $schema, array $definition): string
-    {
-        $t        = $this->qualifyTable($table, $schema);
-        $parts    = [];
-
-        foreach ($definition['columns'] ?? [] as $column) {
-            $parts[] = '    ' . $this->buildColumnDefinitionSql($column);
-        }
-
-        $hasPrimaryIndex = false;
-        foreach ($definition['indexes'] ?? [] as $index) {
-            if ($this->isPrimaryIndex($index)) {
-                $hasPrimaryIndex = true;
-                break;
-            }
-        }
-
-        if (!$hasPrimaryIndex) {
-            $pkCols = [];
-            foreach ($definition['columns'] ?? [] as $column) {
-                if ($column->isPrimary()) {
-                    $pkCols[] = $column->getName();
-                }
-            }
-            if ($pkCols !== []) {
-                $parts[] = '    PRIMARY KEY (' . $this->quoteColumns($pkCols) . ')';
-            }
-        }
-
-        foreach ($definition['indexes'] ?? [] as $index) {
-            if ($this->isPrimaryIndex($index)) {
-                $cols    = $this->quoteColumns($index->getColumns());
-                $parts[] = "    PRIMARY KEY ({$cols})";
-            } elseif ($index->getType() === Index::TYPE_UNIQUE) {
-                $name    = $this->connection->quoteIdentifier($index->getName());
-                $cols    = $this->quoteColumns($index->getColumns());
-                $parts[] = "    UNIQUE KEY {$name} ({$cols})";
-            } else {
-                $name    = $this->connection->quoteIdentifier($index->getName());
-                $cols    = $this->quoteColumns($index->getColumns());
-                $parts[] = "    KEY {$name} ({$cols})";
-            }
-        }
-
-        foreach ($definition['references'] ?? [] as $ref) {
-            $cols  = $this->quoteColumns($ref->getColumns());
-            $rt    = $this->qualifyTable($ref->getReferencedTable(), $ref->getReferencedSchema() ?? '');
-            $rcols = $this->quoteColumns($ref->getReferencedColumns());
-            $cname = $ref->getName() !== ''
-                ? 'CONSTRAINT ' . $this->connection->quoteIdentifier($ref->getName()) . ' '
-                : '';
-
-            $fk = "    {$cname}FOREIGN KEY ({$cols}) REFERENCES {$rt} ({$rcols})";
-            if ($ref->getOnDelete() !== '') {
-                $fk .= ' ON DELETE ' . $ref->getOnDelete();
-            }
-            if ($ref->getOnUpdate() !== '') {
-                $fk .= ' ON UPDATE ' . $ref->getOnUpdate();
-            }
-
-            $parts[] = $fk;
-        }
-
-        $sql = "CREATE TABLE {$t} (\n" . implode(",\n", $parts) . "\n)";
-
-        $options = $definition['options'] ?? [];
-        $sql    .= $this->buildTableOptionsSql($options);
-
-        return $sql;
-    }
-
-    protected function buildTableOptionsSql(array $options): string
-    {
-        return '';
+        return implode(', ', $quoted);
     }
 }

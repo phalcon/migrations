@@ -18,13 +18,6 @@ namespace Phalcon\Migrations\Version;
  */
 trait VersionAwareTrait
 {
-    /**
-     * Get the string representation of the version
-     */
-    public function getVersion(): string
-    {
-        return $this->version;
-    }
 
     /**
      * Get the string representation of the version
@@ -32,5 +25,12 @@ trait VersionAwareTrait
     public function __toString(): string
     {
         return $this->getVersion();
+    }
+    /**
+     * Get the string representation of the version
+     */
+    public function getVersion(): string
+    {
+        return $this->version;
     }
 }

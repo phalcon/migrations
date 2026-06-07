@@ -16,8 +16,8 @@ namespace Phalcon\Migrations\Migration\Action;
 use Generator;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpFile;
-use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Adapter\AdapterInterface;
+use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Connection;
 use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
@@ -47,6 +47,52 @@ use function strtoupper;
  */
 class Generate
 {
+
+    protected array $noSizeColumnTypes = [
+        Column::TYPE_BLOB,
+        Column::TYPE_DATE,
+        Column::TYPE_DATETIME,
+        Column::TYPE_DOUBLE,
+        Column::TYPE_FLOAT,
+        Column::TYPE_LONGBLOB,
+        Column::TYPE_LONGTEXT,
+        Column::TYPE_MEDIUMBLOB,
+        Column::TYPE_MEDIUMTEXT,
+        Column::TYPE_TEXT,
+        Column::TYPE_TIME,
+        Column::TYPE_TIMESTAMP,
+        Column::TYPE_TINYBLOB,
+        Column::TYPE_TINYTEXT,
+    ];
+
+    protected array $noSizeColumnTypesPostgreSQL = [
+        Column::TYPE_BIGINTEGER,
+        Column::TYPE_BOOLEAN,
+        Column::TYPE_INTEGER,
+    ];
+
+    /**
+     * Numeric columns
+     *
+     * Used during exporting of data from table
+     */
+    protected array $numericColumns = [];
+
+    protected array $numericColumnTypes = [
+        Column::TYPE_BIGINTEGER,
+        Column::TYPE_DECIMAL,
+        Column::TYPE_INTEGER,
+        Column::TYPE_MEDIUMINTEGER,
+        Column::TYPE_SMALLINTEGER,
+        Column::TYPE_TINYINTEGER,
+    ];
+
+    protected ?string $primaryColumnName = null;
+
+    /**
+     * Table columns wrapped with "'" single quote symbol
+     */
+    protected array $quoteWrappedColumns = [];
     protected array $supportedColumnTypes = [
         Column::TYPE_BIGINTEGER   => 'TYPE_BIGINTEGER',
         Column::TYPE_BIT          => 'TYPE_BIT',
@@ -77,69 +123,23 @@ class Generate
         Column::TYPE_VARCHAR      => 'TYPE_VARCHAR',
     ];
 
-    protected array $supportedColumnTypesPgsql = [
-        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
-    ];
-
     protected array $supportedColumnTypesMysql = [
         Column::TYPE_DOUBLE => 'TYPE_DOUBLE',
     ];
 
-    protected array $numericColumnTypes = [
-        Column::TYPE_BIGINTEGER,
-        Column::TYPE_DECIMAL,
-        Column::TYPE_INTEGER,
-        Column::TYPE_MEDIUMINTEGER,
-        Column::TYPE_SMALLINTEGER,
-        Column::TYPE_TINYINTEGER,
+    protected array $supportedColumnTypesPgsql = [
+        Column::TYPE_DOUBLE => 'TYPE_FLOAT',
     ];
-
-    protected array $noSizeColumnTypes = [
-        Column::TYPE_BLOB,
-        Column::TYPE_DATE,
-        Column::TYPE_DATETIME,
-        Column::TYPE_DOUBLE,
-        Column::TYPE_FLOAT,
-        Column::TYPE_LONGBLOB,
-        Column::TYPE_LONGTEXT,
-        Column::TYPE_MEDIUMBLOB,
-        Column::TYPE_MEDIUMTEXT,
-        Column::TYPE_TEXT,
-        Column::TYPE_TIME,
-        Column::TYPE_TIMESTAMP,
-        Column::TYPE_TINYBLOB,
-        Column::TYPE_TINYTEXT,
-    ];
-
-    protected array $noSizeColumnTypesPostgreSQL = [
-        Column::TYPE_BIGINTEGER,
-        Column::TYPE_BOOLEAN,
-        Column::TYPE_INTEGER,
-    ];
-
-    /**
-     * Migration file entity
-     */
-    private ?PhpFile $file = null;
 
     /**
      * Migration class entity
      */
     private ?ClassType $class = null;
 
-    protected ?string $primaryColumnName = null;
-
     /**
-     * Numeric columns
-     *
-     * Used during exporting of data from table
+     * Migration file entity
      */
-    protected array $numericColumns = [];
-
-    /**
-     * Table columns wrapped with "'" single quote symbol
-     */
-    protected array $quoteWrappedColumns = [];
+    private ?PhpFile $file = null;
 
     public function __construct(
         private string $adapter,
@@ -150,27 +150,41 @@ class Generate
     ) {
     }
 
-    public function getEntity(): ?PhpFile
+    public function addAfterCreateTable(string $table, $exportData = null): self
     {
         $this->checkEntityExists();
 
-        return $this->file;
+        if ($exportData === 'oncreate') {
+            $quoteWrappedColumns = "\n";
+            foreach ($this->quoteWrappedColumns as $quoteWrappedColumn) {
+                $quoteWrappedColumns .= "    $quoteWrappedColumn,\n";
+            }
+            $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
+
+            $this->class?->addMethod('afterCreateTable')
+                ->addComment("This method is called after the table was created\n")
+                ->addComment('@return void')
+                ->setReturnType('void')
+                ->setBody($body);
+        }
+
+        return $this;
     }
 
-    public function createEntity(string $className, bool $recreate = false): self
+    public function addDown(string $table, $exportData = null, bool $shouldExportDataFromTable = false): self
     {
-        if (null === $this->class || $recreate) {
-            $this->file = new PhpFile();
-            $this->file->addUse(Column::class)
-                ->addUse(Index::class)
-                ->addUse(Reference::class)
-                ->addUse(Migration::class);
+        $this->checkEntityExists();
 
-            $this->class = $this->file->addClass($className);
-            $this->class
-                ->setExtends(Migration::class)
-                ->addComment("Class {$className}");
+        $body = "\n";
+        if ($exportData === 'always' || $shouldExportDataFromTable) {
+            $body = "\$this->batchDelete('$table');";
         }
+
+        $this->class?->addMethod('down')
+            ->addComment("Reverse the migrations\n")
+            ->addComment('@return void')
+            ->setReturnType('void')
+            ->setBody($body);
 
         return $this;
     }
@@ -248,43 +262,11 @@ class Generate
         return $this;
     }
 
-    public function addDown(string $table, $exportData = null, bool $shouldExportDataFromTable = false): self
+    public function checkEntityExists(): void
     {
-        $this->checkEntityExists();
-
-        $body = "\n";
-        if ($exportData === 'always' || $shouldExportDataFromTable) {
-            $body = "\$this->batchDelete('$table');";
+        if (null === $this->file) {
+            throw RuntimeException::migrationEntityEmpty();
         }
-
-        $this->class?->addMethod('down')
-            ->addComment("Reverse the migrations\n")
-            ->addComment('@return void')
-            ->setReturnType('void')
-            ->setBody($body);
-
-        return $this;
-    }
-
-    public function addAfterCreateTable(string $table, $exportData = null): self
-    {
-        $this->checkEntityExists();
-
-        if ($exportData === 'oncreate') {
-            $quoteWrappedColumns = "\n";
-            foreach ($this->quoteWrappedColumns as $quoteWrappedColumn) {
-                $quoteWrappedColumns .= "    $quoteWrappedColumn,\n";
-            }
-            $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
-
-            $this->class?->addMethod('afterCreateTable')
-                ->addComment("This method is called after the table was created\n")
-                ->addComment('@return void')
-                ->setReturnType('void')
-                ->setBody($body);
-        }
-
-        return $this;
     }
 
     public function createDumpFiles(
@@ -328,6 +310,29 @@ class Generate
         }
 
         return $this;
+    }
+
+    public function createEntity(string $className, bool $recreate = false): self
+    {
+        if (null === $this->class || $recreate) {
+            $this->file = new PhpFile();
+            $this->file->addUse(Column::class)
+                ->addUse(Index::class)
+                ->addUse(Reference::class)
+                ->addUse(Migration::class);
+
+            $this->class = $this->file->addClass($className);
+            $this->class
+                ->setExtends(Migration::class)
+                ->addComment("Class {$className}");
+        }
+
+        return $this;
+    }
+
+    public function getAdapter(): string
+    {
+        return $this->adapter;
     }
 
     /**
@@ -424,6 +429,13 @@ class Generate
         }
     }
 
+    public function getEntity(): ?PhpFile
+    {
+        $this->checkEntityExists();
+
+        return $this->file;
+    }
+
     public function getIndexes(): Generator
     {
         foreach ($this->indexes as $name => $index) {
@@ -444,6 +456,42 @@ class Generate
                 yield $name => [$definition, $index->getType()];
             }
         }
+    }
+
+    public function getNumericColumns(): array
+    {
+        return $this->numericColumns;
+    }
+
+    public function getOptions(bool $skipAI): array
+    {
+        $options = [];
+        foreach ($this->options as $name => $value) {
+            /**
+             * All options keys must be UPPERCASE!
+             */
+            $name = strtoupper($name);
+            if ($skipAI && $name === 'AUTO_INCREMENT') {
+                $value = '';
+            }
+
+            $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
+        }
+
+        return $options;
+    }
+
+    /**
+     * Get Primary column name (if exists)
+     */
+    public function getPrimaryColumnName(): ?string
+    {
+        return $this->primaryColumnName;
+    }
+
+    public function getQuoteWrappedColumns(): array
+    {
+        return $this->quoteWrappedColumns;
     }
 
     public function getReferences(bool $skipRefSchema = false): Generator
@@ -478,53 +526,12 @@ class Generate
         }
     }
 
-    public function getOptions(bool $skipAI): array
-    {
-        $options = [];
-        foreach ($this->options as $name => $value) {
-            /**
-             * All options keys must be UPPERCASE!
-             */
-            $name = strtoupper($name);
-            if ($skipAI && $name === 'AUTO_INCREMENT') {
-                $value = '';
-            }
-
-            $options[] = sprintf('%s => %s', $this->wrapWithQuotes($name), $this->wrapWithQuotes((string)$value));
-        }
-
-        return $options;
-    }
-
-    /**
-     * Get Primary column name (if exists)
-     */
-    public function getPrimaryColumnName(): ?string
-    {
-        return $this->primaryColumnName;
-    }
-
-    public function getNumericColumns(): array
-    {
-        return $this->numericColumns;
-    }
-
-    public function getAdapter(): string
-    {
-        return $this->adapter;
-    }
-
     /**
      * Just wrap string with single quotes
      */
     public function wrapWithQuotes(string $columnName, string $quote = "'"): string
     {
         return $quote . $columnName . $quote;
-    }
-
-    public function getQuoteWrappedColumns(): array
-    {
-        return $this->quoteWrappedColumns;
     }
 
     /**
@@ -563,12 +570,5 @@ class Generate
         $size = $columnsSize ?: 1;
 
         return $size;
-    }
-
-    public function checkEntityExists(): void
-    {
-        if (null === $this->file) {
-            throw RuntimeException::migrationEntityEmpty();
-        }
     }
 }

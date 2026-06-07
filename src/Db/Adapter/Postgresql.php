@@ -26,31 +26,6 @@ use function trim;
 
 class Postgresql extends AbstractAdapter
 {
-    protected string $currentSchemaSql = 'SELECT CURRENT_SCHEMA';
-
-    private const TYPE_MAP = [
-        'bigint'                    => Column::TYPE_BIGINTEGER,
-        'bit'                       => Column::TYPE_BIT,
-        'boolean'                   => Column::TYPE_BOOLEAN,
-        'bytea'                     => Column::TYPE_BLOB,
-        'character'                 => Column::TYPE_CHAR,
-        'character varying'         => Column::TYPE_VARCHAR,
-        'date'                      => Column::TYPE_DATE,
-        'double precision'          => Column::TYPE_DOUBLE,
-        'float'                     => Column::TYPE_FLOAT,
-        'integer'                   => Column::TYPE_INTEGER,
-        'json'                      => Column::TYPE_JSON,
-        'jsonb'                     => Column::TYPE_JSONB,
-        'numeric'                   => Column::TYPE_DECIMAL,
-        'real'                      => Column::TYPE_FLOAT,
-        'smallint'                  => Column::TYPE_SMALLINTEGER,
-        'text'                      => Column::TYPE_TEXT,
-        'time'                      => Column::TYPE_TIME,
-        'time without time zone'    => Column::TYPE_TIME,
-        'timestamp'                 => Column::TYPE_TIMESTAMP,
-        'timestamp without time zone' => Column::TYPE_TIMESTAMP,
-        'timestamp with time zone'  => Column::TYPE_TIMESTAMP,
-    ];
 
     private const DDL_TYPE_MAP = [
         Column::TYPE_BIGINTEGER   => 'BIGINT',
@@ -107,16 +82,50 @@ class Postgresql extends AbstractAdapter
         Column::TYPE_TINYTEXT,
     ];
 
-    public function listTables(string $schema): array
+    private const TYPE_MAP = [
+        'bigint'                    => Column::TYPE_BIGINTEGER,
+        'bit'                       => Column::TYPE_BIT,
+        'boolean'                   => Column::TYPE_BOOLEAN,
+        'bytea'                     => Column::TYPE_BLOB,
+        'character'                 => Column::TYPE_CHAR,
+        'character varying'         => Column::TYPE_VARCHAR,
+        'date'                      => Column::TYPE_DATE,
+        'double precision'          => Column::TYPE_DOUBLE,
+        'float'                     => Column::TYPE_FLOAT,
+        'integer'                   => Column::TYPE_INTEGER,
+        'json'                      => Column::TYPE_JSON,
+        'jsonb'                     => Column::TYPE_JSONB,
+        'numeric'                   => Column::TYPE_DECIMAL,
+        'real'                      => Column::TYPE_FLOAT,
+        'smallint'                  => Column::TYPE_SMALLINTEGER,
+        'text'                      => Column::TYPE_TEXT,
+        'time'                      => Column::TYPE_TIME,
+        'time without time zone'    => Column::TYPE_TIME,
+        'timestamp'                 => Column::TYPE_TIMESTAMP,
+        'timestamp without time zone' => Column::TYPE_TIMESTAMP,
+        'timestamp with time zone'  => Column::TYPE_TIMESTAMP,
+    ];
+    protected string $currentSchemaSql = 'SELECT CURRENT_SCHEMA';
+
+    public function dropIndex(string $table, string $schema, string $name): void
     {
-        return $this->connection->fetchColumn(
-            "SELECT table_name
-             FROM   information_schema.tables
-             WHERE  table_schema = :schema
-             AND    UPPER(table_type) = 'BASE TABLE'
-             ORDER BY table_name",
-            ['schema' => $schema]
+        $n = $this->connection->quoteIdentifier(
+            $schema !== '' ? $schema . '.' . $name : $name
         );
+        $this->connection->execute("DROP INDEX IF EXISTS {$n}");
+    }
+
+    public function dropPrimaryKey(string $table, string $schema): void
+    {
+        $constraintName = $table . '_pkey';
+        $t = $this->qualifyTable($table, $schema);
+        $n = $this->connection->quoteIdentifier($constraintName);
+        $this->connection->execute("ALTER TABLE {$t} DROP CONSTRAINT IF EXISTS {$n}");
+    }
+
+    public function getTableOptions(string $schema, string $table): array
+    {
+        return [];
     }
 
     public function listIndexes(string $schema, string $table): array
@@ -217,9 +226,16 @@ class Postgresql extends AbstractAdapter
         return $references;
     }
 
-    public function getTableOptions(string $schema, string $table): array
+    public function listTables(string $schema): array
     {
-        return [];
+        return $this->connection->fetchColumn(
+            "SELECT table_name
+             FROM   information_schema.tables
+             WHERE  table_schema = :schema
+             AND    UPPER(table_type) = 'BASE TABLE'
+             ORDER BY table_name",
+            ['schema' => $schema]
+        );
     }
 
     public function modifyColumn(string $table, string $schema, Column $new, Column $current): void
@@ -266,20 +282,12 @@ class Postgresql extends AbstractAdapter
         }
     }
 
-    public function dropIndex(string $table, string $schema, string $name): void
+    protected function buildAddColumnSql(string $table, string $schema, Column $column): string
     {
-        $n = $this->connection->quoteIdentifier(
-            $schema !== '' ? $schema . '.' . $name : $name
-        );
-        $this->connection->execute("DROP INDEX IF EXISTS {$n}");
-    }
+        $t   = $this->qualifyTable($table, $schema);
+        $def = $this->buildColumnDefinitionSql($column);
 
-    public function dropPrimaryKey(string $table, string $schema): void
-    {
-        $constraintName = $table . '_pkey';
-        $t = $this->qualifyTable($table, $schema);
-        $n = $this->connection->quoteIdentifier($constraintName);
-        $this->connection->execute("ALTER TABLE {$t} DROP CONSTRAINT IF EXISTS {$n}");
+        return "ALTER TABLE {$t} ADD COLUMN {$def}";
     }
 
     // -------------------------------------------------------------------------
@@ -294,78 +302,6 @@ class Postgresql extends AbstractAdapter
         $unique = strtolower($index->getType()) === 'unique' ? 'UNIQUE ' : '';
 
         return "CREATE {$unique}INDEX {$name} ON {$t} ({$cols})";
-    }
-
-    protected function buildDropForeignKeySql(string $table, string $schema, string $name): string
-    {
-        $t = $this->qualifyTable($table, $schema);
-        $n = $this->connection->quoteIdentifier($name);
-
-        return "ALTER TABLE {$t} DROP CONSTRAINT IF EXISTS {$n}";
-    }
-
-    protected function buildAddColumnSql(string $table, string $schema, Column $column): string
-    {
-        $t   = $this->qualifyTable($table, $schema);
-        $def = $this->buildColumnDefinitionSql($column);
-
-        return "ALTER TABLE {$t} ADD COLUMN {$def}";
-    }
-
-    // -------------------------------------------------------------------------
-    // Driver-specific SQL fragments
-    // -------------------------------------------------------------------------
-
-    protected function getAutoIncSql(): string
-    {
-        return "CASE SUBSTRING(c.column_default FROM 1 FOR 7)"
-            . " WHEN 'nextval' THEN 1 ELSE 0 END";
-    }
-
-    protected function mapType(string $infoType, string $extended): string
-    {
-        $base = strtolower(trim($infoType));
-
-        return self::TYPE_MAP[$base] ?? Column::TYPE_VARCHAR;
-    }
-
-    protected function processDefault(mixed $value, string $type): mixed
-    {
-        if (is_string($value)) {
-            $parts = explode('::', $value);
-            if (count($parts) === 2) {
-                $value = trim($parts[0], "'");
-            }
-        }
-
-        return parent::processDefault($value, $type);
-    }
-
-    /** @param Column[] $columns */
-    protected function processColumnInformation(string $schema, string $table, array $columns): array
-    {
-        $comments = $this->connection->fetchPairs(
-            "SELECT i.column_name, d.description
-             FROM pg_catalog.pg_statio_all_tables s
-             JOIN pg_catalog.pg_description d       ON d.objoid     = s.relid
-             JOIN information_schema.columns i       ON d.objsubid  = i.ordinal_position
-                                                    AND i.table_schema = s.schemaname
-                                                    AND i.table_name   = s.relname
-             WHERE i.table_schema = :schema
-             AND   i.table_name   = :table",
-            ['schema' => $schema, 'table' => $table]
-        );
-
-        foreach ($comments as $colName => $comment) {
-            if (isset($columns[$colName])) {
-                $old        = $columns[$colName];
-                $definition = $this->columnToDefinition($old);
-                $definition['comment'] = $comment;
-                $columns[$colName]     = new Column($colName, $definition);
-            }
-        }
-
-        return $columns;
     }
 
     protected function buildColumnDefinitionSql(Column $column): string
@@ -464,6 +400,70 @@ class Postgresql extends AbstractAdapter
         }
 
         return "CREATE TABLE {$t} (\n" . implode(",\n", $parts) . "\n)";
+    }
+
+    protected function buildDropForeignKeySql(string $table, string $schema, string $name): string
+    {
+        $t = $this->qualifyTable($table, $schema);
+        $n = $this->connection->quoteIdentifier($name);
+
+        return "ALTER TABLE {$t} DROP CONSTRAINT IF EXISTS {$n}";
+    }
+
+    // -------------------------------------------------------------------------
+    // Driver-specific SQL fragments
+    // -------------------------------------------------------------------------
+
+    protected function getAutoIncSql(): string
+    {
+        return "CASE SUBSTRING(c.column_default FROM 1 FOR 7)"
+            . " WHEN 'nextval' THEN 1 ELSE 0 END";
+    }
+
+    protected function mapType(string $infoType, string $extended): string
+    {
+        $base = strtolower(trim($infoType));
+
+        return self::TYPE_MAP[$base] ?? Column::TYPE_VARCHAR;
+    }
+
+    /** @param Column[] $columns */
+    protected function processColumnInformation(string $schema, string $table, array $columns): array
+    {
+        $comments = $this->connection->fetchPairs(
+            "SELECT i.column_name, d.description
+             FROM pg_catalog.pg_statio_all_tables s
+             JOIN pg_catalog.pg_description d       ON d.objoid     = s.relid
+             JOIN information_schema.columns i       ON d.objsubid  = i.ordinal_position
+                                                    AND i.table_schema = s.schemaname
+                                                    AND i.table_name   = s.relname
+             WHERE i.table_schema = :schema
+             AND   i.table_name   = :table",
+            ['schema' => $schema, 'table' => $table]
+        );
+
+        foreach ($comments as $colName => $comment) {
+            if (isset($columns[$colName])) {
+                $old        = $columns[$colName];
+                $definition = $this->columnToDefinition($old);
+                $definition['comment'] = $comment;
+                $columns[$colName]     = new Column($colName, $definition);
+            }
+        }
+
+        return $columns;
+    }
+
+    protected function processDefault(mixed $value, string $type): mixed
+    {
+        if (is_string($value)) {
+            $parts = explode('::', $value);
+            if (count($parts) === 2) {
+                $value = trim($parts[0], "'");
+            }
+        }
+
+        return parent::processDefault($value, $type);
     }
 
     private function columnToDefinition(Column $col): array

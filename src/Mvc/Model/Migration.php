@@ -19,18 +19,18 @@ use Phalcon\Migrations\Db\Adapter\AdapterFactory;
 use Phalcon\Migrations\Db\Adapter\AdapterInterface;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Connection;
-use Phalcon\Migrations\Db\PhalconColumnBridge;
-use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Db\FieldDefinition;
 use Phalcon\Migrations\Db\Index;
+use Phalcon\Migrations\Db\PhalconColumnBridge;
 use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Exception\Db\UnknownColumnTypeException;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Generator\Snippet;
+use Phalcon\Migrations\Listeners\DbProfilerListener;
 use Phalcon\Migrations\Migration\Action\Generate as GenerateAction;
 use Phalcon\Migrations\Migrations;
-use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Utils\Camelize;
+use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Throwable;
@@ -63,12 +63,12 @@ use const DIRECTORY_SEPARATOR;
  */
 class Migration
 {
-    public const DIRECTION_FORWARD = 1;
-    public const DIRECTION_BACK    = -1;
 
     public const DB_ADAPTER_MYSQL      = 'mysql';
     public const DB_ADAPTER_POSTGRESQL = 'postgresql';
     public const DB_ADAPTER_SQLITE     = 'sqlite';
+    public const DIRECTION_BACK    = -1;
+    public const DIRECTION_FORWARD = 1;
 
     private static AdapterInterface $adapter;
 
@@ -103,51 +103,6 @@ class Migration
 
         self::$adapter        = AdapterFactory::create($connection);
         self::$databaseConfig = $config;
-    }
-
-    public static function setSkipAutoIncrement(bool $skip): void
-    {
-        self::$skipAI = $skip;
-    }
-
-    public static function setMigrationPath(string $path): void
-    {
-        self::$migrationPath = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
-    }
-
-    public static function getAdapter(): AdapterInterface
-    {
-        return self::$adapter;
-    }
-
-    public static function getSchema(): ?string
-    {
-        return self::resolveDbSchema(self::$databaseConfig);
-    }
-
-    /**
-     * @throws UnknownColumnTypeException
-     */
-    public static function generateAll(
-        ItemInterface $version,
-        ?string $exportData = null,
-        array $exportTables = [],
-        bool $skipRefSchema = false
-    ): array {
-        $classDefinition = [];
-        $schema          = self::resolveDbSchema(self::$databaseConfig);
-
-        foreach (self::$adapter->listTables($schema ?? '') as $table) {
-            $classDefinition[$table] = self::generate(
-                $version,
-                $table,
-                $exportData,
-                $exportTables,
-                $skipRefSchema
-            );
-        }
-
-        return $classDefinition;
     }
 
     /**
@@ -199,6 +154,41 @@ class Migration
                        );
 
         return $printer->printFile($generateAction->getEntity());
+    }
+
+    /**
+     * @throws UnknownColumnTypeException
+     */
+    public static function generateAll(
+        ItemInterface $version,
+        ?string $exportData = null,
+        array $exportTables = [],
+        bool $skipRefSchema = false
+    ): array {
+        $classDefinition = [];
+        $schema          = self::resolveDbSchema(self::$databaseConfig);
+
+        foreach (self::$adapter->listTables($schema ?? '') as $table) {
+            $classDefinition[$table] = self::generate(
+                $version,
+                $table,
+                $exportData,
+                $exportTables,
+                $skipRefSchema
+            );
+        }
+
+        return $classDefinition;
+    }
+
+    public static function getAdapter(): AdapterInterface
+    {
+        return self::$adapter;
+    }
+
+    public static function getSchema(): ?string
+    {
+        return self::resolveDbSchema(self::$databaseConfig);
     }
 
     /**
@@ -266,6 +256,50 @@ class Migration
         }
     }
 
+    public static function resolveDbSchema(Config $config): ?string
+    {
+        if ($config->schema !== null) {
+            return $config->schema;
+        }
+
+        $adapter = strtolower((string) $config->adapter);
+        if (self::DB_ADAPTER_POSTGRESQL === $adapter) {
+            return 'public';
+        }
+
+        if (self::DB_ADAPTER_SQLITE === $adapter) {
+            return null;
+        }
+
+        return $config->dbname;
+    }
+
+    public static function scanForVersions(string $dir): array
+    {
+        $versions = [];
+        $iterator = new DirectoryIterator($dir);
+        foreach ($iterator as $fileInfo) {
+            $filename = $fileInfo->getFilename();
+            if (!$fileInfo->isDir() || $fileInfo->isDot() || !VersionCollection::isCorrectVersion($filename)) {
+                continue;
+            }
+
+            $versions[] = VersionCollection::createItem($filename);
+        }
+
+        return $versions;
+    }
+
+    public static function setMigrationPath(string $path): void
+    {
+        self::$migrationPath = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
+    }
+
+    public static function setSkipAutoIncrement(bool $skip): void
+    {
+        self::$skipAI = $skip;
+    }
+
     /**
      * @throws RuntimeException
      */
@@ -317,20 +351,83 @@ class Migration
         return null;
     }
 
-    public static function scanForVersions(string $dir): array
+    public function batchDelete(string $tableName): void
     {
-        $versions = [];
-        $iterator = new DirectoryIterator($dir);
-        foreach ($iterator as $fileInfo) {
-            $filename = $fileInfo->getFilename();
-            if (!$fileInfo->isDir() || $fileInfo->isDot() || !VersionCollection::isCorrectVersion($filename)) {
-                continue;
-            }
-
-            $versions[] = VersionCollection::createItem($filename);
+        $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
+        if (!file_exists($migrationData)) {
+            return;
         }
 
-        return $versions;
+        $connection = self::$adapter;
+        $connection->begin();
+        $connection->execute("DELETE FROM {$tableName}");
+
+        $batchHandler = fopen($migrationData, 'r');
+        while (($line = fgetcsv($batchHandler)) !== false) {
+            $values = array_map(
+                static fn($v) => $v === null ? null : stripslashes($v),
+                $line
+            );
+
+            $connection->execute(
+                "DELETE FROM {$tableName} WHERE id = " . $connection->quote((string) $values[0])
+            );
+
+            unset($line);
+        }
+
+        fclose($batchHandler);
+        $connection->commit();
+    }
+
+    public function batchInsert(string $tableName, array $fields, int $size = 1024): void
+    {
+        $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
+        if (!file_exists($migrationData)) {
+            return;
+        }
+
+        $connection = self::$adapter;
+        $connection->begin();
+
+        $str          = '';
+        $pointer      = 1;
+        $batchHandler = fopen($migrationData, 'r');
+        while (($line = fgetcsv($batchHandler)) !== false) {
+            $values = array_map(
+                static function ($value) use ($connection) {
+                    if ($value === null || $value === 'NULL') {
+                        return 'NULL';
+                    }
+
+                    return $connection->quote(stripslashes($value));
+                },
+                $line
+            );
+
+            $str .= sprintf('(%s),', implode(',', $values));
+            if ($pointer === $size) {
+                $this->executeMultiInsert($tableName, $fields, $str);
+                $str     = '';
+                $pointer = 1;
+            } else {
+                $pointer++;
+            }
+
+            unset($line, $values);
+        }
+
+        if ($str !== '') {
+            $this->executeMultiInsert($tableName, $fields, $str);
+        }
+
+        fclose($batchHandler);
+        $connection->commit();
+    }
+
+    public function getConnection(): AdapterInterface
+    {
+        return self::$adapter;
     }
 
     public function morphTable(string $tableName, array $definition): void
@@ -630,85 +727,6 @@ class Migration
         }
     }
 
-    public function batchInsert(string $tableName, array $fields, int $size = 1024): void
-    {
-        $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
-        if (!file_exists($migrationData)) {
-            return;
-        }
-
-        $connection = self::$adapter;
-        $connection->begin();
-
-        $str          = '';
-        $pointer      = 1;
-        $batchHandler = fopen($migrationData, 'r');
-        while (($line = fgetcsv($batchHandler)) !== false) {
-            $values = array_map(
-                static function ($value) use ($connection) {
-                    if ($value === null || $value === 'NULL') {
-                        return 'NULL';
-                    }
-
-                    return $connection->quote(stripslashes($value));
-                },
-                $line
-            );
-
-            $str .= sprintf('(%s),', implode(',', $values));
-            if ($pointer === $size) {
-                $this->executeMultiInsert($tableName, $fields, $str);
-                $str     = '';
-                $pointer = 1;
-            } else {
-                $pointer++;
-            }
-
-            unset($line, $values);
-        }
-
-        if ($str !== '') {
-            $this->executeMultiInsert($tableName, $fields, $str);
-        }
-
-        fclose($batchHandler);
-        $connection->commit();
-    }
-
-    public function batchDelete(string $tableName): void
-    {
-        $migrationData = self::$migrationPath . $this->version . '/' . $tableName . '.dat';
-        if (!file_exists($migrationData)) {
-            return;
-        }
-
-        $connection = self::$adapter;
-        $connection->begin();
-        $connection->execute("DELETE FROM {$tableName}");
-
-        $batchHandler = fopen($migrationData, 'r');
-        while (($line = fgetcsv($batchHandler)) !== false) {
-            $values = array_map(
-                static fn($v) => $v === null ? null : stripslashes($v),
-                $line
-            );
-
-            $connection->execute(
-                "DELETE FROM {$tableName} WHERE id = " . $connection->quote((string) $values[0])
-            );
-
-            unset($line);
-        }
-
-        fclose($batchHandler);
-        $connection->commit();
-    }
-
-    public function getConnection(): AdapterInterface
-    {
-        return self::$adapter;
-    }
-
     protected function executeMultiInsert(string $table, array $columns, string $values): void
     {
         $cols  = implode(',', $columns);
@@ -720,51 +738,6 @@ class Migration
         );
 
         self::$adapter->execute($query);
-    }
-
-    public static function resolveDbSchema(Config $config): ?string
-    {
-        if ($config->schema !== null) {
-            return $config->schema;
-        }
-
-        $adapter = strtolower((string) $config->adapter);
-        if (self::DB_ADAPTER_POSTGRESQL === $adapter) {
-            return 'public';
-        }
-
-        if (self::DB_ADAPTER_SQLITE === $adapter) {
-            return null;
-        }
-
-        return $config->dbname;
-    }
-
-    private function addPrimaryKey(string $tableName, string $schemaName, Index $index): void
-    {
-        try {
-            self::$adapter->addPrimaryKey($tableName, $schemaName, $index);
-        } catch (Throwable $e) {
-            throw RuntimeException::failedToAddPrimaryKey(
-                $index->getName(),
-                $tableName,
-                get_called_class(),
-                $e->getMessage()
-            );
-        }
-    }
-
-    private function dropPrimaryKey(string $tableName, string $schemaName): void
-    {
-        try {
-            self::$adapter->dropPrimaryKey($tableName, $schemaName);
-        } catch (Throwable $e) {
-            throw RuntimeException::failedToDropPrimaryKey(
-                $tableName,
-                get_called_class(),
-                $e->getMessage()
-            );
-        }
     }
 
     private function addIndex(string $tableName, string $schemaName, Index $index): void
@@ -781,6 +754,20 @@ class Migration
         }
     }
 
+    private function addPrimaryKey(string $tableName, string $schemaName, Index $index): void
+    {
+        try {
+            self::$adapter->addPrimaryKey($tableName, $schemaName, $index);
+        } catch (Throwable $e) {
+            throw RuntimeException::failedToAddPrimaryKey(
+                $index->getName(),
+                $tableName,
+                get_called_class(),
+                $e->getMessage()
+            );
+        }
+    }
+
     private function dropIndex(string $tableName, string $schemaName, string $indexName): void
     {
         try {
@@ -788,6 +775,19 @@ class Migration
         } catch (Throwable $e) {
             throw RuntimeException::failedToDropIndex(
                 $indexName,
+                $tableName,
+                get_called_class(),
+                $e->getMessage()
+            );
+        }
+    }
+
+    private function dropPrimaryKey(string $tableName, string $schemaName): void
+    {
+        try {
+            self::$adapter->dropPrimaryKey($tableName, $schemaName);
+        } catch (Throwable $e) {
+            throw RuntimeException::failedToDropPrimaryKey(
                 $tableName,
                 get_called_class(),
                 $e->getMessage()

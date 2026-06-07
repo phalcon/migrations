@@ -25,11 +25,11 @@ class TimestampedItem implements ItemInterface
 {
     use VersionAwareTrait;
 
-    protected string $version;
-
     protected bool $isFullVersion;
 
     protected array $parts = [];
+
+    protected string $version;
 
     private string $path = '';
 
@@ -48,14 +48,6 @@ class TimestampedItem implements ItemInterface
     }
 
     /**
-     * Get integer payload of the version
-     */
-    public function getStamp(): int
-    {
-        return (int) $this->parts[0];
-    }
-
-    /**
      * Get version description
      */
     public function getDescription(): string
@@ -64,19 +56,27 @@ class TimestampedItem implements ItemInterface
     }
 
     /**
-     * Full version has both parts: number and description
-     */
-    public function isFullVersion(): bool
-    {
-        return !!$this->isFullVersion;
-    }
-
-    /**
      * Get migrations directory of incremental item
      */
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * Get integer payload of the version
+     */
+    public function getStamp(): int
+    {
+        return (int) $this->parts[0];
+    }
+
+    /**
+     * Full version has both parts: number and description
+     */
+    public function isFullVersion(): bool
+    {
+        return !!$this->isFullVersion;
     }
 
     /**

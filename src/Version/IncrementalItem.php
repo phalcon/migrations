@@ -34,11 +34,11 @@ class IncrementalItem implements ItemInterface
 {
     use VersionAwareTrait;
 
+    private array $parts;
+
     private string $path = '';
 
     private int $versionStamp = 0;
-
-    private array $parts;
 
     public function __construct(private string $version, int $numberParts = 3)
     {
@@ -66,32 +66,9 @@ class IncrementalItem implements ItemInterface
         $this->regenerateVersionStamp();
     }
 
-    /**
-     * @param ItemInterface[] $versions
-     */
-    public static function maximum(array $versions): ?IncrementalItem
+    public function __toString(): string
     {
-        if (count($versions) === 0) {
-            return null;
-        }
-
-        $versions = self::sortDesc($versions);
-
-        return $versions[0];
-    }
-
-    /**
-     * @param ItemInterface[] $versions
-     */
-    public static function sortDesc(array $versions): array
-    {
-        $sortData = [];
-        foreach ($versions as $version) {
-            $sortData[$version->getStamp()] = $version;
-        }
-        krsort($sortData);
-
-        return array_values($sortData);
+        return $this->version;
     }
 
     /**
@@ -142,6 +119,20 @@ class IncrementalItem implements ItemInterface
 
     /**
      * @param ItemInterface[] $versions
+     */
+    public static function maximum(array $versions): ?IncrementalItem
+    {
+        if (count($versions) === 0) {
+            return null;
+        }
+
+        $versions = self::sortDesc($versions);
+
+        return $versions[0];
+    }
+
+    /**
+     * @param ItemInterface[] $versions
      *
      * @return array ItemInterface[]
      */
@@ -156,9 +147,18 @@ class IncrementalItem implements ItemInterface
         return array_values($sortData);
     }
 
-    public function getStamp(): int
+    /**
+     * @param ItemInterface[] $versions
+     */
+    public static function sortDesc(array $versions): array
     {
-        return $this->versionStamp;
+        $sortData = [];
+        foreach ($versions as $version) {
+            $sortData[$version->getStamp()] = $version;
+        }
+        krsort($sortData);
+
+        return array_values($sortData);
     }
 
     public function addMinor(int $number): IncrementalItem
@@ -179,22 +179,22 @@ class IncrementalItem implements ItemInterface
         return $this;
     }
 
-    public function __toString(): string
-    {
-        return $this->version;
-    }
-
-    public function getVersion(): string
-    {
-        return $this->version;
-    }
-
     /**
      * Get migrations directory of incremental item
      */
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    public function getStamp(): int
+    {
+        return $this->versionStamp;
+    }
+
+    public function getVersion(): string
+    {
+        return $this->version;
     }
 
     /**

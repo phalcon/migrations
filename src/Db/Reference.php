@@ -15,12 +15,12 @@ namespace Phalcon\Migrations\Db;
 
 final class Reference
 {
-    private ?string $referencedSchema;
-    private string $referencedTable;
     private array $columns;
-    private array $referencedColumns;
     private string $onDelete;
     private string $onUpdate;
+    private array $referencedColumns;
+    private ?string $referencedSchema;
+    private string $referencedTable;
 
     public function __construct(
         private readonly string $name,
@@ -34,29 +34,14 @@ final class Reference
         $this->onUpdate          = $definition['onUpdate']          ?? '';
     }
 
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getReferencedSchema(): ?string
-    {
-        return $this->referencedSchema;
-    }
-
-    public function getReferencedTable(): string
-    {
-        return $this->referencedTable;
-    }
-
     public function getColumns(): array
     {
         return $this->columns;
     }
 
-    public function getReferencedColumns(): array
+    public function getName(): string
     {
-        return $this->referencedColumns;
+        return $this->name;
     }
 
     public function getOnDelete(): string
@@ -67,5 +52,20 @@ final class Reference
     public function getOnUpdate(): string
     {
         return $this->onUpdate;
+    }
+
+    public function getReferencedColumns(): array
+    {
+        return $this->referencedColumns;
+    }
+
+    public function getReferencedSchema(): ?string
+    {
+        return $this->referencedSchema;
+    }
+
+    public function getReferencedTable(): string
+    {
+        return $this->referencedTable;
     }
 }

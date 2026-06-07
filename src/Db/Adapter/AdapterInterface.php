@@ -20,28 +20,41 @@ use Phalcon\Migrations\Db\Reference;
 
 interface AdapterInterface
 {
-    public function getConnection(): Connection;
+
+    public function addColumn(string $table, string $schema, Column $column): void;
+
+    public function addForeignKey(string $table, string $schema, Reference $reference): void;
+
+    public function addIndex(string $table, string $schema, Index $index): void;
+
+    public function addPrimaryKey(string $table, string $schema, Index $index): void;
 
     public function begin(): void;
 
     public function commit(): void;
 
-    public function rollback(): void;
+    public function createTable(string $table, string $schema, array $definition): void;
+
+    public function dropColumn(string $table, string $schema, string $column): void;
+
+    public function dropForeignKey(string $table, string $schema, string $name): void;
+
+    public function dropIndex(string $table, string $schema, string $name): void;
+
+    public function dropPrimaryKey(string $table, string $schema): void;
+
+    public function dropTable(string $table, string $schema = ''): void;
 
     public function execute(string $sql, array $values = []): void;
 
     public function fetchAll(string $sql, array $values = []): array;
 
     public function fetchOne(string $sql, array $values = []): array;
-
-    public function quote(string $value): string;
+    public function getConnection(): Connection;
 
     public function getCurrentSchema(): string;
 
-    public function tableExists(string $table, string $schema = ''): bool;
-
-    /** @return string[] */
-    public function listTables(string $schema): array;
+    public function getTableOptions(string $schema, string $table): array;
 
     /** @return Column[] */
     public function listColumns(string $schema, string $table): array;
@@ -52,27 +65,14 @@ interface AdapterInterface
     /** @return Reference[] */
     public function listReferences(string $schema, string $table): array;
 
-    public function getTableOptions(string $schema, string $table): array;
-
-    public function dropTable(string $table, string $schema = ''): void;
-
-    public function createTable(string $table, string $schema, array $definition): void;
-
-    public function addColumn(string $table, string $schema, Column $column): void;
+    /** @return string[] */
+    public function listTables(string $schema): array;
 
     public function modifyColumn(string $table, string $schema, Column $new, Column $current): void;
 
-    public function dropColumn(string $table, string $schema, string $column): void;
+    public function quote(string $value): string;
 
-    public function addIndex(string $table, string $schema, Index $index): void;
+    public function rollback(): void;
 
-    public function dropIndex(string $table, string $schema, string $name): void;
-
-    public function addPrimaryKey(string $table, string $schema, Index $index): void;
-
-    public function dropPrimaryKey(string $table, string $schema): void;
-
-    public function addForeignKey(string $table, string $schema, Reference $reference): void;
-
-    public function dropForeignKey(string $table, string $schema, string $name): void;
+    public function tableExists(string $table, string $schema = ''): bool;
 }

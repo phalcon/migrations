@@ -22,13 +22,13 @@ use const PHP_EOL;
  */
 class Profiler
 {
-    public function start(string $sql, float $startTime): void
-    {
-        echo $startTime, ': ', str_replace(["\n", "\t"], ' ', $sql);
-    }
 
     public function end(string $sql, float $startTime, float $endTime): void
     {
         echo '  => ', $endTime, ' (', ($endTime - $startTime), ')', PHP_EOL;
+    }
+    public function start(string $sql, float $startTime): void
+    {
+        echo $startTime, ': ', str_replace(["\n", "\t"], ' ', $sql);
     }
 }

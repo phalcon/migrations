@@ -45,6 +45,27 @@ class MigrateFiles implements CommandsInterface
     {
     }
 
+    public function getHelp(): void
+    {
+        print Color::head('Help:') . PHP_EOL;
+        print Color::colorize(
+            '  Updates migration files to use Phalcon\Migrations\Db classes'
+            . ' instead of the deprecated Phalcon\Db ones.'
+        ) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Usage:') . PHP_EOL;
+        print Color::colorize(
+            '  migration migrate-files --migrations=<path>',
+            Color::FG_GREEN
+        ) . PHP_EOL . PHP_EOL;
+
+        print Color::head('Options:') . PHP_EOL;
+        print Color::colorize('  --migrations=<path>', Color::FG_GREEN);
+        print Color::colorize('    Path to migrations directory') . PHP_EOL;
+        print Color::colorize('  --dry-run', Color::FG_GREEN);
+        print Color::colorize('             Preview changes without writing files') . PHP_EOL;
+    }
+
     public function getPossibleParams(): array
     {
         return [
@@ -111,26 +132,5 @@ class MigrateFiles implements CommandsInterface
         print PHP_EOL . Color::colorize(
             sprintf('%s %d file(s) out of %d scanned.', $action, $updated, $scanned)
         ) . PHP_EOL;
-    }
-
-    public function getHelp(): void
-    {
-        print Color::head('Help:') . PHP_EOL;
-        print Color::colorize(
-            '  Updates migration files to use Phalcon\Migrations\Db classes'
-            . ' instead of the deprecated Phalcon\Db ones.'
-        ) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage:') . PHP_EOL;
-        print Color::colorize(
-            '  migration migrate-files --migrations=<path>',
-            Color::FG_GREEN
-        ) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Options:') . PHP_EOL;
-        print Color::colorize('  --migrations=<path>', Color::FG_GREEN);
-        print Color::colorize('    Path to migrations directory') . PHP_EOL;
-        print Color::colorize('  --dry-run', Color::FG_GREEN);
-        print Color::colorize('             Preview changes without writing files') . PHP_EOL;
     }
 }
