@@ -198,7 +198,7 @@ jobs:
         run: ls -la coverage/
 
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: >-
