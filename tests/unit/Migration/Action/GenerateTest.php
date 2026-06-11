@@ -25,7 +25,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class GenerateTest extends AbstractTestCase
 {
-
     public function testAddAfterCreateTableWithOnCreate(): void
     {
         $columns = [

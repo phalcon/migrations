@@ -20,7 +20,6 @@ namespace Phalcon\Migrations\Console\Commands;
  */
 interface CommandsInterface
 {
-
     /**
      * Prints help on the usage of the command.
      */

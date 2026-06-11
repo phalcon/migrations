@@ -25,7 +25,6 @@ use function count;
 
 final class MigrationsTest extends AbstractMysqlTestCase
 {
-
     public static function specificMigrationsDataProvider(): array
     {
         return [

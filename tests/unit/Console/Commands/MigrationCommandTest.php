@@ -21,7 +21,6 @@ use Phalcon\Migrations\Utils\Config;
 
 final class MigrationCommandTest extends AbstractTestCase
 {
-
     public function testExportFromTablesFromConfig(): void
     {
         $command = $this->makeCommand([]);

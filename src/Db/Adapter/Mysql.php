@@ -24,7 +24,6 @@ use function strtoupper;
 
 class Mysql extends AbstractAdapter
 {
-
     /** @var array<string,string> maps Column::TYPE_* → SQL DDL type */
     private const DDL_TYPE_MAP = [
         Column::TYPE_BIGINTEGER   => 'BIGINT',
@@ -278,7 +277,7 @@ class Mysql extends AbstractAdapter
             $default = $column->getDefault();
             if ($default === null) {
                 $sql .= ' DEFAULT NULL';
-            } elseif (is_string($default) && in_array(strtoupper($default), ['CURRENT_TIMESTAMP', 'NOW()'], true)) {
+            } elseif ($this->isCurrentTimestampDefault($default)) {
                 $sql .= ' DEFAULT ' . strtoupper($default);
             } else {
                 $sql .= ' DEFAULT ' . $this->connection->quote((string) $default);

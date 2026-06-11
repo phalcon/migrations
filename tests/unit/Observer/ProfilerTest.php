@@ -18,7 +18,6 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 
 final class ProfilerTest extends AbstractTestCase
 {
-
     public function testEndOutputsDuration(): void
     {
         $profiler  = new Profiler();

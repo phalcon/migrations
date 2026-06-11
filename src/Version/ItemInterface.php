@@ -18,7 +18,6 @@ namespace Phalcon\Migrations\Version;
  */
 interface ItemInterface
 {
-
     /**
      * Get the string representation of the version
      */

@@ -21,6 +21,7 @@ use function preg_match;
 use function preg_match_all;
 use function str_contains;
 use function str_replace;
+use function str_starts_with;
 use function strpos;
 use function strtolower;
 use function strtoupper;
@@ -31,7 +32,6 @@ use const PREG_SET_ORDER;
 
 class Sqlite extends AbstractAdapter
 {
-
     private const DDL_TYPE_MAP = [
         Column::TYPE_BIGINTEGER   => 'INTEGER',
         Column::TYPE_BIT          => 'INTEGER',
@@ -87,6 +87,11 @@ class Sqlite extends AbstractAdapter
     public function addForeignKey(string $table, string $schema, Reference $reference): void
     {
         // SQLite foreign keys are defined at table creation only.
+    }
+
+    public function addPrimaryKey(string $table, string $schema, Index $index): void
+    {
+        // SQLite does not support adding a primary key without recreating the table.
     }
 
     public function dropForeignKey(string $table, string $schema, string $name): void
@@ -189,7 +194,12 @@ class Sqlite extends AbstractAdapter
         $indexes = [];
 
         foreach ($list as $idx) {
-            $name   = $idx['name'];
+            $name = $idx['name'];
+            if (str_starts_with($name, 'sqlite_autoindex_')) {
+                // Internal constraint-backed indexes cannot be dropped or recreated
+                continue;
+            }
+
             $unique = (bool) $idx['unique'];
             $cols   = $this->connection->fetchColumn(
                 "PRAGMA {$s}.index_info({$this->quoteName($name)})",
@@ -253,6 +263,16 @@ class Sqlite extends AbstractAdapter
         // morphTable() only adds/drops columns at the SQLite level, not modifies.
     }
 
+    public function tableExists(string $table, string $schema = ''): bool
+    {
+        $s = $this->quoteName($schema ?: 'main');
+
+        return (bool) $this->connection->fetchValue(
+            "SELECT COUNT(*) FROM {$s}.sqlite_master WHERE type = 'table' AND name = :table",
+            ['table' => $table]
+        );
+    }
+
     protected function buildAddIndexSql(string $table, string $schema, Index $index): string
     {
         $name   = $this->connection->quoteIdentifier($index->getName());
@@ -282,6 +302,9 @@ class Sqlite extends AbstractAdapter
             $default = $column->getDefault();
             if ($default === null) {
                 $sql .= ' DEFAULT NULL';
+            } elseif ($this->isCurrentTimestampDefault($default)) {
+                // SQLite only accepts the bare keyword form of the function default
+                $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } else {
                 $sql .= ' DEFAULT ' . $this->connection->quote((string) $default);
             }
@@ -295,14 +318,22 @@ class Sqlite extends AbstractAdapter
         $t     = $this->qualifyTable($table, $schema);
         $parts = [];
 
+        $hasColumnPk = false;
         foreach ($definition['columns'] ?? [] as $column) {
             $parts[] = '    ' . $this->buildColumnDefinitionSql($column);
+            if ($column->isPrimary() && $column->isAutoIncrement()) {
+                // Rendered as INTEGER PRIMARY KEY AUTOINCREMENT by buildColumnDefinitionSql()
+                $hasColumnPk = true;
+            }
         }
 
-        foreach ($definition['indexes'] ?? [] as $index) {
-            if ($index->getType() === Index::TYPE_PRIMARY) {
-                $cols    = $this->quoteColumns($index->getColumns());
-                $parts[] = "    PRIMARY KEY ({$cols})";
+        if (!$hasColumnPk) {
+            foreach ($definition['indexes'] ?? [] as $index) {
+                if ($this->isPrimaryIndex($index)) {
+                    $cols    = $this->quoteColumns($index->getColumns());
+                    $parts[] = "    PRIMARY KEY ({$cols})";
+                    break;
+                }
             }
         }
 

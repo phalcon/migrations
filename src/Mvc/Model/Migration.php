@@ -63,7 +63,6 @@ use const DIRECTORY_SEPARATOR;
  */
 class Migration
 {
-
     public const DB_ADAPTER_MYSQL      = 'mysql';
     public const DB_ADAPTER_POSTGRESQL = 'postgresql';
     public const DB_ADAPTER_SQLITE     = 'sqlite';

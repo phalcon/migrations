@@ -20,7 +20,6 @@ use Phalcon\Migrations\Db\Reference;
 
 interface AdapterInterface
 {
-
     public function addColumn(string $table, string $schema, Column $column): void;
 
     public function addForeignKey(string $table, string $schema, Reference $reference): void;

@@ -26,7 +26,6 @@ use function trim;
 
 class Postgresql extends AbstractAdapter
 {
-
     private const DDL_TYPE_MAP = [
         Column::TYPE_BIGINTEGER   => 'BIGINT',
         Column::TYPE_BIT          => 'BIT',
@@ -267,6 +266,11 @@ class Postgresql extends AbstractAdapter
             $default = $new->getDefault();
             if ($default === null) {
                 $this->connection->execute("ALTER TABLE {$t} ALTER COLUMN {$newName} DROP DEFAULT");
+            } elseif ($this->isCurrentTimestampDefault($default)) {
+                $this->connection->execute(
+                    "ALTER TABLE {$t} ALTER COLUMN {$newName} SET DEFAULT "
+                    . $this->functionDefaultSql((string) $default)
+                );
             } else {
                 $this->connection->execute(
                     "ALTER TABLE {$t} ALTER COLUMN {$newName} SET DEFAULT "
@@ -329,8 +333,8 @@ class Postgresql extends AbstractAdapter
             $default = $column->getDefault();
             if ($default === null) {
                 $sql .= ' DEFAULT NULL';
-            } elseif (is_string($default) && in_array(strtoupper($default), ['CURRENT_TIMESTAMP', 'NOW()'], true)) {
-                $sql .= ' DEFAULT ' . strtoupper($default);
+            } elseif ($this->isCurrentTimestampDefault($default)) {
+                $sql .= ' DEFAULT ' . $this->functionDefaultSql((string) $default);
             } else {
                 $sql .= ' DEFAULT ' . $this->connection->quote((string) $default);
             }
@@ -487,5 +491,11 @@ class Postgresql extends AbstractAdapter
         }
 
         return $def;
+    }
+
+    private function functionDefaultSql(string $default): string
+    {
+        // PostgreSQL rejects the parenthesized CURRENT_TIMESTAMP() spelling
+        return strtoupper($default) === 'NOW()' ? 'NOW()' : 'CURRENT_TIMESTAMP';
     }
 }

@@ -20,7 +20,6 @@ use Phalcon\Migrations\Tests\Fakes\Db\FakeColumn as PhalconColumn;
 
 final class PhalconColumnBridgeTest extends AbstractTestCase
 {
-
     public function testFromPhalconWithAutoIncrementPrimary(): void
     {
         $phalconCol = new PhalconColumn('id', [

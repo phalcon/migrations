@@ -18,7 +18,6 @@ namespace Phalcon\Migrations\Version;
  */
 trait VersionAwareTrait
 {
-
     /**
      * Get the string representation of the version
      */
