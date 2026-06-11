@@ -187,6 +187,7 @@ class Migration implements CommandsInterface
                     'migrationsDir'        => $migrationsDir,
                     'version'              => $this->parser->get('version'),
                     'force'                => $this->parser->has('force'),
+                    'tsBased'              => $migrationsTsBased,
                     'noAutoIncrement'      => $noAutoIncrement,
                     'config'               => $config,
                     'descr'                => $descr,
