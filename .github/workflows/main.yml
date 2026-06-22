@@ -38,7 +38,7 @@ jobs:
           - '8.5'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: "Cache extensions"
         uses: shivammathur/cache-extensions@v1
@@ -128,7 +128,7 @@ jobs:
           - '8.5'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: "Cache extensions"
         uses: shivammathur/cache-extensions@v1
@@ -187,7 +187,7 @@ jobs:
       - run-tests
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: "Download coverage artifacts"
         uses: actions/download-artifact@v8
