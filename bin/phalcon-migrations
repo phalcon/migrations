@@ -19,9 +19,13 @@ use Phalcon\Migrations\Console\Commands\Migration;
 use Phalcon\Migrations\Exception\RuntimeException;
 
 try {
-    $files = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
+    $files = [
+        $GLOBALS['_composer_autoload_path'] ?? null, // set by Composer's bin proxy (installed as a dependency)
+        dirname(__DIR__) . '/vendor/autoload.php',    // standalone clone (the tool's own vendor/)
+        dirname(__DIR__, 3) . '/autoload.php',        // installed as a dependency (host project's vendor/)
+    ];
     foreach ($files as $file) {
-        if (file_exists($file)) {
+        if ($file !== null && file_exists($file)) {
             require $file;
             break;
         }
