@@ -362,7 +362,7 @@ class Migration
         $connection->execute("DELETE FROM {$tableName}");
 
         $batchHandler = fopen($migrationData, 'r');
-        while (($line = fgetcsv($batchHandler)) !== false) {
+        while (($line = fgetcsv($batchHandler, null, ',', '"', '\\')) !== false) {
             $values = array_map(
                 static fn($v) => $v === null ? null : stripslashes($v),
                 $line
