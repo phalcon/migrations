@@ -38,10 +38,12 @@ jobs:
           - '8.5'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: "Cache extensions"
-        uses: shivammathur/cache-extensions@v1
+        uses: shivammathur/cache-extensions@de3c642a5fce0ef91581a1c9831e229f525196d6 # v1
         id: cache-ext
         with:
           php-version: ${{ matrix.php }}
@@ -49,14 +51,14 @@ jobs:
           key: ext-cache-v1
 
       - name: "Restore extensions"
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ steps.cache-ext.outputs.dir }}
           key: ${{ steps.cache-ext.outputs.key }}
           restore-keys: ${{ steps.cache-ext.outputs.key }}
 
       - name: "Setup PHP"
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.EXTENSIONS }}
@@ -69,7 +71,7 @@ jobs:
         run: composer validate --no-check-all --no-check-publish
 
       - name: "Install dependencies"
-        uses: ramsey/composer-install@v4
+        uses: ramsey/composer-install@26d8a556604053a9612623447203a691f406fbe6 # v4
         with:
           composer-options: "--prefer-dist"
 
@@ -128,10 +130,12 @@ jobs:
           - '8.5'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: "Cache extensions"
-        uses: shivammathur/cache-extensions@v1
+        uses: shivammathur/cache-extensions@de3c642a5fce0ef91581a1c9831e229f525196d6 # v1
         id: cache-ext
         with:
           php-version: ${{ matrix.php-versions }}
@@ -139,14 +143,14 @@ jobs:
           key: ext-cache-v1
 
       - name: "Restore extensions"
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ steps.cache-ext.outputs.dir }}
           key: ${{ steps.cache-ext.outputs.key }}
           restore-keys: ${{ steps.cache-ext.outputs.key }}
 
       - name: "Setup PHP"
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: ${{ env.EXTENSIONS }}
@@ -159,7 +163,7 @@ jobs:
         run: composer validate --no-check-all --no-check-publish
 
       - name: "Install dependencies"
-        uses: ramsey/composer-install@v4
+        uses: ramsey/composer-install@26d8a556604053a9612623447203a691f406fbe6 # v4
         with:
           composer-options: "--prefer-dist"
 
@@ -170,7 +174,7 @@ jobs:
         run: composer test-coverage
 
       - name: "Upload coverage file artifact"
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: "coverage-${{ matrix.php-versions }}"
           path: "tests/_output/coverage/clover.xml"
@@ -187,10 +191,12 @@ jobs:
       - run-tests
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: "Download coverage artifacts"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: coverage
 
@@ -198,7 +204,7 @@ jobs:
         run: ls -la coverage/
 
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: >-
