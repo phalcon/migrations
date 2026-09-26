@@ -241,7 +241,7 @@ abstract class AbstractAdapter implements AdapterInterface
             $input                = trim(substr($extended, 4), '()');
             $definition['options'] = array_map(
                 static fn(string $v) => trim($v, "'"),
-                str_getcsv($input)
+                str_getcsv($input, ',', '"', '\\')
             );
         }
 

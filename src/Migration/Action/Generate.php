@@ -301,7 +301,7 @@ class Generate
                     unset($value);
                 }
 
-                fputcsv($fileHandler, $data);
+                fputcsv($fileHandler, $data, ',', '"', '\\');
                 unset($row, $data);
             }
 
