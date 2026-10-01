@@ -392,7 +392,7 @@ class Migration
         $str          = '';
         $pointer      = 1;
         $batchHandler = fopen($migrationData, 'r');
-        while (($line = fgetcsv($batchHandler)) !== false) {
+        while (($line = fgetcsv($batchHandler, null, ',', '"', '\\')) !== false) {
             $values = array_map(
                 static function ($value) use ($connection) {
                     if ($value === null || $value === 'NULL') {
