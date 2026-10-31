@@ -43,7 +43,7 @@ jobs:
           persist-credentials: false
 
       - name: "Cache extensions"
-        uses: shivammathur/cache-extensions@82e72d795771d15c7a99152ca91ea5a95b1a9fdb # v1
+        uses: shivammathur/cache-extensions@c33688ce81fd884ddd70d51cadeb62b6fb974750 # v1
         id: cache-ext
         with:
           php-version: ${{ matrix.php }}
@@ -135,7 +135,7 @@ jobs:
           persist-credentials: false
 
       - name: "Cache extensions"
-        uses: shivammathur/cache-extensions@82e72d795771d15c7a99152ca91ea5a95b1a9fdb # v1
+        uses: shivammathur/cache-extensions@c33688ce81fd884ddd70d51cadeb62b6fb974750 # v1
         id: cache-ext
         with:
           php-version: ${{ matrix.php-versions }}
