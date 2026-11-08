@@ -3,15 +3,13 @@
     "directories": [
         "src"
     ],
-    "files": [
-        "phalcon-migrations"
-    ],
     "finder": [
         {
             "in": "src",
             "name": "*.*"
         }
     ],
+    "output": "phalcon-migrations.phar",
     "git-version": "git_tag",
     "compression": "GZ",
     "compactors": [

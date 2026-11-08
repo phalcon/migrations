@@ -30,6 +30,7 @@
 - Fixed `morphTable()` passing the original `$definition` array (containing unconverted `Phalcon\Db\Column`, `Index`, `Reference` objects) to `createTable()`; objects are now normalised to `Phalcon\Migrations\Db\*` types in-place during the column conversion loop, so old-format migration files work correctly on table creation ([#167](https://github.com/phalcon/migrations/issues/167))
 - Fixed four `\$this` syntax errors in `tests/unit/Cli/RunTest.php` that prevented the test suite from loading ([#167](https://github.com/phalcon/migrations/issues/167))
 - Fixed typo in `Generate::checkEntityExists()` error message: `'Migration entity is e,pty'` → `'Migration entity is empty'` ([#167](https://github.com/phalcon/migrations/issues/167))
+- Fixed `.phar` compilation after moving the CLI entry point to `bin/phalcon-migrations`; `box.json` no longer lists the removed root script and writes `phalcon-migrations.phar` to the project root as the release workflow expects ([#199](https://github.com/phalcon/migrations/pull/199))
 
 ## Changed
 
