@@ -29,10 +29,17 @@
         <!--
             Public library API — classes and methods are entry-points consumed
             by user code and by the CLI binary; Psalm cannot see those callers.
+            Since Psalm 7, references made only from such possibly-unused
+            methods no longer count, so the properties, private methods and
+            private constructors behind them are reported as unused too.
         -->
         <UnusedClass errorLevel="suppress" />
         <PossiblyUnusedMethod errorLevel="suppress" />
         <PossiblyUnusedParam errorLevel="suppress" />
+        <PossiblyUnusedProperty errorLevel="suppress" />
+        <UnusedProperty errorLevel="suppress" />
+        <UnusedMethod errorLevel="suppress" />
+        <UnusedConstructor errorLevel="suppress" />
 
         <!--
             isset($array[$nullable]) is safe in PHP: it returns false when the

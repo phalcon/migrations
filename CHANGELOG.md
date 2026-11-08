@@ -14,6 +14,7 @@
 - Added backwards-compatibility fixtures in `tests/_data/backcompat/old/` and `tests/_data/backcompat/new/` covering old-format (`Phalcon\Db\*`) and new-format (`Phalcon\Migrations\Db\*`) migrations across two versions each (create + alter column) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added migration script to migrate existing migrations to new references; provision for running either migrations (old/refactored) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Added rollback tests exercising `DIRECTION_BACK` and `createPrevClassWithMorphMethod` to verify table structure is correctly restored when running migrations backwards ([#167](https://github.com/phalcon/migrations/issues/167))
+- Added support for PHP 8.6; CI now runs code style, static analysis and tests on PHP 8.2 - 8.6 ([#198](https://github.com/phalcon/migrations/pull/198))
 
 ## Fixed
  
@@ -37,6 +38,7 @@
 - Changed `Observer/Profiler` and `Listeners/DbProfilerListener` without `Phalcon\Db` dependency; query timing output is unchanged ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed minimum PHP version to 8.2 ([#167](https://github.com/phalcon/migrations/issues/167))
 - Changed test suite from Codeception to PHPUnit 11.5; all tests moved to a single `unit` suite under `tests/unit/` ([#167](https://github.com/phalcon/migrations/issues/167))
+- Changed `vimeo/psalm` to `^7.1`, which supports PHP 8.6; Psalm 7 reports code reached only through the public API as unused, so `PossiblyUnusedProperty`, `UnusedProperty`, `UnusedMethod` and `UnusedConstructor` are suppressed alongside `PossiblyUnusedMethod` ([#198](https://github.com/phalcon/migrations/pull/198))
 - Configured PHPStan at level 5 (embedded in `phpstan.neon.dist`); zero errors ([#167](https://github.com/phalcon/migrations/issues/167))
 - Configured Psalm (`psalm.xml.dist`) with suppressions for `MissingOverrideAttribute` (PHP 8.3 only, project targets 8.2), `PossiblyUnusedMethod`/`UnusedClass` (library public API), `PossiblyNullArrayOffset` (`isset` is safe with null keys), `PossiblyInvalidCast` (Psalm cannot track the conditional `$storage` field type), and `RedundantCast` (Psalm contradicts itself on `pow()` return type narrowing) ([#167](https://github.com/phalcon/migrations/issues/167))
 - Expanded test suite from 91 to 342 tests; added test classes for `Utils\Config`, `Utils\Helper`, `Version\IncrementalItem`, `Version\ItemCollection`, `Version\TimestampedItem`, `Console\Color`, `Console\OptionStack`, `Console\Commands\MigrateFiles`, `Console\Commands\Migration`, `Generator\Snippet`, all `Exception` classes, `Observer\Profiler`, `Listeners\DbProfilerListener`, `Db\PhalconColumnBridge`, `Db\FieldDefinition`, `Db\Adapter\Mysql`, `Db\Adapter\Postgresql`, `Db\Connection`, `Migration\Action\Generate`, `Mvc\Model\Migration`, and `Mvc\Model\Migration\TableAware\ListTablesIterator` ([#167](https://github.com/phalcon/migrations/issues/167))
