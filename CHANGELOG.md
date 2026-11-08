@@ -1,4 +1,4 @@
-# [unreleased]
+# [4.0.0](https://github.com/phalcon/migrations/releases/tag/v4.0.0) (2026-11-08)
 
 ## Added
 
