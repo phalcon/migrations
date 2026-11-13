@@ -66,13 +66,16 @@ class OptionStack implements ArrayAccess
     public function getVersionNameGeneratingMigration(): ItemInterface
     {
         /**
-         * Use timestamped version if description is provided.
+         * Use timestamped version if requested or if description is provided.
          */
-        if (isset($this->options['descr'])) {
+        $descr = (string) ($this->options['descr'] ?? '');
+        if ($descr !== '' || !empty($this->options['tsBased'])) {
             $this->options['version'] = (string) (int) (microtime(true) * pow(10, 6));
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
 
-            return VersionCollection::createItem($this->options['version'] . '_' . $this->options['descr']);
+            $versionName = $this->options['version'] . ($descr !== '' ? '_' . $descr : '');
+
+            return VersionCollection::createItem($versionName);
         }
 
         VersionCollection::setType(VersionCollection::TYPE_INCREMENTAL);

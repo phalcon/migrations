@@ -40,6 +40,11 @@ abstract class AbstractCliTestCase extends AbstractMysqlTestCase
         $this->assertStringContainsString($text, $this->lastOutput);
     }
 
+    protected function assertOutputMatches(string $pattern): void
+    {
+        $this->assertMatchesRegularExpression($pattern, $this->lastOutput);
+    }
+
     protected function assertExitCode(int $expected): void
     {
         $this->assertSame($expected, $this->lastExitCode);

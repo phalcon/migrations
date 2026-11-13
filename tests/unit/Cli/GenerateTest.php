@@ -51,6 +51,27 @@ final class GenerateTest extends AbstractCliTestCase
         $this->assertExitCode(0);
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/144
+     */
+    public function testGenerateTsBasedWithoutDescr(): void
+    {
+        $this->getPhalconDb()->createTable('cli-ts-based-test', '', [
+            'columns' => [
+                new Column('id', [
+                    'type'    => Column::TYPE_INTEGER,
+                    'size'    => 10,
+                    'notNull' => true,
+                ]),
+            ],
+        ]);
+
+        $this->runCommand('php bin/phalcon-migrations generate --ts-based --config=' . $this->configPath);
+
+        $this->assertOutputMatches('/Success: Version \d+ was successfully generated/');
+        $this->assertExitCode(0);
+    }
+
     public function testGenerateWithRefSchema(): void
     {
         $schema = $_ENV['MYSQL_TEST_DB_DATABASE'];
