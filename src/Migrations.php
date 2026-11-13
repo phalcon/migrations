@@ -74,6 +74,7 @@ use const FILE_IGNORE_NEW_LINES;
 use const PHP_EOL;
 use const PHP_SAPI;
 use const PREG_SPLIT_NO_EMPTY;
+use const SORT_NATURAL;
 
 class Migrations
 {
@@ -119,7 +120,7 @@ class Migrations
             $currentVersions           = self::getCompletedVersions($options);
             $currentVersions[$version] = 1;
             $currentVersions           = array_keys($currentVersions);
-            sort($currentVersions);
+            sort($currentVersions, SORT_NATURAL);
             file_put_contents(self::$storage, implode("\n", $currentVersions));
         }
     }
@@ -282,18 +283,15 @@ class Migrations
         self::connectionSetup($options);
 
         if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
-            /** @var AdapterInterface $storage */
-            $storage = self::$storage;
-            $query   = 'SELECT version FROM '
-                       . self::MIGRATION_LOG_TABLE
-                       . ' ORDER BY version DESC LIMIT 1';
-            $row     = $storage->fetchOne($query);
-
-            if ($row === []) {
+            // SQL ORDER BY compares versions as strings (1.0.9 > 1.0.10), so pick the maximum in PHP
+            $versions = array_map('strval', array_keys(self::getCompletedVersions($options)));
+            if ($versions === []) {
                 return VersionCollection::createItem();
             }
 
-            return VersionCollection::createItem($row['version']);
+            sort($versions, SORT_NATURAL);
+
+            return VersionCollection::createItem(array_pop($versions));
         }
 
         // Get and clean migration
@@ -422,7 +420,7 @@ class Migrations
             $currentVersions = self::getCompletedVersions($options);
             unset($currentVersions[$version]);
             $currentVersions = array_keys($currentVersions);
-            sort($currentVersions);
+            sort($currentVersions, SORT_NATURAL);
             file_put_contents(self::$storage, implode("\n", $currentVersions));
         }
     }
