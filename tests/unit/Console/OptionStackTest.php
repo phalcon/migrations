@@ -88,6 +88,37 @@ final class OptionStackTest extends AbstractTestCase
         ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/144
+     */
+    public function testGetVersionNameGeneratingMigrationWithTsBasedWithoutDescr(): void
+    {
+        $options = new OptionStack([
+            'tsBased'       => true,
+            'migrationsDir' => [],
+        ]);
+
+        $version = $options->getVersionNameGeneratingMigration();
+        ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
+
+        $this->assertInstanceOf(TimestampedItem::class, $version);
+        $this->assertMatchesRegularExpression('/^\d+$/', $version->getVersion());
+    }
+
+    public function testGetVersionNameGeneratingMigrationWithTsBasedAndEmptyDescr(): void
+    {
+        $options = new OptionStack([
+            'tsBased'       => true,
+            'descr'         => '',
+            'migrationsDir' => [],
+        ]);
+
+        $version = $options->getVersionNameGeneratingMigration();
+        ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
+
+        $this->assertMatchesRegularExpression('/^\d+$/', $version->getVersion());
+    }
+
     public function testGetVersionNameGeneratingMigrationWithExplicitVersion(): void
     {
         $options = new OptionStack([

@@ -4,6 +4,7 @@
 
 - Fixed versions being ordered as strings instead of naturally in the `.phalcon/migration-version` file and when reading the latest version from the migrations log table, so `1.0.10` was listed before `1.0.2` and `1.0.9` was reported as current over `1.0.10` ([#181](https://github.com/phalcon/migrations/issues/181))
 - Fixed migrations log table creation failing on MySQL servers with utf8mb4 and MyISAM or older InnoDB row formats by shrinking the `version` primary key column from `VARCHAR(255)` to `VARCHAR(191)` ([#148](https://github.com/phalcon/migrations/issues/148))
+- Fixed `generate` ignoring the `--ts-based` option and the `migrationsTsBased` config: it now creates a timestamp-based version without requiring `--descr`, and an empty `--descr` no longer produces an invalid version name ([#144](https://github.com/phalcon/migrations/issues/144))
 
 # [4.0.0](https://github.com/phalcon/migrations/releases/tag/v4.0.0) (2026-11-08)
 
