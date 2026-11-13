@@ -1,4 +1,4 @@
-# [unreleased]
+# [4.0.1](https://github.com/phalcon/migrations/releases/tag/v4.0.1) (2026-11-13)
 
 ## Fixed
 
