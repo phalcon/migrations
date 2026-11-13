@@ -136,7 +136,8 @@ class Migrations
             'columns' => [
                 new Column('version', [
                     'type'    => Column::TYPE_VARCHAR,
-                    'size'    => 255,
+                    // 191 * 4 bytes (utf8mb4) fits the 767/1000-byte key limits of older InnoDB and MyISAM
+                    'size'    => 191,
                     'notNull' => true,
                     'first'   => true,
                     'primary' => true,
