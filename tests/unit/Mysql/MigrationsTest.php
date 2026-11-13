@@ -344,6 +344,24 @@ final class MigrationsTest extends AbstractMysqlTestCase
         $this->assertSame(Index::TYPE_PRIMARY, $currentIndex->getType());
     }
 
+    /**
+     * The primary key must fit 767/1000-byte key limits with utf8mb4 (4 bytes per char).
+     *
+     * @see https://github.com/phalcon/migrations/issues/148
+     */
+    public function testPhalconMigrationsTableVersionFitsUtf8mb4KeyLimit(): void
+    {
+        Migrations::addCurrentVersion([
+            'config'         => static::getMigrationsConfig(),
+            'migrationsInDb' => true,
+        ], '1.0.0');
+
+        $versionColumn = $this->describeColumns(Migrations::MIGRATION_LOG_TABLE)[0];
+
+        $this->assertSame('version', $versionColumn->getName());
+        $this->assertSame(191, $versionColumn->getSize());
+    }
+
     public function testRunAllMigrations(): void
     {
         $this->runIssue66Migrations();
