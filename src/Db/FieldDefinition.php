@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Db;
 
+use function in_array;
+
 class FieldDefinition
 {
     private string $name;
@@ -96,9 +98,12 @@ class FieldDefinition
         $a = $this->currentColumn;
         $b = $other->getColumn();
 
+        // For an integer, the size and the scale do not change the storage
+        $isInteger = in_array($a->getType(), Column::INTEGER_TYPES, true);
+
         return $a->getType()          !== $b->getType()
-            || $a->getSize()          !== $b->getSize()
-            || $a->getScale()         !== $b->getScale()
+            || (!$isInteger && $a->getSize()  !== $b->getSize())
+            || (!$isInteger && $a->getScale() !== $b->getScale())
             || $a->isNotNull()        !== $b->isNotNull()
             || $a->isUnsigned()       !== $b->isUnsigned()
             || $a->isAutoIncrement()  !== $b->isAutoIncrement()

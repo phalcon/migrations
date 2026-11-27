@@ -18,6 +18,8 @@ use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 
 use function implode;
+use function in_array;
+use function preg_match;
 use function sprintf;
 use function strtolower;
 use function strtoupper;
@@ -57,6 +59,7 @@ class Mysql extends AbstractAdapter
 
     private const NO_SIZE_TYPES = [
         Column::TYPE_BLOB,
+        Column::TYPE_BOOLEAN,
         Column::TYPE_DATE,
         Column::TYPE_DATETIME,
         Column::TYPE_DOUBLE,
@@ -238,6 +241,27 @@ class Mysql extends AbstractAdapter
         }
 
         $this->connection->execute($sql);
+    }
+
+    /**
+     * information_schema gives the numeric precision as the size of an
+     * integer. Use the display width in column_type (int(11)) for the size.
+     * MySQL 8.0.19+ gives no display width (int), so the size is null.
+     * BOOLEAN (TINYINT(1)) has no size.
+     */
+    protected function buildColumn(array $row, bool $isFirst, ?string $previous): Column
+    {
+        $extended = (string) ($row['extended'] ?? '');
+        $type     = $this->mapType((string) $row['type'], $extended);
+
+        if (in_array($type, Column::INTEGER_TYPES, true)) {
+            $row['size'] = null;
+            if ($type !== Column::TYPE_BOOLEAN && preg_match('/^[a-z]+\((\d+)\)/i', $extended, $matches) === 1) {
+                $row['size'] = $matches[1];
+            }
+        }
+
+        return parent::buildColumn($row, $isFirst, $previous);
     }
 
     protected function buildColumnDefinitionSql(Column $column): string

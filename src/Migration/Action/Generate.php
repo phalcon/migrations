@@ -49,6 +49,7 @@ class Generate
 {
     protected array $noSizeColumnTypes = [
         Column::TYPE_BLOB,
+        Column::TYPE_BOOLEAN,
         Column::TYPE_DATE,
         Column::TYPE_DATETIME,
         Column::TYPE_DOUBLE,
