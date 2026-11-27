@@ -1,5 +1,10 @@
 # [Unreleased]
 
+## Fixed
+
+- Fixed `generate` writing the numeric precision as the size of MySQL integer columns (for example `'size' => 10` for `INT` and `'size' => 3` for `TINYINT(1)`); the size is now the display width of the column type, or no size when the server gives none (MySQL 8.0.19+) ([#139](https://github.com/phalcon/migrations/issues/139))
+- Fixed a MySQL `TYPE_BOOLEAN` column with a size giving `TINYINT(1)(3)`, a syntax error on create and modify, and the table morph changing every integer column on each run because it compared the size and the scale of integers, which do not change the storage ([#218](https://github.com/phalcon/migrations/issues/218))
+
 ## Changed
 
 - Changed CI to run php-cs-fixer (dry run) in the code style job on PHP 8.2 - 8.5 (php-cs-fixer does not support PHP 8.6 yet), and fixed the order of the test methods in `OptionStackTest` and `VersionLogTest` ([#216](https://github.com/phalcon/migrations/issues/216))
