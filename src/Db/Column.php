@@ -54,6 +54,7 @@ final class Column
     public const TYPE_TINYBLOB     = 'tinyblob';
     public const TYPE_TINYINTEGER  = 'tinyinteger';
     public const TYPE_TINYTEXT     = 'tinytext';
+    public const TYPE_UUID         = 'uuid';
     public const TYPE_VARCHAR      = 'varchar';
     private ?string $after;
     private bool $autoIncrement;

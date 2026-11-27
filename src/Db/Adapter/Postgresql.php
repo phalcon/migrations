@@ -53,6 +53,7 @@ class Postgresql extends AbstractAdapter
         Column::TYPE_TINYBLOB     => 'BYTEA',
         Column::TYPE_TINYINTEGER  => 'SMALLINT',
         Column::TYPE_TINYTEXT     => 'TEXT',
+        Column::TYPE_UUID         => 'UUID',
         Column::TYPE_VARCHAR      => 'CHARACTER VARYING',
     ];
 
@@ -79,6 +80,7 @@ class Postgresql extends AbstractAdapter
         Column::TYPE_TINYBLOB,
         Column::TYPE_TINYINTEGER,
         Column::TYPE_TINYTEXT,
+        Column::TYPE_UUID,
     ];
 
     private const TYPE_MAP = [
@@ -103,6 +105,7 @@ class Postgresql extends AbstractAdapter
         'timestamp'                 => Column::TYPE_TIMESTAMP,
         'timestamp without time zone' => Column::TYPE_TIMESTAMP,
         'timestamp with time zone'  => Column::TYPE_TIMESTAMP,
+        'uuid'                      => Column::TYPE_UUID,
     ];
     protected string $currentSchemaSql = 'SELECT CURRENT_SCHEMA';
 

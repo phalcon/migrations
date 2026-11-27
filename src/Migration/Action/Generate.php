@@ -63,6 +63,7 @@ class Generate
         Column::TYPE_TIMESTAMP,
         Column::TYPE_TINYBLOB,
         Column::TYPE_TINYTEXT,
+        Column::TYPE_UUID,
     ];
 
     protected array $noSizeColumnTypesPostgreSQL = [
@@ -120,6 +121,7 @@ class Generate
         Column::TYPE_TINYBLOB     => 'TYPE_TINYBLOB',
         Column::TYPE_TINYINTEGER  => 'TYPE_TINYINTEGER',
         Column::TYPE_TINYTEXT     => 'TYPE_TINYTEXT',
+        Column::TYPE_UUID         => 'TYPE_UUID',
         Column::TYPE_VARCHAR      => 'TYPE_VARCHAR',
     ];
 
