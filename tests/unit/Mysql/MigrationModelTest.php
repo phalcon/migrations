@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
+use PDOException;
 use Phalcon\Migrations\Db\Column;
+use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Mvc\Model\Migration;
@@ -34,6 +36,13 @@ final class MigrationModelTest extends AbstractMysqlTestCase
 
     protected function tearDown(): void
     {
+        // A failed batch method can leave the transaction of the migration
+        // open. It locks the tables, and parent::tearDown() cannot drop them.
+        try {
+            Migration::getAdapter()->rollback();
+        } catch (PDOException) {
+        }
+
         Migrations::resetStorage();
         parent::tearDown();
     }
@@ -66,6 +75,60 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $fake->batchDelete($table);
 
         $this->assertNumRecords(0, $table);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/223
+     */
+    public function testBatchDeleteClearsTableWithNoIdColumn(): void
+    {
+        $table = 'mm_batch_delete_no_id';
+
+        $this->getPhalconDb()->createTable($table, $_ENV['MYSQL_TEST_DB_DATABASE'], [
+            'columns' => [
+                new Column('code', ['type' => Column::TYPE_VARCHAR, 'size' => 10, 'notNull' => true]),
+            ],
+        ]);
+        $this->getPhalconDb()->execute("INSERT INTO `{$table}` VALUES ('A'), ('B')");
+
+        $this->migrationWithData(__FUNCTION__, $table, "A\nB\n")->batchDelete($table);
+
+        $this->assertNumRecords(0, $table);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/223
+     */
+    public function testBatchDeleteQuotesTheTableName(): void
+    {
+        $table = 'order';
+
+        $this->getPhalconDb()->createTable($table, $_ENV['MYSQL_TEST_DB_DATABASE'], [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+            ],
+        ]);
+        $this->getPhalconDb()->execute("INSERT INTO `{$table}` VALUES (1), (2)");
+
+        $this->migrationWithData(__FUNCTION__, $table, "1\n2\n")->batchDelete($table);
+
+        $this->assertNumRecords(0, $table);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/223
+     */
+    public function testBatchDeleteRollsBackOnError(): void
+    {
+        $migration = $this->migrationWithData(__FUNCTION__, 'mm_batch_delete_missing', "1\n");
+
+        try {
+            $migration->batchDelete('mm_batch_delete_missing');
+            $this->fail('batchDelete() must throw for a table that does not exist');
+        } catch (PDOException) {
+        }
+
+        $this->assertNoOpenTransaction();
     }
 
     public function testBatchDeleteSkipsWhenNoDatFile(): void
@@ -121,6 +184,55 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $fake->batchInsert($table, ['`id`', '`name`']);
 
         $this->assertNumRecords(3, $table);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/223
+     */
+    public function testBatchInsertQuotesTheTableName(): void
+    {
+        $table = 'order';
+
+        $this->getPhalconDb()->createTable($table, $_ENV['MYSQL_TEST_DB_DATABASE'], [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+            ],
+        ]);
+
+        $this->migrationWithData(__FUNCTION__, $table, "1\n2\n")->batchInsert($table, ['id']);
+
+        $this->assertNumRecords(2, $table);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/223
+     */
+    public function testBatchInsertRollsBackOnError(): void
+    {
+        $table = 'mm_batch_insert_error';
+
+        $this->getPhalconDb()->createTable($table, $_ENV['MYSQL_TEST_DB_DATABASE'], [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
+            ],
+        ]);
+
+        // One row for each INSERT: the second INSERT fails on the duplicate key
+        $migration = $this->migrationWithData(__FUNCTION__, $table, "1\n1\n");
+        try {
+            $migration->batchInsert($table, ['id'], 1);
+            $this->fail('batchInsert() must throw for a duplicate key');
+        } catch (PDOException) {
+        }
+
+        $this->assertNoOpenTransaction();
+
+        // The connection of the migration does not see the first row: it was rolled back
+        $count = Migration::getAdapter()->fetchOne("SELECT COUNT(*) AS cnt FROM `{$table}`");
+        $this->assertSame(0, (int) $count['cnt']);
     }
 
     // -------------------------------------------------------------------------
@@ -589,5 +701,35 @@ final class MigrationModelTest extends AbstractMysqlTestCase
         $this->expectExceptionMessage('Unspecified database Adapter');
 
         Migration::setup($config);
+    }
+
+    private function assertNoOpenTransaction(): void
+    {
+        $adapter = Migration::getAdapter();
+
+        // PDO throws in begin() when a transaction is still open
+        try {
+            $adapter->begin();
+        } catch (PDOException) {
+            // Close the open transaction, so that tearDown() can drop the tables
+            $adapter->rollback();
+            $this->fail('The transaction of the batch method is still open');
+        }
+
+        $adapter->rollback();
+        $this->addToAssertionCount(1);
+    }
+
+    private function migrationWithData(string $name, string $table, string $data): MigrationFake
+    {
+        $dir = $this->getOutputDir($name);
+        mkdir($dir . '/1.0.0', 0755);
+        file_put_contents($dir . '/1.0.0/' . $table . '.dat', $data);
+
+        Migration::setMigrationPath($dir . '/');
+        $migration = new MigrationFake();
+        $migration->setVersion('1.0.0');
+
+        return $migration;
     }
 }
