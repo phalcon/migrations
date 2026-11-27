@@ -27,6 +27,7 @@ use Phalcon\Migrations\Generator\Snippet;
 use Phalcon\Migrations\Mvc\Model\Migration;
 use Phalcon\Migrations\Version\ItemInterface;
 
+use function addcslashes;
 use function addslashes;
 use function array_merge;
 use function array_replace;
@@ -161,7 +162,7 @@ class Generate
             foreach ($this->quoteWrappedColumns as $quoteWrappedColumn) {
                 $quoteWrappedColumns .= "    $quoteWrappedColumn,\n";
             }
-            $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
+            $body = "\$this->batchInsert({$this->getTableNameConstant($table)}, [{$quoteWrappedColumns}]);";
 
             $this->class?->addMethod('afterCreateTable')
                 ->addComment("This method is called after the table was created\n")
@@ -179,7 +180,7 @@ class Generate
 
         $body = "\n";
         if ($exportData === 'always' || $shouldExportDataFromTable) {
-            $body = "\$this->batchDelete('$table');";
+            $body = "\$this->batchDelete({$this->getTableNameConstant($table)});";
         }
 
         $this->class?->addMethod('down')
@@ -201,21 +202,33 @@ class Generate
         $columns = [];
         foreach ($this->getColumns() as $columnName => $columnDefinition) {
             $definitions = implode(",\n                ", $columnDefinition);
-            $columns[] = sprintf($snippet->getColumnTemplate(), $columnName, $definitions);
+            $columns[] = sprintf(
+                $snippet->getColumnTemplate(),
+                $this->wrapWithQuotes((string) $columnName),
+                $definitions
+            );
         }
 
         $indexes = [];
         foreach ($this->getIndexes() as $indexName => $indexDefinition) {
             [$fields, $indexType] = $indexDefinition;
             $definitions = implode(", ", $fields);
-            $type = $indexType ? "'$indexType'" : "''";
-            $indexes[] = sprintf($snippet->getIndexTemplate(), $indexName, $definitions, $type);
+            $indexes[] = sprintf(
+                $snippet->getIndexTemplate(),
+                $this->wrapWithQuotes((string) $indexName),
+                $definitions,
+                $this->wrapWithQuotes((string) $indexType)
+            );
         }
 
         $references = [];
         foreach ($this->getReferences($skipRefSchema) as $constraintName => $referenceDefinition) {
             $definitions = implode(",\n                ", $referenceDefinition);
-            $references[] = sprintf($snippet->getReferenceTemplate(), $constraintName, $definitions);
+            $references[] = sprintf(
+                $snippet->getReferenceTemplate(),
+                $this->wrapWithQuotes((string) $constraintName),
+                $definitions
+            );
         }
 
         $options = [];
@@ -225,7 +238,7 @@ class Generate
 
         $body = sprintf(
             $snippet->getMorphTemplate(),
-            $table,
+            $this->getTableNameConstant($table),
             $snippet->definitionToString('columns', $columns)
             . $snippet->definitionToString('indexes', $indexes)
             . $snippet->definitionToString('references', $references)
@@ -235,7 +248,7 @@ class Generate
         $this->class?->addMethod('morph')
             ->addComment("Define the table structure\n")
             ->addComment('@return void')
-            ->addComment('@throws Exception')
+            ->addComment('@throws \Exception')
             ->setReturnType('void')
             ->setBody($body);
 
@@ -252,7 +265,7 @@ class Generate
             foreach ($this->quoteWrappedColumns as $quoteWrappedColumn) {
                 $quoteWrappedColumns .= "    $quoteWrappedColumn,\n";
             }
-            $body = "\$this->batchInsert('$table', [{$quoteWrappedColumns}]);";
+            $body = "\$this->batchInsert({$this->getTableNameConstant($table)}, [{$quoteWrappedColumns}]);";
         }
 
         $this->class?->addMethod('up')
@@ -314,16 +327,19 @@ class Generate
         return $this;
     }
 
-    public function createEntity(string $className, bool $recreate = false): self
+    public function createEntity(string $className, bool $recreate = false, string $namespace = ''): self
     {
         if (null === $this->class || $recreate) {
             $this->file = new PhpFile();
-            $this->file->addUse(Column::class)
+            $this->file->setStrictTypes();
+
+            $container = $namespace !== '' ? $this->file->addNamespace($namespace) : $this->file;
+            $container->addUse(Column::class)
                 ->addUse(Index::class)
                 ->addUse(Reference::class)
                 ->addUse(Migration::class);
 
-            $this->class = $this->file->addClass($className);
+            $this->class = $container->addClass($className);
             $this->class
                 ->setExtends(Migration::class)
                 ->addComment("Class {$className}");
@@ -370,7 +386,7 @@ class Generate
             ];
 
             if ($column->hasDefault() && !$column->isAutoIncrement()) {
-                $definition[] = sprintf("'default' => \"%s\"", $column->getDefault());
+                $definition[] = "'default' => " . $this->wrapWithQuotes((string) $column->getDefault(), '"');
             }
 
             if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && $column->isPrimary()) {
@@ -407,14 +423,14 @@ class Generate
 
             if ($column->getOptions() !== null) {
                 $opts = implode(', ', array_map(
-                    fn($v) => "'" . addslashes((string) $v) . "'",
+                    fn($v) => $this->wrapWithQuotes((string) $v),
                     $column->getOptions()
                 ));
                 $definition[] = "'options' => [{$opts}]";
             }
 
             if ($column->getComment() !== '') {
-                $definition[] = sprintf("'comment' => \"%s\"", $column->getComment());
+                $definition[] = "'comment' => " . $this->wrapWithQuotes($column->getComment(), '"');
             }
 
             $this->quoteWrappedColumns[] = $this->wrapWithQuotes($column->getName());
@@ -424,7 +440,7 @@ class Generate
              */
             $definition[] = $currentColumnName === null ?
                 "'first' => true" :
-                "'after' => '" . $currentColumnName . "'";
+                "'after' => " . $this->wrapWithQuotes($currentColumnName);
             $currentColumnName = $column->getName();
 
             yield $column->getName() => $definition;
@@ -501,7 +517,7 @@ class Generate
         foreach ($this->references as $constraintName => $reference) {
             $referenceColumns = [];
             foreach ($reference->getColumns() as $column) {
-                $referenceColumns[] = sprintf("'%s'", $column);
+                $referenceColumns[] = $this->wrapWithQuotes($column);
             }
 
             $referencedColumns = [];
@@ -522,8 +538,8 @@ class Generate
                 sprintf("'referencedTable' => %s", $this->wrapWithQuotes($reference->getReferencedTable())),
                 "'columns' => [" . join(',', array_unique($referenceColumns)) . "]",
                 "'referencedColumns' => [" . join(',', array_unique($referencedColumns)) . "]",
-                sprintf("'onUpdate' => '%s'", $reference->getOnUpdate()),
-                sprintf("'onDelete' => '%s'", $reference->getOnDelete()),
+                "'onUpdate' => " . $this->wrapWithQuotes((string) $reference->getOnUpdate()),
+                "'onDelete' => " . $this->wrapWithQuotes((string) $reference->getOnDelete()),
             ]);
         }
     }
@@ -531,9 +547,15 @@ class Generate
     /**
      * Just wrap string with single quotes
      */
+    /**
+     * Wrap the value with quotes, as a PHP string literal. A backslash and the
+     * quote are escaped. In double quotes, the "$" is also escaped.
+     */
     public function wrapWithQuotes(string $columnName, string $quote = "'"): string
     {
-        return $quote . $columnName . $quote;
+        $special = $quote === '"' ? '\\"$' : '\\' . $quote;
+
+        return $quote . addcslashes($columnName, $special) . $quote;
     }
 
     /**
@@ -572,5 +594,18 @@ class Generate
         $size = $columnsSize ?: 1;
 
         return $size;
+    }
+
+    /**
+     * Add the TABLE_NAME constant to the class one time, and give the
+     * expression that the generated code uses for the table name.
+     */
+    private function getTableNameConstant(string $table): string
+    {
+        if ($this->class !== null && !isset($this->class->getConstants()['TABLE_NAME'])) {
+            $this->class->addConstant('TABLE_NAME', $table);
+        }
+
+        return 'self::TABLE_NAME';
     }
 }

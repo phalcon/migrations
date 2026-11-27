@@ -34,7 +34,7 @@ class Snippet
     public function getColumnTemplate(): string
     {
         return "new Column(
-            '%s',
+            %s,
             [
                 %s
             ]
@@ -43,11 +43,11 @@ class Snippet
 
     public function getIndexTemplate(): string
     {
-        return "new Index('%s', [%s], %s)";
+        return "new Index(%s, [%s], %s)";
     }
     public function getMorphTemplate(): string
     {
-        return "\$this->morphTable('%s', [\n%s]);";
+        return "\$this->morphTable(%s, [\n%s]);";
     }
 
     public function getOptionTemplate(): string
@@ -58,7 +58,7 @@ class Snippet
     public function getReferenceTemplate(): string
     {
         return "new Reference(
-            '%s',
+            %s,
             [
                 %s
             ]

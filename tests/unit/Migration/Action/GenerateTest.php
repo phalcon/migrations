@@ -89,6 +89,49 @@ final class GenerateTest extends AbstractTestCase
         $this->assertStringContainsString('test_table', $code);
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/107
+     */
+    public function testAddMorphUsesTheTableNameConstant(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+        ];
+
+        $class = new Generate('mysql', $columns);
+        $class->createEntity('TestMigration');
+        $class->addMorph(new Snippet(), 'test_table');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString("public const TABLE_NAME = 'test_table';", $code);
+        $this->assertStringContainsString('$this->morphTable(self::TABLE_NAME, [', $code);
+        $this->assertStringNotContainsString("morphTable('test_table'", $code);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/107
+     */
+    public function testAddUpAndDownUseTheTableNameConstant(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+        ];
+
+        $class = new Generate('mysql', $columns);
+        $class->createEntity('TestMigration');
+        $class->addMorph(new Snippet(), 'test_table')
+              ->addUp('test_table', 'always')
+              ->addDown('test_table', 'always')
+              ->addAfterCreateTable('test_table', 'oncreate');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertSame(1, substr_count($code, 'const TABLE_NAME'));
+        $this->assertSame(2, substr_count($code, '$this->batchInsert(self::TABLE_NAME, ['));
+        $this->assertStringContainsString('$this->batchDelete(self::TABLE_NAME);', $code);
+    }
+
     public function testAddUpGeneratesUpMethod(): void
     {
         $class = new Generate('mysql');
@@ -208,6 +251,17 @@ final class GenerateTest extends AbstractTestCase
         $this->assertNull($class->getPrimaryColumnName());
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/87
+     */
+    public function testCreateEntityHasStrictTypes(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration');
+
+        $this->assertStringContainsString('declare(strict_types=1);', (string) $class->getEntity());
+    }
+
     public function testCreateEntityIsIdempotent(): void
     {
         $class = new Generate('mysql');
@@ -229,6 +283,22 @@ final class GenerateTest extends AbstractTestCase
         $this->assertInstanceOf(PhpFile::class, $entity);
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/41
+     */
+    public function testCreateEntityWithNamespace(): void
+    {
+        $class = new Generate('mysql');
+        $class->createEntity('TestMigration', false, 'App\\Migrations');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString("namespace App\\Migrations;", $code);
+        $this->assertStringContainsString('use Phalcon\\Migrations\\Db\\Column;', $code);
+        $this->assertStringContainsString('use Phalcon\\Migrations\\Mvc\\Model\\Migration;', $code);
+        $this->assertStringContainsString('class TestMigration extends Migration', $code);
+    }
+
     public function testCreateEntityWithRecreateFlagCreatesNewEntity(): void
     {
         $class = new Generate('mysql');
@@ -239,6 +309,64 @@ final class GenerateTest extends AbstractTestCase
         $second = $class->getEntity();
 
         $this->assertNotSame($first, $second);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/225
+     */
+    public function testGeneratedCodeEscapesValues(): void
+    {
+        $columns    = [
+            new Column("o'id", ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+            new Column('note', [
+                'type'    => Column::TYPE_VARCHAR,
+                'size'    => 50,
+                'notNull' => true,
+                'default' => 'say "hi" $x \\n',
+                'comment' => 'cost in $USD "net" \\',
+                'after'   => "o'id",
+            ]),
+            new Column('state', [
+                'type'    => Column::TYPE_ENUM,
+                'options' => ['a"b', "c'd"],
+                'notNull' => true,
+                'after'   => 'note',
+            ]),
+        ];
+        // The adapters give the indexes and the references by name
+        $indexes    = ["idx'note" => new Index("idx'note", ['note'], '')];
+        $references = [
+            "fk'ref" => new Reference("fk'ref", [
+                'referencedTable'   => "other'table",
+                'columns'           => ["o'id"],
+                'referencedColumns' => ["ref'id"],
+                'onUpdate'          => 'CASCADE',
+                'onDelete'          => 'CASCADE',
+            ]),
+        ];
+
+        $class = new Generate('mysql', $columns, $indexes, $references, ['TABLE_COLLATION' => "x'y"]);
+        $class->createEntity('EscapeMigration');
+        $class->addMorph(new Snippet(), "o'brien")
+              ->addUp("o'brien", 'always')
+              ->addDown("o'brien", 'always');
+
+        $code = (string) $class->getEntity();
+
+        // Throws a ParseError when the generated code is not valid PHP
+        token_get_all($code, TOKEN_PARSE);
+
+        $this->assertStringContainsString("public const TABLE_NAME = 'o\\'brien';", $code);
+        $this->assertStringContainsString("'o\\'id'", $code);
+        $this->assertStringContainsString("'default' => \"say \\\"hi\\\" \\\$x \\\\n\"", $code);
+        $this->assertStringContainsString("'comment' => \"cost in \\\$USD \\\"net\\\" \\\\\"", $code);
+        $this->assertStringContainsString("'options' => ['a\"b', 'c\\'d']", $code);
+        $this->assertStringContainsString("'after' => 'o\\'id'", $code);
+        $this->assertStringContainsString("new Index('idx\\'note'", $code);
+        $this->assertStringContainsString("'fk\\'ref'", $code);
+        $this->assertStringContainsString("'referencedTable' => 'other\\'table'", $code);
+        $this->assertStringContainsString("'referencedColumns' => ['ref\\'id']", $code);
+        $this->assertStringContainsString("'TABLE_COLLATION' => 'x\\'y'", $code);
     }
 
     public function testGetColumnSizeSkipsForEnumType(): void
@@ -519,5 +647,16 @@ final class GenerateTest extends AbstractTestCase
 
         $this->assertSame("'column'", $class->wrapWithQuotes('column'));
         $this->assertSame('"column"', $class->wrapWithQuotes('column', '"'));
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/225
+     */
+    public function testWrapWithQuotesEscapesTheValue(): void
+    {
+        $class = new Generate('mysql');
+
+        $this->assertSame("'o\\'brien\\\\x'", $class->wrapWithQuotes("o'brien\\x"));
+        $this->assertSame('"say \\"hi\\" \\$x"', $class->wrapWithQuotes('say "hi" $x', '"'));
     }
 }

@@ -104,6 +104,7 @@ class Migration implements CommandsInterface
             'verbose'                => 'Output of debugging information ' .
                 'during operation (Running only)',
             'no-auto-increment'      => 'Disable auto increment (Generating only)',
+            'namespace=s'            => 'Namespace of the generated migration classes (Generating only)',
             'dry-run'                => 'Preview changes without writing (migrate-files only)',
             'help'                   => 'Shows this help [optional]',
         ];
@@ -193,6 +194,7 @@ class Migration implements CommandsInterface
                     'descr'                => $descr,
                     'verbose'              => $this->parser->has('dry'),
                     'skip-ref-schema'      => $skipRefSchema,
+                    'namespace'            => $this->parser->get('namespace') ?? $config->namespace,
                 ]);
                 break;
             case 'run':

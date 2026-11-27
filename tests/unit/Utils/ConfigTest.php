@@ -27,6 +27,7 @@ final class ConfigTest extends AbstractTestCase
                 'logInDb'              => true,
                 'migrationsDir'        => '/migrations',
                 'migrationsTsBased'    => true,
+                'namespace'            => 'App\\Migrations',
                 'no-auto-increment'    => true,
                 'skip-foreign-checks'  => true,
                 'skip-ref-schema'      => true,
@@ -38,6 +39,7 @@ final class ConfigTest extends AbstractTestCase
         $this->assertTrue($config->logInDb);
         $this->assertSame('/migrations', $config->migrationsDir);
         $this->assertTrue($config->migrationsTsBased);
+        $this->assertSame('App\\Migrations', $config->namespace);
         $this->assertTrue($config->noAutoIncrement);
         $this->assertTrue($config->skipForeignChecks);
         $this->assertTrue($config->skipRefSchema);
@@ -77,6 +79,7 @@ final class ConfigTest extends AbstractTestCase
         $this->assertFalse($config->logInDb);
         $this->assertNull($config->migrationsDir);
         $this->assertFalse($config->migrationsTsBased);
+        $this->assertNull($config->namespace);
         $this->assertFalse($config->noAutoIncrement);
         $this->assertNull($config->password);
         $this->assertNull($config->port);
