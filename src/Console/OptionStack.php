@@ -70,7 +70,7 @@ class OptionStack implements ArrayAccess
          */
         $descr = (string) ($this->options['descr'] ?? '');
         if ($descr !== '' || !empty($this->options['tsBased'])) {
-            $this->options['version'] = (string) (int) (microtime(true) * pow(10, 6));
+            $this->options['version'] = (string) (int) (microtime(true) * 1e6);
             VersionCollection::setType(VersionCollection::TYPE_TIMESTAMPED);
 
             $versionName = $this->options['version'] . ($descr !== '' ? '_' . $descr : '');
