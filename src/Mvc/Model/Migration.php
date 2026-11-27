@@ -35,6 +35,7 @@ use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 use Throwable;
 
+use function array_intersect;
 use function array_map;
 use function class_exists;
 use function fclose;
@@ -549,18 +550,43 @@ class Migration
                     }
                 }
 
+                $droppedColumns = [];
                 foreach ($localFields as $fieldDefinition) {
                     if ($fieldDefinition->getPairedDefinition($fields) === null) {
+                        $droppedColumns[] = $fieldDefinition->getName();
+                    }
+                }
+
+                // A foreign key on a column stops the drop of the column (MySQL)
+                if ($droppedColumns !== []) {
+                    foreach (self::$adapter->listReferences($schema ?? '', $tableName) as $reference) {
+                        if (array_intersect($reference->getColumns(), $droppedColumns) === []) {
+                            continue;
+                        }
+
                         try {
-                            self::$adapter->dropColumn($tableName, '', $fieldDefinition->getName());
+                            self::$adapter->dropForeignKey($tableName, $tableSchema, $reference->getName());
                         } catch (Throwable $e) {
-                            throw RuntimeException::failedToDropColumn(
-                                $fieldDefinition->getName(),
+                            throw RuntimeException::failedToDropForeignKey(
+                                $reference->getName(),
                                 $tableName,
                                 get_called_class(),
                                 $e->getMessage()
                             );
                         }
+                    }
+                }
+
+                foreach ($droppedColumns as $columnName) {
+                    try {
+                        self::$adapter->dropColumn($tableName, '', $columnName);
+                    } catch (Throwable $e) {
+                        throw RuntimeException::failedToDropColumn(
+                            $columnName,
+                            $tableName,
+                            get_called_class(),
+                            $e->getMessage()
+                        );
                     }
                 }
             } else {

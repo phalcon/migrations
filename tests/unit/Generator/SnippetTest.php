@@ -26,6 +26,16 @@ final class SnippetTest extends AbstractTestCase
         $this->snippet = new Snippet();
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/227
+     */
+    public function testDefinitionToStringWithEmptyItemsAndKeepEmpty(): void
+    {
+        $result = $this->snippet->definitionToString('references', [], true);
+
+        $this->assertSame("    'references' => [],\n", $result);
+    }
+
     public function testDefinitionToStringWithEmptyItemsReturnsEmptyString(): void
     {
         $result = $this->snippet->definitionToString('columns', []);
