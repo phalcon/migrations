@@ -1,5 +1,9 @@
 # [Unreleased]
 
+## Added
+
+- Added the `namespace` option (`--namespace` and `application.namespace`) to generate migration classes in a namespace; the runner reads the namespace of each file, so files with and without a namespace both run ([#41](https://github.com/phalcon/migrations/issues/41))
+
 ## Fixed
 
 - Fixed `generate` writing the numeric precision as the size of MySQL integer columns (for example `'size' => 10` for `INT` and `'size' => 3` for `TINYINT(1)`); the size is now the display width of the column type, or no size when the server gives none (MySQL 8.0.19+) ([#139](https://github.com/phalcon/migrations/issues/139))
@@ -7,9 +11,11 @@
 - Fixed PostgreSQL `uuid` columns read as `TYPE_VARCHAR`, so `generate` wrote `'size' => 1` and the table morph tried to change the column to `CHARACTER VARYING(1)`; added `Column::TYPE_UUID` (PostgreSQL `UUID`, no size). Generate again the migration files of tables with `uuid` columns ([#105](https://github.com/phalcon/migrations/issues/105))
 - Fixed a new table on PostgreSQL and SQLite getting only its primary key; `createTable()` now also creates the other indexes of the definition, as on MySQL ([#221](https://github.com/phalcon/migrations/issues/221))
 - Fixed `batchDelete()` failing on a table with no `id` column (a `DELETE ... WHERE id = ...` for each row of the `.dat` file ran after the table was emptied); it now runs one `DELETE FROM`, and still empties the table. Fixed `batchInsert()` leaving its transaction open and the `.dat` file not closed after an error, and the table name not quoted in `batchInsert()` and `batchDelete()` ([#223](https://github.com/phalcon/migrations/issues/223))
+- Fixed `generate` putting values into the migration file with no escaping (the default, the comment, the table, column, index and foreign key names, the enum values and the table options), so a quote, a `$` or a backslash gave a file that did not parse or had a different value ([#225](https://github.com/phalcon/migrations/issues/225))
 
 ## Changed
 
+- Changed the generated migration files: they have `declare(strict_types=1)`, and a `TABLE_NAME` class constant that `morphTable()`, `batchInsert()` and `batchDelete()` use, in place of the table name string ([#87](https://github.com/phalcon/migrations/issues/87), [#107](https://github.com/phalcon/migrations/issues/107))
 - Changed CI to run php-cs-fixer (dry run) in the code style job on PHP 8.2 - 8.5 (php-cs-fixer does not support PHP 8.6 yet), and fixed the order of the test methods in `OptionStackTest` and `VersionLogTest` ([#216](https://github.com/phalcon/migrations/issues/216))
 
 # [4.0.1](https://github.com/phalcon/migrations/releases/tag/v4.0.1) (2026-11-13)
