@@ -1,3 +1,9 @@
+# [Unreleased]
+
+## Changed
+
+- Changed CI to run php-cs-fixer (dry run) in the code style job on PHP 8.2 - 8.5 (php-cs-fixer does not support PHP 8.6 yet), and fixed the order of the test methods in `OptionStackTest` and `VersionLogTest` ([#216](https://github.com/phalcon/migrations/issues/216))
+
 # [4.0.1](https://github.com/phalcon/migrations/releases/tag/v4.0.1) (2026-11-13)
 
 ## Fixed
