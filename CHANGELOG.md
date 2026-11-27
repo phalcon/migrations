@@ -5,6 +5,7 @@
 - Fixed `generate` writing the numeric precision as the size of MySQL integer columns (for example `'size' => 10` for `INT` and `'size' => 3` for `TINYINT(1)`); the size is now the display width of the column type, or no size when the server gives none (MySQL 8.0.19+) ([#139](https://github.com/phalcon/migrations/issues/139))
 - Fixed a MySQL `TYPE_BOOLEAN` column with a size giving `TINYINT(1)(3)`, a syntax error on create and modify, and the table morph changing every integer column on each run because it compared the size and the scale of integers, which do not change the storage ([#218](https://github.com/phalcon/migrations/issues/218))
 - Fixed PostgreSQL `uuid` columns read as `TYPE_VARCHAR`, so `generate` wrote `'size' => 1` and the table morph tried to change the column to `CHARACTER VARYING(1)`; added `Column::TYPE_UUID` (PostgreSQL `UUID`, no size). Generate again the migration files of tables with `uuid` columns ([#105](https://github.com/phalcon/migrations/issues/105))
+- Fixed a new table on PostgreSQL and SQLite getting only its primary key; `createTable()` now also creates the other indexes of the definition, as on MySQL ([#221](https://github.com/phalcon/migrations/issues/221))
 
 ## Changed
 
