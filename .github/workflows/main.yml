@@ -79,6 +79,13 @@ jobs:
       - name: "PHPCS"
         run: composer cs
 
+      # php-cs-fixer 3.95 does not support PHP 8.6. The code style result is
+      # the same on all PHP versions. Remove this condition when php-cs-fixer
+      # supports PHP 8.6.
+      - name: "PHP CS Fixer (dry-run)"
+        if: matrix.php != '8.6'
+        run: composer cs-fixer
+
       - name: "PHPStan"
         run: composer analyze
 

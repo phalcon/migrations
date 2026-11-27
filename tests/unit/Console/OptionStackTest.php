@@ -88,21 +88,18 @@ final class OptionStackTest extends AbstractTestCase
         ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
     }
 
-    /**
-     * @see https://github.com/phalcon/migrations/issues/144
-     */
-    public function testGetVersionNameGeneratingMigrationWithTsBasedWithoutDescr(): void
+    public function testGetVersionNameGeneratingMigrationWithExplicitVersion(): void
     {
         $options = new OptionStack([
-            'tsBased'       => true,
+            'version'       => '2.0.0',
             'migrationsDir' => [],
+            'force'         => false,
         ]);
 
         $version = $options->getVersionNameGeneratingMigration();
-        ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
 
-        $this->assertInstanceOf(TimestampedItem::class, $version);
-        $this->assertMatchesRegularExpression('/^\d+$/', $version->getVersion());
+        $this->assertInstanceOf(IncrementalItem::class, $version);
+        $this->assertSame('2.0.0', $version->getVersion());
     }
 
     public function testGetVersionNameGeneratingMigrationWithTsBasedAndEmptyDescr(): void
@@ -119,18 +116,21 @@ final class OptionStackTest extends AbstractTestCase
         $this->assertMatchesRegularExpression('/^\d+$/', $version->getVersion());
     }
 
-    public function testGetVersionNameGeneratingMigrationWithExplicitVersion(): void
+    /**
+     * @see https://github.com/phalcon/migrations/issues/144
+     */
+    public function testGetVersionNameGeneratingMigrationWithTsBasedWithoutDescr(): void
     {
         $options = new OptionStack([
-            'version'       => '2.0.0',
+            'tsBased'       => true,
             'migrationsDir' => [],
-            'force'         => false,
         ]);
 
         $version = $options->getVersionNameGeneratingMigration();
+        ItemCollection::setType(ItemCollection::TYPE_INCREMENTAL);
 
-        $this->assertInstanceOf(IncrementalItem::class, $version);
-        $this->assertSame('2.0.0', $version->getVersion());
+        $this->assertInstanceOf(TimestampedItem::class, $version);
+        $this->assertMatchesRegularExpression('/^\d+$/', $version->getVersion());
     }
 
     public function testOffsetExistsReturnsTrueForSetKey(): void

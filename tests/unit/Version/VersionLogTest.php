@@ -39,37 +39,6 @@ final class VersionLogTest extends AbstractTestCase
         parent::tearDown();
     }
 
-    public function testFileLogIsWrittenInNaturalOrder(): void
-    {
-        $directory = $this->getOutputDir('version-log-add');
-        $options   = ['directory' => $directory];
-
-        Migrations::addCurrentVersion($options, '1.0.2');
-        Migrations::addCurrentVersion($options, '1.0.10');
-        Migrations::addCurrentVersion($options, '1.0.1');
-
-        $this->assertSame(
-            "1.0.1\n1.0.2\n1.0.10",
-            file_get_contents($directory . '/.phalcon/migration-version')
-        );
-    }
-
-    public function testFileLogStaysInNaturalOrderAfterRemovingVersion(): void
-    {
-        $directory = $this->getOutputDir('version-log-remove');
-        $options   = ['directory' => $directory];
-
-        Migrations::addCurrentVersion($options, '1.0.9');
-        Migrations::addCurrentVersion($options, '1.0.10');
-        Migrations::addCurrentVersion($options, '1.0.2');
-        Migrations::removeCurrentVersion($options, '1.0.2');
-
-        $this->assertSame(
-            "1.0.9\n1.0.10",
-            file_get_contents($directory . '/.phalcon/migration-version')
-        );
-    }
-
     public function testDbLogCurrentVersionIsNaturalMaximum(): void
     {
         $options = [
@@ -101,5 +70,36 @@ final class VersionLogTest extends AbstractTestCase
         ];
 
         $this->assertSame('0.0.0', Migrations::getCurrentVersion($options)->getVersion());
+    }
+
+    public function testFileLogIsWrittenInNaturalOrder(): void
+    {
+        $directory = $this->getOutputDir('version-log-add');
+        $options   = ['directory' => $directory];
+
+        Migrations::addCurrentVersion($options, '1.0.2');
+        Migrations::addCurrentVersion($options, '1.0.10');
+        Migrations::addCurrentVersion($options, '1.0.1');
+
+        $this->assertSame(
+            "1.0.1\n1.0.2\n1.0.10",
+            file_get_contents($directory . '/.phalcon/migration-version')
+        );
+    }
+
+    public function testFileLogStaysInNaturalOrderAfterRemovingVersion(): void
+    {
+        $directory = $this->getOutputDir('version-log-remove');
+        $options   = ['directory' => $directory];
+
+        Migrations::addCurrentVersion($options, '1.0.9');
+        Migrations::addCurrentVersion($options, '1.0.10');
+        Migrations::addCurrentVersion($options, '1.0.2');
+        Migrations::removeCurrentVersion($options, '1.0.2');
+
+        $this->assertSame(
+            "1.0.9\n1.0.10",
+            file_get_contents($directory . '/.phalcon/migration-version')
+        );
     }
 }
