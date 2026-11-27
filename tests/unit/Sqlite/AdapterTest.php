@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Sqlite;
 
+use PDOException;
 use Phalcon\Migrations\Db\Adapter\Sqlite;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Connection;
@@ -103,6 +104,34 @@ final class AdapterTest extends AbstractTestCase
         ]);
 
         $this->assertStringContainsString('PRIMARY KEY', $this->getTableSql('lite_pk_test'));
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/221
+     */
+    public function testCreateTableWithSecondaryIndexes(): void
+    {
+        $this->adapter->createTable('lite_sec_idx_test', '', [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('PRIMARY', ['id'], 'PRIMARY'),
+                new Index('lite_sec_email_unique', ['email'], 'UNIQUE'),
+                new Index('lite_sec_name_idx', ['name'], ''),
+            ],
+        ]);
+
+        $indexes = $this->adapter->listIndexes('', 'lite_sec_idx_test');
+
+        $this->assertArrayHasKey('lite_sec_email_unique', $indexes);
+        $this->assertArrayHasKey('lite_sec_name_idx', $indexes);
+
+        $this->adapter->execute("INSERT INTO lite_sec_idx_test VALUES (1, 'a@example.com', 'a')");
+        $this->expectException(PDOException::class);
+        $this->adapter->execute("INSERT INTO lite_sec_idx_test VALUES (2, 'a@example.com', 'b')");
     }
 
     public function testListIndexesExcludesInternalIndexes(): void

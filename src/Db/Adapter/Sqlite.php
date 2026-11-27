@@ -94,6 +94,21 @@ class Sqlite extends AbstractAdapter
         // SQLite does not support adding a primary key without recreating the table.
     }
 
+    /**
+     * The CREATE TABLE has only the primary key. Create the other indexes
+     * after the table.
+     */
+    public function createTable(string $table, string $schema, array $definition): void
+    {
+        parent::createTable($table, $schema, $definition);
+
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if (!$this->isPrimaryIndex($index)) {
+                $this->addIndex($table, $schema, $index);
+            }
+        }
+    }
+
     public function dropForeignKey(string $table, string $schema, string $name): void
     {
         // SQLite does not support dropping foreign keys without recreating the table.
