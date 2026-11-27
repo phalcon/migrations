@@ -16,6 +16,7 @@ namespace Phalcon\Migrations\Tests\Unit\Db;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\FieldDefinition;
 use Phalcon\Migrations\Tests\AbstractTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FieldDefinitionTest extends AbstractTestCase
 {
@@ -50,6 +51,18 @@ final class FieldDefinitionTest extends AbstractTestCase
     ];
 
     public const PREV_COLUMN   = 'id';
+
+    public static function integerTypesProvider(): array
+    {
+        return [
+            [Column::TYPE_BIGINTEGER],
+            [Column::TYPE_BOOLEAN],
+            [Column::TYPE_INTEGER],
+            [Column::TYPE_MEDIUMINTEGER],
+            [Column::TYPE_SMALLINTEGER],
+            [Column::TYPE_TINYINTEGER],
+        ];
+    }
 
     public function testCreate(): void
     {
@@ -88,6 +101,46 @@ final class FieldDefinitionTest extends AbstractTestCase
 
         $this->assertFalse($fieldDefinition->isChangedData($fieldDefinition));
         $this->assertTrue($fieldDefinition->isChangedData($fieldDefinitionChanged));
+    }
+
+    public function testIsChangedDataComparesSizeAndScaleOfDecimal(): void
+    {
+        $file   = new FieldDefinition(
+            new Column('price', ['type' => Column::TYPE_DECIMAL, 'size' => 10, 'scale' => 2])
+        );
+        $scale  = new FieldDefinition(
+            new Column('price', ['type' => Column::TYPE_DECIMAL, 'size' => 10, 'scale' => 4])
+        );
+        $size   = new FieldDefinition(
+            new Column('price', ['type' => Column::TYPE_DECIMAL, 'size' => 12, 'scale' => 2])
+        );
+
+        $this->assertTrue($file->isChangedData($scale));
+        $this->assertTrue($file->isChangedData($size));
+    }
+
+    /**
+     * The database gives scale 0 and the numeric precision (or no size) for
+     * an integer. A migration file has no scale, and a display width or no
+     * size. These values do not change the storage of an integer.
+     *
+     * @see https://github.com/phalcon/migrations/issues/218
+     */
+    #[DataProvider('integerTypesProvider')]
+    public function testIsChangedDataIgnoresSizeAndScaleOfIntegerTypes(string $type): void
+    {
+        $file     = new FieldDefinition(
+            new Column('amount', ['type' => $type, 'size' => 11, 'notNull' => true])
+        );
+        $database = new FieldDefinition(
+            new Column('amount', ['type' => $type, 'size' => null, 'scale' => 0, 'notNull' => true])
+        );
+        $nullable = new FieldDefinition(
+            new Column('amount', ['type' => $type, 'size' => 11, 'notNull' => false])
+        );
+
+        $this->assertFalse($file->isChangedData($database));
+        $this->assertTrue($file->isChangedData($nullable));
     }
 
     public function testIsChangedNameReturnsFalseForSameName(): void

@@ -15,6 +15,19 @@ namespace Phalcon\Migrations\Db;
 
 final class Column
 {
+    /**
+     * The integer types. BOOLEAN is TINYINT(1) in MySQL. For these types, the
+     * size is a display width or the numeric precision, and the scale is 0.
+     * They do not change the storage.
+     */
+    public const INTEGER_TYPES = [
+        self::TYPE_BIGINTEGER,
+        self::TYPE_BOOLEAN,
+        self::TYPE_INTEGER,
+        self::TYPE_MEDIUMINTEGER,
+        self::TYPE_SMALLINTEGER,
+        self::TYPE_TINYINTEGER,
+    ];
     public const TYPE_BIGINTEGER   = 'biginteger';
     public const TYPE_BIT          = 'bit';
     public const TYPE_BLOB         = 'blob';

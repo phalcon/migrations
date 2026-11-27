@@ -262,6 +262,30 @@ final class GenerateTest extends AbstractTestCase
         $this->assertFalse($found, 'ENUM column should have no size');
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/218
+     */
+    public function testGetColumnSizeSkipsForMysqlBoolean(): void
+    {
+        $columns = [
+            new Column('active', ['type' => Column::TYPE_BOOLEAN, 'size' => 3, 'notNull' => true]),
+        ];
+
+        $class  = new Generate('mysql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $found = false;
+        foreach ($result['active'] as $item) {
+            if (strpos($item, "'size'") !== false) {
+                $found = true;
+            }
+        }
+        $this->assertFalse($found, 'BOOLEAN column in MySQL should have no size');
+    }
+
     public function testGetColumnSizeSkipsForPostgresqlNoSizeTypes(): void
     {
         $columns = [
