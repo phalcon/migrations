@@ -63,6 +63,21 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  migrations-dev-8.6:
+    container_name: ${PROJECT_PREFIX:-migrations}-dev-8.6
+    hostname: ${PROJECT_PREFIX:-migrations}-dev-86
+    build:
+      dockerfile: resources/docker/develop/Dockerfile
+      args:
+        PHP_VERSION: 8.6
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /srv
+    volumes:
+      - .:/srv
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   mysql:
     container_name: ${PROJECT_PREFIX:-migrations}-dev-mysql
     image: mysql:8.0
