@@ -99,11 +99,13 @@ final class IncrementalItemTest extends AbstractTestCase
         $this->assertSame('1.0.0.1', $item->getVersion());
     }
 
-    public function testConstructorPadsShortVersionWithExtraPart(): void
+    /**
+     * @see https://github.com/phalcon/migrations/issues/243
+     */
+    public function testConstructorPadsShortVersion(): void
     {
-        $item = new IncrementalItem('1.0');
-
-        $this->assertSame('1.0.0.0', $item->getVersion());
+        $this->assertSame('1.0.0', (new IncrementalItem('1'))->getVersion());
+        $this->assertSame('1.1.0', (new IncrementalItem('1.1'))->getVersion());
     }
 
     public function testConstructorTrimsWhitespace(): void

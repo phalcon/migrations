@@ -112,7 +112,7 @@ class OptionStack implements ArrayAccess
          */
         $versionItems = [];
         foreach ($migrationsDirList as $migrationsDir) {
-            $versionItems = $versionItems + ModelMigration::scanForVersions($migrationsDir);
+            $versionItems = array_merge($versionItems, ModelMigration::scanForVersions($migrationsDir));
         }
 
         if (!isset($versionItems[0])) {

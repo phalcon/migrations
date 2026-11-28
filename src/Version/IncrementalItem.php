@@ -47,7 +47,7 @@ class IncrementalItem implements ItemInterface
         $nParts      = count($this->parts);
 
         if ($nParts < $numberParts) {
-            for ($i = $numberParts; $i >= $nParts; $i--) {
+            for ($i = $nParts; $i < $numberParts; $i++) {
                 $this->parts[] = '0';
                 $version       .= '.0';
             }

@@ -74,6 +74,23 @@ final class OptionStackTest extends AbstractTestCase
         $this->assertSame('1.0.0', $version->getVersion());
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/243
+     */
+    public function testGetVersionNameGeneratingMigrationReadsAllFolders(): void
+    {
+        $first  = $this->getOutputDir('option-stack-first');
+        $second = $this->getOutputDir('option-stack-second');
+        mkdir($first . '/1.0.0');
+        mkdir($second . '/2.0.0');
+
+        $options = new OptionStack([
+            'migrationsDir' => [$first, $second],
+        ]);
+
+        $this->assertSame('2.0.1', $options->getVersionNameGeneratingMigration()->getVersion());
+    }
+
     public function testGetVersionNameGeneratingMigrationWithDescr(): void
     {
         $options = new OptionStack([

@@ -366,7 +366,7 @@ class Migrations
                     print Color::info('Migrations were not found at ' . $migrationsDir);
                     return;
                 }
-                $versionItems = $versionItems + $versionItem;
+                $versionItems = array_merge($versionItems, $versionItem);
             }
         }
 
