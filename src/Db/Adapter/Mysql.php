@@ -47,6 +47,7 @@ class Mysql extends AbstractAdapter
         Column::TYPE_MEDIUMBLOB   => 'MEDIUMBLOB',
         Column::TYPE_MEDIUMINTEGER => 'MEDIUMINT',
         Column::TYPE_MEDIUMTEXT   => 'MEDIUMTEXT',
+        Column::TYPE_SET          => 'SET',
         Column::TYPE_SMALLINTEGER => 'SMALLINT',
         Column::TYPE_TEXT         => 'TEXT',
         Column::TYPE_TIME         => 'TIME',
@@ -95,6 +96,7 @@ class Mysql extends AbstractAdapter
         'mediumblob'        => Column::TYPE_MEDIUMBLOB,
         'mediumint'         => Column::TYPE_MEDIUMINTEGER,
         'mediumtext'        => Column::TYPE_MEDIUMTEXT,
+        'set'               => Column::TYPE_SET,
         'smallint'          => Column::TYPE_SMALLINTEGER,
         'text'              => Column::TYPE_TEXT,
         'time'              => Column::TYPE_TIME,
@@ -272,12 +274,12 @@ class Mysql extends AbstractAdapter
 
         $sql = "{$name} {$ddlType}";
 
-        if ($type === Column::TYPE_ENUM && $column->getOptions() !== null) {
+        if (in_array($type, [Column::TYPE_ENUM, Column::TYPE_SET], true) && $column->getOptions() !== null) {
             $values = implode(', ', array_map(
                 fn($v) => $this->connection->quote((string) $v),
                 $column->getOptions()
             ));
-            $sql = "{$name} ENUM({$values})";
+            $sql = "{$name} {$ddlType}({$values})";
         } elseif (!in_array($type, self::NO_SIZE_TYPES, true) && $column->getSize() !== null) {
             $sql .= sprintf('(%s', $column->getSize());
             if ($column->getScale() !== null) {
