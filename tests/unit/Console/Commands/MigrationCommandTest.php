@@ -139,6 +139,20 @@ final class MigrationCommandTest extends AbstractTestCase
         $command->publicLoadConfig($file);
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/21
+     */
+    public function testLoadConfigThrowsWhenFileIsMissing(): void
+    {
+        $dir     = $this->getOutputDir('migration-cmd-missing-config');
+        $command = $this->makeCommand([]);
+
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage("Can't locate the configuration file");
+
+        $command->publicLoadConfig($dir . '/missing.php');
+    }
+
     public function testLoadConfigWithIniFile(): void
     {
         $dir  = $this->getOutputDir('migration-cmd-ini');
@@ -254,6 +268,34 @@ final class MigrationCommandTest extends AbstractTestCase
         $this->assertStringContainsString('Options', $output);
         $this->assertStringContainsString('--config=s', $output);
         $this->assertStringContainsString('--force', $output);
+    }
+
+    /**
+     * An absolute --config does not start in the --directory.
+     *
+     * @see https://github.com/phalcon/migrations/issues/21
+     */
+    public function testRunWithAbsoluteConfigPath(): void
+    {
+        $configDir  = $this->getOutputDir('cmd-absolute-config');
+        $projectDir = $this->getOutputDir('cmd-absolute-config-project');
+        $this->writePhpConfig($configDir . '/config.php');
+
+        $command = $this->makeCommand([
+            'unknown-action',
+            '--directory=' . $projectDir,
+            '--config=' . $configDir . '/config.php',
+        ]);
+
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage('Unknown action');
+
+        ob_start();
+        try {
+            $command->run();
+        } finally {
+            ob_end_clean();
+        }
     }
 
     public function testRunWithHActionPrintsHelp(): void

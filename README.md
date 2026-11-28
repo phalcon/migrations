@@ -16,7 +16,7 @@ Main idea of Phalcon migrations is to automatically detect changes and morphing 
 ## Requirements
 
 *  PHP >= 8.2
-*  Phalcon >= 5.0.0
+*  PHP ext-pdo, with the PDO driver of your database (pdo_mysql, pdo_pgsql or pdo_sqlite)
 *  PHP ext-posix (Linux)
 
 ## Installing via Composer
@@ -39,12 +39,12 @@ After that you can execute that migrations (run) in another environment to creat
 
 Configuration filename can be whatever you want.
 
+The file returns a plain array. The `.ini` and `.json` formats are also supported, and `.yaml` and `.yml` with the PHP yaml extension.
+
 ```php
 <?php
 
-use Phalcon\Config;
-
-return new Config([
+return [
     'database' => [
         'adapter' => 'mysql',
         'host' => '127.0.0.1',
@@ -65,7 +65,7 @@ return new Config([
             // Attention! It will export data every new migration
         ],
     ],
-]);
+];
 ```
 
 ### Generate migrations
