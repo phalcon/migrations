@@ -66,6 +66,11 @@ final class Column
     private bool $first;
     private bool $hasDefault;
     private bool $notNull;
+
+    /**
+     * The ON UPDATE of the column, for example CURRENT_TIMESTAMP (MySQL)
+     */
+    private ?string $onUpdate;
     private ?array $options;
     private bool $primary;
     private ?int $scale;
@@ -88,6 +93,7 @@ final class Column
         $this->first         = (bool) ($definition['first']         ?? false);
         $this->after         = $definition['after']         ?? null;
         $this->comment       = $definition['comment']       ?? '';
+        $this->onUpdate      = $definition['onUpdate']      ?? null;
         $this->options       = $definition['options']       ?? null;
 
         if (array_key_exists('default', $definition)) {
@@ -117,6 +123,11 @@ final class Column
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getOnUpdate(): ?string
+    {
+        return $this->onUpdate;
     }
 
     public function getOptions(): ?array

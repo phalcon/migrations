@@ -235,6 +235,14 @@ abstract class AbstractAdapter implements AdapterInterface
             $definition['default'] = $default;
         }
 
+        // ON UPDATE (MySQL) only in its plain form, as the default: a precision
+        // needs the precision of the column, which is not read
+        $onUpdate = $row['on_update'] ?? null;
+        $plain    = ['CURRENT_TIMESTAMP', 'CURRENT_TIMESTAMP()'];
+        if (is_string($onUpdate) && in_array(strtoupper($onUpdate), $plain, true)) {
+            $definition['onUpdate'] = $onUpdate;
+        }
+
         // The values of an ENUM or a SET, for example enum('a','b,c','it''s')
         $extended = trim((string) ($row['extended'] ?? ''));
         if (preg_match('/^(?:enum|set)\((.*)\)$/is', $extended, $matches) === 1) {
@@ -370,6 +378,7 @@ abstract class AbstractAdapter implements AdapterInterface
         $autoInc  = $this->getAutoIncSql();
         $comment  = $this->getCommentSql();
         $extended = $this->getExtendedSql();
+        $onUpdate = $this->getOnUpdateSql();
         $unsigned = $this->getUnsignedSql();
 
         // A CURRENT_TIMESTAMP default is read only in its plain form. A default
@@ -423,7 +432,8 @@ abstract class AbstractAdapter implements AdapterInterface
                 END              AS is_primary,
                 $unsigned        AS is_unsigned,
                 $autoInc         AS is_auto_increment,
-                $extended        AS extended
+                $extended        AS extended,
+                $onUpdate        AS on_update
             FROM information_schema.columns c
                 LEFT JOIN (
                     SELECT kcu.table_schema, kcu.table_name, kcu.column_name
@@ -441,6 +451,11 @@ abstract class AbstractAdapter implements AdapterInterface
             AND   c.table_name   = :table
             ORDER BY c.ordinal_position
         ";
+    }
+
+    protected function getOnUpdateSql(): string
+    {
+        return 'NULL';
     }
 
     protected function getTableExistsSql(): string

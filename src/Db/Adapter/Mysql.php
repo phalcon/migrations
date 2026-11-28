@@ -328,6 +328,10 @@ class Mysql extends AbstractAdapter
             }
         }
 
+        if ($column->getOnUpdate() !== null) {
+            $sql .= ' ON UPDATE ' . strtoupper($column->getOnUpdate());
+        }
+
         if ($column->isAutoIncrement()) {
             $sql .= ' AUTO_INCREMENT';
         }
@@ -376,6 +380,12 @@ class Mysql extends AbstractAdapter
     protected function getExtendedSql(): string
     {
         return 'c.column_type';
+    }
+
+    protected function getOnUpdateSql(): string
+    {
+        return "IF(LOCATE('on update ', LOWER(c.extra)) > 0,"
+            . " SUBSTRING(c.extra, LOCATE('on update ', LOWER(c.extra)) + 10), NULL)";
     }
 
     protected function getUnsignedSql(): string

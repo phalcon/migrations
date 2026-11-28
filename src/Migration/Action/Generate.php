@@ -394,6 +394,10 @@ class Generate
                 $definition[] = "'default' => " . $this->wrapWithQuotes((string) $column->getDefault(), '"');
             }
 
+            if ($column->getOnUpdate() !== null) {
+                $definition[] = "'onUpdate' => " . $this->wrapWithQuotes($column->getOnUpdate(), '"');
+            }
+
             if ($this->adapter === Migration::DB_ADAPTER_POSTGRESQL && $column->isPrimary()) {
                 $definition[] = "'primary' => true";
                 $this->primaryColumnName = $column->getName();
