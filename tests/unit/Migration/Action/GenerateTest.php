@@ -307,6 +307,27 @@ final class GenerateTest extends AbstractTestCase
         $this->assertFalse($found, 'Integer column in PostgreSQL should have no size');
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/105
+     */
+    public function testGetColumnSizeSkipsForUuid(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_UUID, 'notNull' => true]),
+        ];
+
+        $class  = new Generate('postgresql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $this->assertContains("'type' => Column::TYPE_UUID", $result['id']);
+        foreach ($result['id'] as $item) {
+            $this->assertStringNotContainsString("'size'", $item, 'UUID column should have no size');
+        }
+    }
+
     public function testGetIndexesWithPrimaryAndRegularIndexes(): void
     {
         $indexes = [

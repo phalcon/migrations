@@ -140,6 +140,30 @@ final class AdapterTest extends AbstractPostgresqlTestCase
         );
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/105
+     */
+    public function testCreateTableWithUuidColumn(): void
+    {
+        $this->adapter->createTable('pg_uuid_create_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_UUID, 'notNull' => true, 'first' => true]),
+            ],
+        ]);
+
+        $uuid = '0a3f1c2e-5b4d-4e6f-8a9b-0c1d2e3f4a5b';
+        $this->adapter->execute('INSERT INTO pg_uuid_create_test (id) VALUES (:id)', ['id' => $uuid]);
+
+        $row = $this->adapter->fetchOne(
+            "SELECT data_type FROM information_schema.columns
+             WHERE table_schema = :schema AND table_name = 'pg_uuid_create_test' AND column_name = 'id'",
+            ['schema' => $this->schema]
+        );
+
+        $this->assertSame('uuid', $row['data_type']);
+        $this->assertSame($uuid, $this->adapter->fetchOne('SELECT id FROM pg_uuid_create_test')['id']);
+    }
+
     public function testDropIndex(): void
     {
         $this->adapter->createTable('pg_dropidx_test', $this->schema, [
@@ -206,6 +230,22 @@ final class AdapterTest extends AbstractPostgresqlTestCase
 
         $this->assertArrayHasKey('id', $columns);
         $this->assertArrayHasKey('name', $columns);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/105
+     */
+    public function testListColumnsUuid(): void
+    {
+        $this->adapter->execute('CREATE TABLE pg_uuid_list_test (id UUID NOT NULL, ref UUID NULL)');
+
+        $columns = $this->adapter->listColumns($this->schema, 'pg_uuid_list_test');
+
+        $this->assertSame(Column::TYPE_UUID, $columns['id']->getType());
+        $this->assertNull($columns['id']->getSize());
+        $this->assertTrue($columns['id']->isNotNull());
+        $this->assertSame(Column::TYPE_UUID, $columns['ref']->getType());
+        $this->assertNull($columns['ref']->getSize());
     }
 
     public function testListIndexes(): void
