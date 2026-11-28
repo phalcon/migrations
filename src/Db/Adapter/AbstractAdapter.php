@@ -233,6 +233,9 @@ abstract class AbstractAdapter implements AdapterInterface
 
         if ($default !== null) {
             $definition['default'] = $default;
+            if ($this->isDefaultExpression($row['default_value'] ?? null)) {
+                $definition['defaultExpression'] = true;
+            }
         }
 
         // ON UPDATE (MySQL) only in its plain form, as the default: a precision
@@ -481,6 +484,14 @@ abstract class AbstractAdapter implements AdapterInterface
     {
         return is_string($default)
             && in_array(strtoupper($default), ['CURRENT_TIMESTAMP', 'CURRENT_TIMESTAMP()', 'NOW()'], true);
+    }
+
+    /**
+     * The default of the database (before processDefault()) is an expression
+     */
+    protected function isDefaultExpression(mixed $default): bool
+    {
+        return false;
     }
 
     protected function isPrimaryIndex(Index $index): bool

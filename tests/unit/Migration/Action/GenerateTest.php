@@ -251,6 +251,30 @@ final class GenerateTest extends AbstractTestCase
      * @throws UnknownColumnTypeException
      */
     /**
+     * @see https://github.com/phalcon/migrations/issues/113
+     */
+    public function testColumnHasDefaultExpression(): void
+    {
+        $columns = [
+            new Column('id', [
+                'type'              => Column::TYPE_UUID,
+                'notNull'           => true,
+                'default'           => 'gen_random_uuid()',
+                'defaultExpression' => true,
+            ]),
+        ];
+
+        $class  = new Generate('postgresql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $this->assertContains("'default' => \"gen_random_uuid()\"", $result['id']);
+        $this->assertContains("'defaultExpression' => true", $result['id']);
+    }
+
+    /**
      * @see https://github.com/phalcon/migrations/issues/258
      */
     public function testColumnHasOnUpdate(): void

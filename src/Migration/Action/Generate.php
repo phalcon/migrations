@@ -394,6 +394,10 @@ class Generate
                 $definition[] = "'default' => " . $this->wrapWithQuotes((string) $column->getDefault(), '"');
             }
 
+            if ($column->isDefaultExpression()) {
+                $definition[] = "'defaultExpression' => true";
+            }
+
             if ($column->getOnUpdate() !== null) {
                 $definition[] = "'onUpdate' => " . $this->wrapWithQuotes($column->getOnUpdate(), '"');
             }
