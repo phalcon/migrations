@@ -63,6 +63,7 @@ use function is_writable;
 use function join;
 use function mkdir;
 use function natsort;
+use function preg_replace;
 use function preg_split;
 use function rtrim;
 use function sort;
@@ -240,11 +241,17 @@ class Migrations
         $force       = $optionStack->offsetGet('force');
 
         // A dry run ("verbose") writes no files, also no data files
-        $exportData   = $verbose ? null : $optionStack->offsetGet('exportData');
+        $exportData   = $verbose ? null : ($optionStack->offsetGet('exportData') ?: null);
         $exportTables = $verbose ? [] : ($optionStack->offsetGet('exportDataFromTables') ?: []);
 
-        // Path to migration dir
-        $migrationPath = $helper->getMigrationsPath($versionItem, $migrationsDir, $verbose, $force);
+        // The checks of the version folder. The folder is made only when a file is written.
+        $migrationPath = $helper->getMigrationsPath($versionItem, $migrationsDir, true, $force);
+
+        // With data, always a new version. The export of the data writes into the folder.
+        $compare = $exportData === null && $exportTables === [];
+        if (!$compare && !$verbose && !is_dir($migrationPath)) {
+            mkdir($migrationPath);
+        }
 
         // Try to connect to the DB
         if ($optionStack->offsetGet('config')->adapter === null) {
@@ -256,7 +263,6 @@ class Migrations
         ModelMigration::setNamespace((string) $optionStack->offsetGet('namespace'));
         ModelMigration::setMigrationPath($migrationsDir);
 
-        $wasMigrated = false;
         if ($optionStack->offsetGet('tableName') === '@') {
             $migrations = ModelMigration::generateAll(
                 $versionItem,
@@ -265,13 +271,6 @@ class Migrations
                 $optionStack->offsetGet('skip-ref-schema'),
                 [self::getLogTable($options)]
             );
-
-            if (!$verbose) {
-                foreach ($migrations as $tableName => $migration) {
-                    $tableFile   = $migrationPath . DIRECTORY_SEPARATOR . $tableName . '.php';
-                    $wasMigrated = file_put_contents($tableFile, $migration) || $wasMigrated;
-                }
-            }
         } else {
             $prefix = $optionStack->getPrefixOption($optionStack->offsetGet('tableName'));
             if (!empty($prefix)) {
@@ -279,23 +278,45 @@ class Migrations
             }
 
             if ($optionStack->offsetGet('tableName') === '') {
+                // As before: an empty version folder
+                if (!$verbose && !is_dir($migrationPath)) {
+                    mkdir($migrationPath);
+                }
+
                 print Color::info('No one table is created. You should create tables first.') . PHP_EOL;
                 return;
             }
 
-            $tables = explode(',', $optionStack->offsetGet('tableName'));
-            foreach ($tables as $table) {
-                $migration = ModelMigration::generate(
+            $migrations = [];
+            foreach (explode(',', $optionStack->offsetGet('tableName')) as $table) {
+                $migrations[$table] = ModelMigration::generate(
                     $versionItem,
                     $table,
                     $exportData,
                     $exportTables,
                     $optionStack->offsetGet('skip-ref-schema')
                 );
-                if (!$verbose) {
-                    $tableFile   = $migrationPath . DIRECTORY_SEPARATOR . $table . '.php';
-                    $wasMigrated = file_put_contents($tableFile, $migration);
-                }
+            }
+        }
+
+        $dirs = is_array($migrationsDirs) ? $migrationsDirs : [$migrationsDirs];
+        if ($compare && $migrations !== [] && self::isUnchanged($migrations, $dirs)) {
+            if (self::isConsole()) {
+                print Color::info('Nothing to generate: no table changed since the last version') . PHP_EOL;
+            }
+
+            return;
+        }
+
+        $wasMigrated = false;
+        if (!$verbose) {
+            if (!is_dir($migrationPath)) {
+                mkdir($migrationPath);
+            }
+
+            foreach ($migrations as $tableName => $migration) {
+                $tableFile   = $migrationPath . DIRECTORY_SEPARATOR . $tableName . '.php';
+                $wasMigrated = file_put_contents($tableFile, $migration) || $wasMigrated;
             }
         }
 
@@ -802,6 +823,63 @@ class Migrations
         $logTable = (string) ($options['log-table'] ?? '');
 
         return $logTable !== '' ? $logTable : self::MIGRATION_LOG_TABLE;
+    }
+
+    /**
+     * The new migration of each table is the same as the newest migration
+     * file of that table, in all the migrations folders
+     */
+    private static function isUnchanged(array $migrations, array $migrationsDirs): bool
+    {
+        $versions = [];
+        foreach ($migrationsDirs as $dir) {
+            if (!is_dir($dir)) {
+                continue;
+            }
+
+            foreach (ModelMigration::scanForVersions($dir) as $item) {
+                $item->setPath(rtrim($dir, '\\/'));
+                $versions[] = $item;
+            }
+        }
+
+        $versions = VersionCollection::sortDesc($versions);
+        foreach ($migrations as $table => $migration) {
+            $newest = null;
+            foreach ($versions as $version) {
+                $file = $version->getPath() . DIRECTORY_SEPARATOR . $version->getVersion()
+                    . DIRECTORY_SEPARATOR . $table . '.php';
+                if (is_file($file)) {
+                    $newest = $file;
+                    break;
+                }
+            }
+
+            if ($newest === null) {
+                return false;
+            }
+
+            $current = self::normalizeMigration((string) file_get_contents($newest));
+            if ($current !== self::normalizeMigration($migration)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * The parts of a migration that change with each version, but not with
+     * the structure: the version in the class name, and the AUTO_INCREMENT
+     * value (MySQL)
+     */
+    private static function normalizeMigration(string $migration): string
+    {
+        return (string) preg_replace(
+            ['/Migration_[0-9A-Za-z]+/', "/'AUTO_INCREMENT' => '[0-9]*'/"],
+            ['Migration_', "'AUTO_INCREMENT' => ''"],
+            $migration
+        );
     }
 
     /**
