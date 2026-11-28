@@ -375,6 +375,8 @@ abstract class AbstractAdapter implements AdapterInterface
         // A CURRENT_TIMESTAMP default is read only in its plain form. A default
         // with a precision, for example CURRENT_TIMESTAMP(6), or an expression
         // needs more than the default, so it stays out.
+        // The join "pk" has only the columns of the primary key: a column in
+        // other keys too must give one row.
         return "
             SELECT
                 c.column_name    AS name,
@@ -415,23 +417,26 @@ abstract class AbstractAdapter implements AdapterInterface
                 END              AS is_not_null,
                 $comment         AS comment,
                 CASE c.ordinal_position WHEN 1 THEN 1 ELSE 0 END AS is_first,
-                CASE tc.constraint_type
-                    WHEN 'PRIMARY KEY' THEN 1
-                    ELSE 0
+                CASE
+                    WHEN pk.column_name IS NULL THEN 0
+                    ELSE 1
                 END              AS is_primary,
                 $unsigned        AS is_unsigned,
                 $autoInc         AS is_auto_increment,
                 $extended        AS extended
             FROM information_schema.columns c
-                LEFT JOIN information_schema.key_column_usage kcu
-                    ON  c.table_schema = kcu.table_schema
-                    AND c.table_name   = kcu.table_name
-                    AND c.column_name  = kcu.column_name
-                LEFT JOIN information_schema.table_constraints tc
-                    ON  kcu.table_schema    = tc.table_schema
-                    AND kcu.table_name      = tc.table_name
-                    AND kcu.constraint_name = tc.constraint_name
-                    AND tc.constraint_type  = 'PRIMARY KEY'
+                LEFT JOIN (
+                    SELECT kcu.table_schema, kcu.table_name, kcu.column_name
+                    FROM information_schema.key_column_usage kcu
+                        JOIN information_schema.table_constraints tc
+                            ON  kcu.table_schema    = tc.table_schema
+                            AND kcu.table_name      = tc.table_name
+                            AND kcu.constraint_name = tc.constraint_name
+                    WHERE tc.constraint_type = 'PRIMARY KEY'
+                ) pk
+                    ON  c.table_schema = pk.table_schema
+                    AND c.table_name   = pk.table_name
+                    AND c.column_name  = pk.column_name
             WHERE c.table_schema = :schema
             AND   c.table_name   = :table
             ORDER BY c.ordinal_position
