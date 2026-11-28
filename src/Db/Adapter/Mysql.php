@@ -274,6 +274,11 @@ class Mysql extends AbstractAdapter
             }
         }
 
+        // The values define an ENUM or a SET. The size is the length of the longest value.
+        if ($type === Column::TYPE_ENUM || $type === Column::TYPE_SET) {
+            $row['size'] = null;
+        }
+
         return parent::buildColumn($row, $isFirst, $previous);
     }
 

@@ -123,6 +123,22 @@ final class FieldDefinitionTest extends AbstractTestCase
         $this->assertFalse($file->isChangedData($file));
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/237
+     */
+    public function testIsChangedDataComparesOptions(): void
+    {
+        $file     = new FieldDefinition(
+            new Column('kind', ['type' => Column::TYPE_ENUM, 'notNull' => true, 'options' => ['a', 'b']])
+        );
+        $database = new FieldDefinition(
+            new Column('kind', ['type' => Column::TYPE_ENUM, 'notNull' => true, 'options' => ['a', 'c']])
+        );
+
+        $this->assertTrue($file->isChangedData($database));
+        $this->assertFalse($file->isChangedData($file));
+    }
+
     public function testIsChangedDataComparesSizeAndScaleOfDecimal(): void
     {
         $file   = new FieldDefinition(
@@ -137,6 +153,22 @@ final class FieldDefinitionTest extends AbstractTestCase
 
         $this->assertTrue($file->isChangedData($scale));
         $this->assertTrue($file->isChangedData($size));
+    }
+
+    /**
+     * The primary key is in the index sync. A file for MySQL has no primary
+     * flag on the column.
+     *
+     * @see https://github.com/phalcon/migrations/issues/237
+     */
+    public function testIsChangedDataIgnoresPrimary(): void
+    {
+        $file     = new FieldDefinition(new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]));
+        $database = new FieldDefinition(
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'primary' => true])
+        );
+
+        $this->assertFalse($file->isChangedData($database));
     }
 
     /**

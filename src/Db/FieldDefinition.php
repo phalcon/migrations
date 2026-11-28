@@ -98,7 +98,8 @@ class FieldDefinition
         $a = $this->currentColumn;
         $b = $other->getColumn();
 
-        // For an integer, the size and the scale do not change the storage
+        // For an integer, the size and the scale do not change the storage.
+        // The primary key is not compared: the index sync changes it.
         $isInteger = in_array($a->getType(), Column::INTEGER_TYPES, true);
 
         return $a->getType()          !== $b->getType()
@@ -107,10 +108,10 @@ class FieldDefinition
             || $a->isNotNull()        !== $b->isNotNull()
             || $a->isUnsigned()       !== $b->isUnsigned()
             || $a->isAutoIncrement()  !== $b->isAutoIncrement()
-            || $a->isPrimary()        !== $b->isPrimary()
             || $a->hasDefault()       !== $b->hasDefault()
             || $a->getDefault()       !== $b->getDefault()
-            || $a->getComment()       !== $b->getComment();
+            || $a->getComment()       !== $b->getComment()
+            || $a->getOptions()       !== $b->getOptions();
     }
 
     public function isChangedName(FieldDefinition $other): bool
