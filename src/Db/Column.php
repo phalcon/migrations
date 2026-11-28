@@ -47,6 +47,7 @@ final class Column
     public const TYPE_MEDIUMBLOB   = 'mediumblob';
     public const TYPE_MEDIUMINTEGER = 'mediuminteger';
     public const TYPE_MEDIUMTEXT   = 'mediumtext';
+    public const TYPE_SET          = 'set';
     public const TYPE_SMALLINTEGER = 'smallinteger';
     public const TYPE_TEXT         = 'text';
     public const TYPE_TIME         = 'time';

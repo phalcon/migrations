@@ -263,6 +263,26 @@ final class AdapterTest extends AbstractPostgresqlTestCase
     }
 
     /**
+     * @see https://github.com/phalcon/migrations/issues/155
+     */
+    public function testListColumnsCurrentTimestampDefault(): void
+    {
+        $this->adapter->execute(
+            'CREATE TABLE pg_ts_default_list_test (
+                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                changed TIMESTAMP(3) NULL DEFAULT CURRENT_TIMESTAMP(3)
+            )'
+        );
+
+        $columns = $this->adapter->listColumns($this->schema, 'pg_ts_default_list_test');
+
+        $this->assertTrue($columns['created']->hasDefault());
+        $this->assertSame('CURRENT_TIMESTAMP', $columns['created']->getDefault());
+        // A default with a precision needs the precision of the column, which is not read
+        $this->assertFalse($columns['changed']->hasDefault());
+    }
+
+    /**
      * @see https://github.com/phalcon/migrations/issues/105
      */
     public function testListColumnsUuid(): void

@@ -21,11 +21,10 @@ use Phalcon\Migrations\Db\Reference;
 use function implode;
 use function in_array;
 use function is_string;
+use function preg_match;
 use function str_getcsv;
-use function stripos;
 use function strtolower;
 use function strtoupper;
-use function substr;
 use function trim;
 
 abstract class AbstractAdapter implements AdapterInterface
@@ -236,13 +235,10 @@ abstract class AbstractAdapter implements AdapterInterface
             $definition['default'] = $default;
         }
 
+        // The values of an ENUM or a SET, for example enum('a','b,c','it''s')
         $extended = trim((string) ($row['extended'] ?? ''));
-        if (stripos($extended, 'enum') === 0) {
-            $input                = trim(substr($extended, 4), '()');
-            $definition['options'] = array_map(
-                static fn(string $v) => trim($v, "'"),
-                str_getcsv($input, ',', '"', '\\')
-            );
+        if (preg_match('/^(?:enum|set)\((.*)\)$/is', $extended, $matches) === 1) {
+            $definition['options'] = str_getcsv($matches[1], ',', "'", '');
         }
 
         return new Column((string) $row['name'], $definition);
@@ -376,6 +372,9 @@ abstract class AbstractAdapter implements AdapterInterface
         $extended = $this->getExtendedSql();
         $unsigned = $this->getUnsignedSql();
 
+        // A CURRENT_TIMESTAMP default is read only in its plain form. A default
+        // with a precision, for example CURRENT_TIMESTAMP(6), or an expression
+        // needs more than the default, so it stays out.
         return "
             SELECT
                 c.column_name    AS name,
@@ -389,7 +388,10 @@ abstract class AbstractAdapter implements AdapterInterface
                     WHEN (
                         c.column_default IS NULL
                         OR c.column_default = 'NULL'
-                        OR POSITION('CURRENT_TIMESTAMP' IN c.column_default) > 0
+                        OR (
+                            POSITION('CURRENT_TIMESTAMP' IN UPPER(c.column_default)) > 0
+                            AND UPPER(c.column_default) NOT IN ('CURRENT_TIMESTAMP', 'CURRENT_TIMESTAMP()')
+                        )
                     ) THEN NULL
                     ELSE c.column_default
                 END              AS default_value,

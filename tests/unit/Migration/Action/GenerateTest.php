@@ -410,6 +410,21 @@ final class GenerateTest extends AbstractTestCase
     }
 
     /**
+     * @see https://github.com/phalcon/migrations/issues/155
+     */
+    public function testGetColumnSizeSkipsForJsonTypes(): void
+    {
+        foreach (['mysql' => Column::TYPE_JSON, 'postgresql' => Column::TYPE_JSONB] as $adapter => $type) {
+            $class = new Generate($adapter, [new Column('doc', ['type' => $type, 'notNull' => false])]);
+            foreach ($class->getColumns() as $definition) {
+                foreach ($definition as $item) {
+                    $this->assertStringNotContainsString("'size'", $item, $type . ' column should have no size');
+                }
+            }
+        }
+    }
+
+    /**
      * @see https://github.com/phalcon/migrations/issues/218
      */
     public function testGetColumnSizeSkipsForMysqlBoolean(): void
@@ -452,6 +467,33 @@ final class GenerateTest extends AbstractTestCase
             }
         }
         $this->assertFalse($found, 'Integer column in PostgreSQL should have no size');
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/155
+     */
+    public function testGetColumnSizeSkipsForSet(): void
+    {
+        $columns = [
+            new Column('os', [
+                'type'    => Column::TYPE_SET,
+                'size'    => 11,
+                'notNull' => true,
+                'options' => ['Android', 'iOS'],
+            ]),
+        ];
+
+        $class  = new Generate('mysql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $this->assertContains("'type' => Column::TYPE_SET", $result['os']);
+        $this->assertContains("'options' => ['Android', 'iOS']", $result['os']);
+        foreach ($result['os'] as $item) {
+            $this->assertStringNotContainsString("'size'", $item, 'SET column should have no size');
+        }
     }
 
     /**

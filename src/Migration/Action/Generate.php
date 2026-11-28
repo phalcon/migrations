@@ -55,6 +55,8 @@ class Generate
         Column::TYPE_DATETIME,
         Column::TYPE_DOUBLE,
         Column::TYPE_FLOAT,
+        Column::TYPE_JSON,
+        Column::TYPE_JSONB,
         Column::TYPE_LONGBLOB,
         Column::TYPE_LONGTEXT,
         Column::TYPE_MEDIUMBLOB,
@@ -115,6 +117,7 @@ class Generate
         Column::TYPE_MEDIUMBLOB   => 'TYPE_MEDIUMBLOB',
         Column::TYPE_MEDIUMINTEGER => 'TYPE_MEDIUMINTEGER',
         Column::TYPE_MEDIUMTEXT   => 'TYPE_MEDIUMTEXT',
+        Column::TYPE_SET          => 'TYPE_SET',
         Column::TYPE_SMALLINTEGER => 'TYPE_SMALLINTEGER',
         Column::TYPE_TEXT         => 'TYPE_TEXT',
         Column::TYPE_TIME         => 'TYPE_TIME',
@@ -577,7 +580,7 @@ class Generate
             return null;
         }
 
-        if ($columnType === Column::TYPE_ENUM) {
+        if ($columnType === Column::TYPE_ENUM || $columnType === Column::TYPE_SET) {
             return null;
         }
 
