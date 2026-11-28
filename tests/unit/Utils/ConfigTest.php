@@ -24,6 +24,8 @@ final class ConfigTest extends AbstractTestCase
             'application' => [
                 'descr'                => 'test description',
                 'exportDataFromTables' => ['table1', 'table2'],
+                'log-path'             => 'logs/migrations.log',
+                'log-table'            => 'app_migrations',
                 'logInDb'              => true,
                 'migrationsDir'        => '/migrations',
                 'migrationsTsBased'    => true,
@@ -37,6 +39,8 @@ final class ConfigTest extends AbstractTestCase
         $this->assertSame('test description', $config->descr);
         $this->assertSame(['table1', 'table2'], $config->exportDataFromTables);
         $this->assertTrue($config->logInDb);
+        $this->assertSame('logs/migrations.log', $config->logPath);
+        $this->assertSame('app_migrations', $config->logTable);
         $this->assertSame('/migrations', $config->migrationsDir);
         $this->assertTrue($config->migrationsTsBased);
         $this->assertSame('App\\Migrations', $config->namespace);
@@ -77,6 +81,8 @@ final class ConfigTest extends AbstractTestCase
         $this->assertSame([], $config->exportDataFromTables);
         $this->assertNull($config->host);
         $this->assertFalse($config->logInDb);
+        $this->assertNull($config->logPath);
+        $this->assertNull($config->logTable);
         $this->assertNull($config->migrationsDir);
         $this->assertFalse($config->migrationsTsBased);
         $this->assertNull($config->namespace);

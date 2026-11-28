@@ -89,6 +89,8 @@ final class MigrationCommandTest extends AbstractTestCase
 
         $this->assertIsArray($params);
         $this->assertArrayHasKey('config=s', $params);
+        $this->assertArrayHasKey('log-path=s', $params);
+        $this->assertArrayHasKey('log-table=s', $params);
         $this->assertArrayHasKey('migrations=s', $params);
         $this->assertArrayHasKey('namespace=s', $params);
         $this->assertArrayHasKey('help', $params);
@@ -184,6 +186,57 @@ final class MigrationCommandTest extends AbstractTestCase
 
         $this->assertSame('mysql', $config->adapter);
         $this->assertSame('h', $config->host);
+    }
+
+    public function testLogOptionsFromConfig(): void
+    {
+        $command = $this->makeCommand([]);
+        $config  = Config::fromArray([
+            'application' => [
+                'log-path'  => 'logs/db1.log',
+                'log-table' => 'db1_migrations',
+            ],
+        ]);
+
+        $this->assertSame(
+            [
+                'log-path'  => '/project/logs/db1.log',
+                'log-table' => 'db1_migrations',
+            ],
+            $command->publicLogOptions($config, '/project/')
+        );
+    }
+
+    public function testLogOptionsFromParserWinOverConfig(): void
+    {
+        $command = $this->makeCommand(['--log-path=/var/log/db2.log', '--log-table=db2_migrations']);
+        $config  = Config::fromArray([
+            'application' => [
+                'log-path'  => 'logs/db1.log',
+                'log-table' => 'db1_migrations',
+            ],
+        ]);
+
+        $this->assertSame(
+            [
+                'log-path'  => '/var/log/db2.log',
+                'log-table' => 'db2_migrations',
+            ],
+            $command->publicLogOptions($config, '/project/')
+        );
+    }
+
+    public function testLogOptionsWhenNotSet(): void
+    {
+        $command = $this->makeCommand([]);
+
+        $this->assertSame(
+            [
+                'log-path'  => null,
+                'log-table' => null,
+            ],
+            $command->publicLogOptions(Config::fromArray([]), '/project/')
+        );
     }
 
     public function testPrintParameters(): void

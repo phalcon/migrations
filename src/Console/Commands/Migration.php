@@ -99,6 +99,10 @@ class Migration implements CommandsInterface
             'ts-based'               => 'Timestamp based migration version',
             'log-in-db'              => 'Keep migrations log in the database ' .
                 'table rather than in file',
+            'log-path=s'             => 'Path of the migrations log file ' .
+                '(file log only). Default: .phalcon/migration-version',
+            'log-table=s'            => 'Name of the migrations log table ' .
+                '(database log only). Default: phalcon_migrations',
             'dry'                    => 'Attempt requested operation without ' .
                 'making changes to system (Generating only)',
             'verbose'                => 'Output of debugging information ' .
@@ -175,8 +179,9 @@ class Migration implements CommandsInterface
         $skipRefSchema     = $config->skipRefSchema     ?: $this->parser->has('skip-ref-schema');
         $skipForeignChecks = $config->skipForeignChecks ?: $this->parser->has('skip-foreign-checks');
 
-        $descr     = $config->descr ?? $this->parser->get('descr');
-        $tableName = $this->parser->get('table', '@');
+        $descr      = $config->descr ?? $this->parser->get('descr');
+        $tableName  = $this->parser->get('table', '@');
+        $logOptions = $this->logOptions($config, $path);
 
         switch ($action) {
             case 'generate':
@@ -195,6 +200,7 @@ class Migration implements CommandsInterface
                     'verbose'              => $this->parser->has('dry'),
                     'skip-ref-schema'      => $skipRefSchema,
                     'namespace'            => $this->parser->get('namespace') ?? $config->namespace,
+                    ...$logOptions,
                 ]);
                 break;
             case 'run':
@@ -209,6 +215,7 @@ class Migration implements CommandsInterface
                     'migrationsInDb'      => $migrationsInDb,
                     'verbose'             => $this->parser->has('verbose'),
                     'skip-foreign-checks' => $skipForeignChecks,
+                    ...$logOptions,
                 ]);
                 break;
             case 'list':
@@ -221,6 +228,7 @@ class Migration implements CommandsInterface
                     'config'         => $config,
                     'version'        => $this->parser->get('version'),
                     'migrationsInDb' => $migrationsInDb,
+                    ...$logOptions,
                 ]);
                 break;
 
@@ -310,6 +318,23 @@ class Migration implements CommandsInterface
             default:
                 throw CommandsException::configBuilderNotFound();
         }
+    }
+
+    /**
+     * The options of the migrations log. The CLI options win over the config.
+     * A relative log path starts in the project directory.
+     */
+    protected function logOptions(Config $config, string $path): array
+    {
+        $logPath = (string) ($this->parser->get('log-path') ?? $config->logPath ?? '');
+        if ($logPath !== '' && !$this->isAbsolutePath($logPath)) {
+            $logPath = $path . $logPath;
+        }
+
+        return [
+            'log-path'  => $logPath !== '' ? $logPath : null,
+            'log-table' => $this->parser->get('log-table') ?? $config->logTable,
+        ];
     }
 
     /**

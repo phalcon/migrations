@@ -42,4 +42,9 @@ class MigrationFake extends Migration
     {
         return $this->exportFromTables($config);
     }
+
+    public function publicLogOptions(Config $config, string $path): array
+    {
+        return $this->logOptions($config, $path);
+    }
 }
