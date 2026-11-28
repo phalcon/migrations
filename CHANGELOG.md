@@ -27,6 +27,7 @@
 - Fixed the foreign keys to a table in another schema and the composite foreign keys: PostgreSQL `listReferences()` gave the schema of the table as the referenced schema, and the columns of a composite foreign key more than one time (`[x, x, y, y]`); and the morph added and dropped a foreign key on a table in the referenced schema, not in the schema of the table ([#241](https://github.com/phalcon/migrations/issues/241))
 - Fixed a short version getting one part too many (`1.1` gave `1.1.0.0`, so `generate --version=1.1` created the folder `1.1.0.0`), and the versions of a second migrations folder being lost in the next version of `generate` and in the table of `list` (the lists were joined with `+`) ([#243](https://github.com/phalcon/migrations/issues/243))
 - Fixed `generate` for all the tables writing the data of the log table (`phalcon_migrations.dat`, or the `--log-table`) with `--data`; `Migration::generateAll()` has a new optional argument with the tables to skip ([#245](https://github.com/phalcon/migrations/issues/245))
+- Fixed the help: it did not list the `--skip-ref-schema` and `--skip-foreign-checks` options ([#247](https://github.com/phalcon/migrations/issues/247))
 - Fixed the last foreign key or index of a table staying in the database: `generate` left out the `references` and `indexes` keys when the table had none, so the morph did not sync them; the keys are now always in the file, as empty lists ([#227](https://github.com/phalcon/migrations/issues/227))
 
 ## Changed
