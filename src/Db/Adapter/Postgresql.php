@@ -213,28 +213,26 @@ class Postgresql extends AbstractAdapter
     public function listReferences(string $schema, string $table): array
     {
         $rows = $this->connection->fetchAll(
-            "SELECT DISTINCT
-                 tc.constraint_name,
-                 kcu.column_name,
-                 tc.table_schema        AS referenced_schema,
-                 ccu.table_name         AS referenced_table,
-                 ccu.column_name        AS referenced_column,
-                 rc.update_rule,
-                 rc.delete_rule
-             FROM information_schema.table_constraints tc
+            // Each column of the foreign key, with the column of the referenced
+            // key at the same position (also for a table in another schema)
+            "SELECT kcu.constraint_name  AS constraint_name,
+                    kcu.column_name      AS column_name,
+                    ref.table_schema     AS referenced_schema,
+                    ref.table_name       AS referenced_table,
+                    ref.column_name      AS referenced_column,
+                    rc.update_rule       AS update_rule,
+                    rc.delete_rule       AS delete_rule
+             FROM information_schema.referential_constraints rc
              JOIN information_schema.key_column_usage kcu
-                  ON tc.constraint_name = kcu.constraint_name
-                  AND tc.table_schema   = kcu.table_schema
-             JOIN information_schema.constraint_column_usage ccu
-                  ON ccu.constraint_name = tc.constraint_name
-             JOIN information_schema.referential_constraints rc
-                  ON tc.constraint_catalog = rc.constraint_catalog
-                  AND tc.constraint_schema  = rc.constraint_schema
-                  AND tc.constraint_name    = rc.constraint_name
-             WHERE tc.constraint_type = 'FOREIGN KEY'
-             AND   tc.table_schema    = :schema
-             AND   tc.table_name      = :table
-             ORDER BY tc.constraint_name",
+                  ON  kcu.constraint_schema = rc.constraint_schema
+                  AND kcu.constraint_name   = rc.constraint_name
+             JOIN information_schema.key_column_usage ref
+                  ON  ref.constraint_schema = rc.unique_constraint_schema
+                  AND ref.constraint_name   = rc.unique_constraint_name
+                  AND ref.ordinal_position  = kcu.position_in_unique_constraint
+             WHERE kcu.table_schema = :schema
+             AND   kcu.table_name   = :table
+             ORDER BY kcu.constraint_name, kcu.ordinal_position",
             ['schema' => $schema, 'table' => $table]
         );
 
