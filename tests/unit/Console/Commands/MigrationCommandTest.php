@@ -87,6 +87,7 @@ final class MigrationCommandTest extends AbstractTestCase
         $this->assertStringContainsString('generate', $output);
         $this->assertStringContainsString('run', $output);
         $this->assertStringContainsString('list', $output);
+        $this->assertStringContainsString('clean', $output);
     }
 
     public function testGetPossibleParams(): void
@@ -97,6 +98,7 @@ final class MigrationCommandTest extends AbstractTestCase
 
         $this->assertIsArray($params);
         $this->assertArrayHasKey('config=s', $params);
+        $this->assertArrayHasKey('data-only', $params);
         $this->assertArrayHasKey('log-path=s', $params);
         $this->assertArrayHasKey('log-table=s', $params);
         $this->assertArrayHasKey('migrations=s', $params);
@@ -281,6 +283,30 @@ final class MigrationCommandTest extends AbstractTestCase
     }
 
     /**
+     * @see https://github.com/phalcon/migrations/issues/252
+     */
+    /**
+     * @see https://github.com/phalcon/migrations/issues/72
+     */
+    public function testRunCleanWithoutForceThrows(): void
+    {
+        $dir = $this->getOutputDir('cmd-clean-no-force');
+        $this->writePhpConfig($dir . '/config.php');
+
+        $command = $this->makeCommand(['clean', '--directory=' . $dir, '--config=config.php']);
+
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage('The clean action drops tables or deletes data: add --force to run it.');
+
+        ob_start();
+        try {
+            $command->run();
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    /**
      * An absolute --config does not start in the --directory.
      *
      * @see https://github.com/phalcon/migrations/issues/21
@@ -308,9 +334,6 @@ final class MigrationCommandTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @see https://github.com/phalcon/migrations/issues/252
-     */
     public function testRunWithDryThrows(): void
     {
         $dir = $this->getOutputDir('cmd-run-dry');

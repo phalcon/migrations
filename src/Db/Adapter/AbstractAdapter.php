@@ -90,6 +90,24 @@ abstract class AbstractAdapter implements AdapterInterface
         $this->connection->execute("DROP TABLE IF EXISTS {$t}");
     }
 
+    public function dropTables(array $tables, string $schema = ''): void
+    {
+        $this->withoutForeignKeyChecks(function () use ($tables, $schema): void {
+            foreach ($tables as $table) {
+                $this->dropTable($table, $schema);
+            }
+        });
+    }
+
+    public function emptyTables(array $tables, string $schema = ''): void
+    {
+        $this->withoutForeignKeyChecks(function () use ($tables, $schema): void {
+            foreach ($tables as $table) {
+                $this->connection->execute('DELETE FROM ' . $this->qualifyTable($table, $schema));
+            }
+        });
+    }
+
     public function execute(string $sql, array $values = []): void
     {
         $this->connection->execute($sql, $values);
@@ -544,5 +562,14 @@ abstract class AbstractAdapter implements AdapterInterface
         }
 
         return implode(', ', $quoted);
+    }
+
+    /**
+     * Runs $callback with the foreign key checks off. The default does not
+     * change them.
+     */
+    protected function withoutForeignKeyChecks(callable $callback): void
+    {
+        $callback();
     }
 }

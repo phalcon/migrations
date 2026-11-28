@@ -17,6 +17,11 @@ use Exception;
 
 class CommandsException extends Exception
 {
+    public static function cleanNeedsForce(): self
+    {
+        return new self('The clean action drops tables or deletes data: add --force to run it.');
+    }
+
     public static function configBuilderNotFound(): self
     {
         return new self("Builder can't locate the configuration file.");

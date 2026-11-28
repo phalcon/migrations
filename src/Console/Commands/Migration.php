@@ -70,6 +70,10 @@ class Migration implements CommandsInterface
         print Color::head('Usage: List all available migrations') . PHP_EOL;
         print Color::colorize('  migration list', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
 
+        print Color::head('Usage: Drop the tables, or delete their data (not the log table)') . PHP_EOL;
+        print Color::colorize('  migration clean --force [--table=<names>] [--data-only]', Color::FG_GREEN)
+            . PHP_EOL . PHP_EOL;
+
         print Color::head('Usage: Update migration files to Phalcon\Migrations\Db namespace') . PHP_EOL;
         print Color::colorize('  migration migrate-files --migrations=<path>', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
 
@@ -98,7 +102,9 @@ class Migration implements CommandsInterface
                 'imported (Running only)',
             'exportDataFromTables=s' => 'Export data from specific tables, use ' .
                 'comma separated string.',
-            'force'                  => 'Forces to overwrite existing migrations',
+            'force'                  => 'Forces to overwrite existing migrations, ' .
+                'or confirms the clean action',
+            'data-only'              => 'Delete the data and keep the tables (clean only)',
             'ts-based'               => 'Timestamp based migration version',
             'log-in-db'              => 'Keep migrations log in the database ' .
                 'table rather than in file',
@@ -229,6 +235,20 @@ class Migration implements CommandsInterface
                     'verbose'             => $this->parser->has('verbose'),
                     'skip-foreign-checks' => $skipForeignChecks,
                     'truncate'            => $truncate,
+                    ...$logOptions,
+                ]);
+                break;
+            case 'clean':
+                if (!$this->parser->has('force')) {
+                    throw CommandsException::cleanNeedsForce();
+                }
+
+                Migrations::clean([
+                    'config'         => $config,
+                    'data-only'      => $this->parser->has('data-only'),
+                    'directory'      => $path,
+                    'migrationsInDb' => $migrationsInDb,
+                    'tableName'      => $tableName,
                     ...$logOptions,
                 ]);
                 break;

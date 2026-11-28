@@ -17,6 +17,7 @@ use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 
+use function array_map;
 use function count;
 use function explode;
 use function implode;
@@ -163,6 +164,28 @@ class Postgresql extends AbstractAdapter
         $t = $this->qualifyTable($table, $schema);
         $n = $this->connection->quoteIdentifier($constraintName);
         $this->connection->execute("ALTER TABLE {$t} DROP CONSTRAINT IF EXISTS {$n}");
+    }
+
+    /**
+     * One statement for all the tables, so that tables that refer to each
+     * other can be dropped. A table that another table refers to stops it.
+     */
+    public function dropTables(array $tables, string $schema = ''): void
+    {
+        if ($tables !== []) {
+            $this->connection->execute('DROP TABLE IF EXISTS ' . $this->qualifyTables($tables, $schema));
+        }
+    }
+
+    /**
+     * One statement for all the tables, so that tables that refer to each
+     * other can be emptied. A table that another table refers to stops it.
+     */
+    public function emptyTables(array $tables, string $schema = ''): void
+    {
+        if ($tables !== []) {
+            $this->connection->execute('TRUNCATE ' . $this->qualifyTables($tables, $schema));
+        }
     }
 
     public function getTableOptions(string $schema, string $table): array
@@ -563,6 +586,11 @@ class Postgresql extends AbstractAdapter
     {
         // PostgreSQL rejects the parenthesized CURRENT_TIMESTAMP() spelling
         return strtoupper($default) === 'NOW()' ? 'NOW()' : 'CURRENT_TIMESTAMP';
+    }
+
+    private function qualifyTables(array $tables, string $schema): string
+    {
+        return implode(', ', array_map(fn(string $table) => $this->qualifyTable($table, $schema), $tables));
     }
 
     /**

@@ -409,4 +409,19 @@ class Mysql extends AbstractAdapter
 
         return self::TYPE_MAP[$base] ?? Column::TYPE_VARCHAR;
     }
+
+    /**
+     * Runs $callback with the foreign key checks off, then puts back the value
+     * of before
+     */
+    protected function withoutForeignKeyChecks(callable $callback): void
+    {
+        $checks = (int) ($this->fetchOne('SELECT @@FOREIGN_KEY_CHECKS AS checks')['checks'] ?? 1);
+        $this->connection->execute('SET FOREIGN_KEY_CHECKS=0');
+        try {
+            $callback();
+        } finally {
+            $this->connection->execute('SET FOREIGN_KEY_CHECKS=' . $checks);
+        }
+    }
 }

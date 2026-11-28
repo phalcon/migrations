@@ -369,6 +369,21 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
+     * Runs $callback with the foreign key checks off, then puts back the value
+     * of before
+     */
+    protected function withoutForeignKeyChecks(callable $callback): void
+    {
+        $checks = (int) ($this->fetchOne('PRAGMA foreign_keys')['foreign_keys'] ?? 0);
+        $this->connection->execute('PRAGMA foreign_keys = OFF');
+        try {
+            $callback();
+        } finally {
+            $this->connection->execute('PRAGMA foreign_keys = ' . ($checks === 1 ? 'ON' : 'OFF'));
+        }
+    }
+
+    /**
      * The referenced table is in the same database: SQLite has no schema in
      * the REFERENCES part.
      */

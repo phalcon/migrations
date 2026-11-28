@@ -44,6 +44,16 @@ interface AdapterInterface
 
     public function dropTable(string $table, string $schema = ''): void;
 
+    /**
+     * Drops the tables, also when they refer to each other
+     */
+    public function dropTables(array $tables, string $schema = ''): void;
+
+    /**
+     * Deletes all the rows of the tables, also when they refer to each other
+     */
+    public function emptyTables(array $tables, string $schema = ''): void;
+
     public function execute(string $sql, array $values = []): void;
 
     public function fetchAll(string $sql, array $values = []): array;
