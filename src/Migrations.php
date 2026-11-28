@@ -206,16 +206,12 @@ class Migrations
                 $versionItem,
                 $optionStack->offsetGet('exportData'),
                 $optionStack->offsetGet('exportDataFromTables') ?: [],
-                $optionStack->offsetGet('skip-ref-schema')
+                $optionStack->offsetGet('skip-ref-schema'),
+                [self::getLogTable($options)]
             );
 
             if (!$verbose) {
-                $logTable = self::getLogTable($options);
                 foreach ($migrations as $tableName => $migration) {
-                    if ($tableName === $logTable) {
-                        continue;
-                    }
-
                     $tableFile   = $migrationPath . DIRECTORY_SEPARATOR . $tableName . '.php';
                     $wasMigrated = file_put_contents($tableFile, $migration) || $wasMigrated;
                 }

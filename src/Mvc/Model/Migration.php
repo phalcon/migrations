@@ -172,16 +172,24 @@ class Migration
     /**
      * @throws UnknownColumnTypeException
      */
+    /**
+     * @param array $skipTables Tables with no migration (for example the log table)
+     */
     public static function generateAll(
         ItemInterface $version,
         ?string $exportData = null,
         array $exportTables = [],
-        bool $skipRefSchema = false
+        bool $skipRefSchema = false,
+        array $skipTables = []
     ): array {
         $classDefinition = [];
         $schema          = self::resolveDbSchema(self::$databaseConfig);
 
         foreach (self::$adapter->listTables($schema ?? '') as $table) {
+            if (in_array($table, $skipTables, true)) {
+                continue;
+            }
+
             $classDefinition[$table] = self::generate(
                 $version,
                 $table,
