@@ -112,7 +112,7 @@ class Migrations
             $storage = self::$storage;
             $storage->execute(
                 'INSERT INTO '
-                . self::MIGRATION_LOG_TABLE
+                . $storage->getConnection()->quoteIdentifier(self::getLogTable($options))
                 . ' (version, start_time, end_time) VALUES (?, ?, ?)',
                 [$version, $startTime, $endTime]
             );
@@ -127,12 +127,14 @@ class Migrations
 
     /**
      * Executes creation of Migrations Log Table
+     *
+     * @param string $table Name of the log table
      */
-    public static function createLogTable(): void
+    public static function createLogTable(string $table = self::MIGRATION_LOG_TABLE): void
     {
         /** @var AdapterInterface $storage */
         $storage = self::$storage;
-        $storage->createTable(self::MIGRATION_LOG_TABLE, '', [
+        $storage->createTable($table, '', [
             'columns' => [
                 new Column('version', [
                     'type'    => Column::TYPE_VARCHAR,
@@ -208,8 +210,9 @@ class Migrations
             );
 
             if (!$verbose) {
+                $logTable = self::getLogTable($options);
                 foreach ($migrations as $tableName => $migration) {
-                    if ($tableName === self::MIGRATION_LOG_TABLE) {
+                    if ($tableName === $logTable) {
                         continue;
                     }
 
@@ -264,7 +267,7 @@ class Migrations
             /** @var AdapterInterface $storage */
             $storage           = self::$storage;
             $query             = 'SELECT version FROM '
-                . self::MIGRATION_LOG_TABLE
+                . $storage->getConnection()->quoteIdentifier(self::getLogTable($options))
                 . ' ORDER BY version DESC';
             $completedVersions = $storage->fetchAll($query);
             $completedVersions = array_column($completedVersions, 'version');
@@ -415,7 +418,9 @@ class Migrations
             /** @var AdapterInterface $storage */
             $storage = self::$storage;
             $storage->execute(
-                'DELETE FROM ' . self::MIGRATION_LOG_TABLE . ' WHERE version = ?',
+                'DELETE FROM '
+                . $storage->getConnection()->quoteIdentifier(self::getLogTable($options))
+                . ' WHERE version = ?',
                 [$version]
             );
         } else {
@@ -689,11 +694,15 @@ class Migrations
                 $connection->execute('SET FOREIGN_KEY_CHECKS=0');
             }
 
-            if (!self::$storage->tableExists(self::MIGRATION_LOG_TABLE)) {
-                self::createLogTable();
+            $logTable = self::getLogTable($options);
+            if (!self::$storage->tableExists($logTable)) {
+                self::createLogTable($logTable);
             }
         } else {
-            if (empty($options['directory'])) {
+            $logPath = (string) ($options['log-path'] ?? '');
+            if ($logPath !== '') {
+                $path = dirname($logPath);
+            } elseif (empty($options['directory'])) {
                 if (defined('BASE_PATH')) {
                     $path = constant('BASE_PATH');
                 } elseif (defined('APP_PATH')) {
@@ -711,7 +720,7 @@ class Migrations
                 throw RuntimeException::cannotWriteDirectory($path);
             }
 
-            if (is_file($path)) {
+            if ($logPath === '' && is_file($path)) {
                 unlink($path);
                 if (!mkdir($path) && !is_dir($path)) {
                     throw RuntimeException::directoryNotCreated($path);
@@ -724,7 +733,7 @@ class Migrations
                 chmod($path, 0775);
             }
 
-            self::$storage = $path . '/migration-version';
+            self::$storage = $logPath !== '' ? $logPath : $path . '/migration-version';
 
             if (!file_exists(self::$storage)) {
                 if (!is_writable($path)) {
@@ -734,5 +743,15 @@ class Migrations
                 touch(self::$storage);
             }
         }
+    }
+
+    /**
+     * Name of the log table: the "log-table" option, or the default name
+     */
+    private static function getLogTable(array $options): string
+    {
+        $logTable = (string) ($options['log-table'] ?? '');
+
+        return $logTable !== '' ? $logTable : self::MIGRATION_LOG_TABLE;
     }
 }
