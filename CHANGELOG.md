@@ -29,6 +29,7 @@
 - Fixed `generate` for all the tables writing the data of the log table (`phalcon_migrations.dat`, or the `--log-table`) with `--data`; `Migration::generateAll()` has a new optional argument with the tables to skip ([#245](https://github.com/phalcon/migrations/issues/245))
 - Fixed the help: it did not list the `--skip-ref-schema` and `--skip-foreign-checks` options ([#247](https://github.com/phalcon/migrations/issues/247))
 - Fixed a new SQLite table getting no foreign keys: SQLite can create a foreign key only in the `CREATE TABLE`, and the `CREATE TABLE` left out the `references` of the definition ([#249](https://github.com/phalcon/migrations/issues/249))
+- Fixed `--dry`: `generate --dry` with `--data` (or `--exportDataFromTables`) still exported the data, into a folder that the dry run did not create (a `TypeError`); now a dry run writes no data file. `run --dry` ran the migrations for real; now it stops with the error "The --dry option is for generate only." ([#252](https://github.com/phalcon/migrations/issues/252))
 - Fixed the last foreign key or index of a table staying in the database: `generate` left out the `references` and `indexes` keys when the table had none, so the morph did not sync them; the keys are now always in the file, as empty lists ([#227](https://github.com/phalcon/migrations/issues/227))
 
 ## Changed

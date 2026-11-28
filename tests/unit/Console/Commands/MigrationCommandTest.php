@@ -308,6 +308,27 @@ final class MigrationCommandTest extends AbstractTestCase
         }
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/252
+     */
+    public function testRunWithDryThrows(): void
+    {
+        $dir = $this->getOutputDir('cmd-run-dry');
+        $this->writePhpConfig($dir . '/config.php');
+
+        $command = $this->makeCommand(['run', '--directory=' . $dir, '--config=config.php', '--dry']);
+
+        $this->expectException(CommandsException::class);
+        $this->expectExceptionMessage('The --dry option is for generate only');
+
+        ob_start();
+        try {
+            $command->run();
+        } finally {
+            ob_end_clean();
+        }
+    }
+
     public function testRunWithHActionPrintsHelp(): void
     {
         $command = $this->makeCommand(['h']);

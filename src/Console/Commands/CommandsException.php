@@ -37,6 +37,11 @@ class CommandsException extends Exception
         return new self("Directory not found: {$path}");
     }
 
+    public static function dryOnlyForGenerate(): self
+    {
+        return new self('The --dry option is for generate only.');
+    }
+
     public static function migrationsDirectoryRequired(): self
     {
         return new self('Migrations directory is required. Use --migrations=<path>');
