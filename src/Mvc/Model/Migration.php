@@ -40,16 +40,19 @@ use function class_exists;
 use function fclose;
 use function fgetcsv;
 use function file_exists;
+use function file_get_contents;
 use function fopen;
 use function get_called_class;
 use function implode;
 use function in_array;
 use function method_exists;
+use function preg_match;
 use function preg_replace;
 use function rtrim;
 use function sprintf;
 use function stripslashes;
 use function strtolower;
+use function trim;
 
 use const DIRECTORY_SEPARATOR;
 
@@ -77,6 +80,11 @@ class Migration
     private static Config $databaseConfig;
 
     private static string $migrationPath = '';
+
+    /**
+     * Namespace of the generated migration classes
+     */
+    private static string $namespace = '';
 
     private static bool $skipAI = true;
 
@@ -138,7 +146,7 @@ class Migration
             $options
         );
 
-        $generateAction->createEntity($className)
+        $generateAction->createEntity($className, false, self::$namespace)
                        ->addMorph($snippet, $table, $skipRefSchema, self::$skipAI)
                        ->addUp($table, $exportData, $shouldExportDataFromTable)
                        ->addDown($table, $exportData, $shouldExportDataFromTable)
@@ -294,6 +302,11 @@ class Migration
         self::$migrationPath = rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
     }
 
+    public static function setNamespace(string $namespace): void
+    {
+        self::$namespace = trim($namespace, '\\');
+    }
+
     public static function setSkipAutoIncrement(bool $skip): void
     {
         self::$skipAI = $skip;
@@ -311,6 +324,11 @@ class Migration
         }
 
         $className = $camelize->__invoke($tableName) . 'Migration_' . $version->getStamp();
+
+        // A generated file can have a namespace (the "namespace" option)
+        if (preg_match('/^namespace\s+([\w\\\\]+)\s*;/m', (string) file_get_contents($fileName), $matches) === 1) {
+            $className = $matches[1] . '\\' . $className;
+        }
 
         include_once $fileName;
         if (!class_exists($className)) {

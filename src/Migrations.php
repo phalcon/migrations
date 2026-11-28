@@ -195,6 +195,7 @@ class Migrations
 
         ModelMigration::setup($optionStack->offsetGet('config'), $verbose);
         ModelMigration::setSkipAutoIncrement((bool) $optionStack->offsetGet('noAutoIncrement'));
+        ModelMigration::setNamespace((string) $optionStack->offsetGet('namespace'));
         ModelMigration::setMigrationPath($migrationsDir);
 
         $wasMigrated = false;

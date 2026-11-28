@@ -90,6 +90,7 @@ final class MigrationCommandTest extends AbstractTestCase
         $this->assertIsArray($params);
         $this->assertArrayHasKey('config=s', $params);
         $this->assertArrayHasKey('migrations=s', $params);
+        $this->assertArrayHasKey('namespace=s', $params);
         $this->assertArrayHasKey('help', $params);
     }
 
