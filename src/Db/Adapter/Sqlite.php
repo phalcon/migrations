@@ -126,6 +126,26 @@ class Sqlite extends AbstractAdapter
         // SQLite does not support dropping a primary key without recreating the table.
     }
 
+    /**
+     * SQLite has the foreign keys in the CREATE TABLE (it does not check the
+     * referenced table there), and the other indexes as extra statements
+     */
+    public function getCreateTableSql(string $table, string $schema, array $definition): array
+    {
+        $sql = [
+            'tables'     => [$this->buildCreateTableSql($table, $schema, $definition)],
+            'indexes'    => [],
+            'references' => [],
+        ];
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if (!$this->isPrimaryIndex($index)) {
+                $sql['indexes'][] = $this->buildAddIndexSql($table, $schema, $index);
+            }
+        }
+
+        return $sql;
+    }
+
     public function getCurrentSchema(): string
     {
         return 'main';
