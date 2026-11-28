@@ -93,6 +93,8 @@ final class MigrationCommandTest extends AbstractTestCase
         $this->assertArrayHasKey('log-table=s', $params);
         $this->assertArrayHasKey('migrations=s', $params);
         $this->assertArrayHasKey('namespace=s', $params);
+        $this->assertArrayHasKey('skip-foreign-checks', $params);
+        $this->assertArrayHasKey('skip-ref-schema', $params);
         $this->assertArrayHasKey('truncate', $params);
         $this->assertArrayHasKey('help', $params);
     }

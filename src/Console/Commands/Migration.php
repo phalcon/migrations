@@ -111,6 +111,10 @@ class Migration implements CommandsInterface
             'verbose'                => 'Output of debugging information ' .
                 'during operation (Running only)',
             'no-auto-increment'      => 'Disable auto increment (Generating only)',
+            'skip-ref-schema'        => 'Leave out the schema of the referenced ' .
+                'table in the foreign keys (Generating only)',
+            'skip-foreign-checks'    => 'Turn off the foreign key checks during ' .
+                'the migration, MySQL only (Running only)',
             'namespace=s'            => 'Namespace of the generated migration classes (Generating only)',
             'dry-run'                => 'Preview changes without writing (migrate-files only)',
             'help'                   => 'Shows this help [optional]',
