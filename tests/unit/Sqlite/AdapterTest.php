@@ -18,6 +18,7 @@ use Phalcon\Migrations\Db\Adapter\Sqlite;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Connection;
 use Phalcon\Migrations\Db\Index;
+use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 use Phalcon\Migrations\Utils\Config;
 
@@ -88,6 +89,46 @@ final class AdapterTest extends AbstractTestCase
         $value = (string) $this->connection->fetchValue('SELECT created_at FROM lite_ts_test');
 
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $value);
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/249
+     */
+    public function testCreateTableWithForeignKeys(): void
+    {
+        $this->adapter->createTable('parent', '', [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+            ],
+            'indexes' => [
+                new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
+            ],
+        ]);
+        $this->adapter->createTable('child', '', [
+            'columns'    => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('parent_id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+            ],
+            'indexes'    => [
+                new Index('PRIMARY', ['id'], Index::TYPE_PRIMARY),
+            ],
+            'references' => [
+                new Reference('fk_child_parent', [
+                    'referencedTable'   => 'parent',
+                    'columns'           => ['parent_id'],
+                    'referencedColumns' => ['id'],
+                    'onDelete'          => 'CASCADE',
+                ]),
+            ],
+        ]);
+
+        $references = array_values($this->adapter->listReferences('', 'child'));
+
+        $this->assertCount(1, $references);
+        $this->assertSame('parent', $references[0]->getReferencedTable());
+        $this->assertSame(['parent_id'], $references[0]->getColumns());
+        $this->assertSame(['id'], $references[0]->getReferencedColumns());
+        $this->assertSame('CASCADE', $references[0]->getOnDelete());
     }
 
     public function testCreateTableWithPrimaryIndex(): void

@@ -352,6 +352,11 @@ class Sqlite extends AbstractAdapter
             }
         }
 
+        // SQLite can create a foreign key only with the table
+        foreach ($definition['references'] ?? [] as $reference) {
+            $parts[] = '    ' . $this->buildForeignKeyClause($reference);
+        }
+
         return "CREATE TABLE {$t} (\n" . implode(",\n", $parts) . "\n)";
     }
 
@@ -360,6 +365,32 @@ class Sqlite extends AbstractAdapter
     protected function mapType(string $infoType, string $extended): string
     {
         return self::TYPE_MAP[strtolower($infoType)] ?? Column::TYPE_VARCHAR;
+    }
+
+    /**
+     * The referenced table is in the same database: SQLite has no schema in
+     * the REFERENCES part.
+     */
+    private function buildForeignKeyClause(Reference $reference): string
+    {
+        $sql = '';
+        if ($reference->getName() !== '') {
+            $sql = 'CONSTRAINT ' . $this->quoteName($reference->getName()) . ' ';
+        }
+
+        $sql .= 'FOREIGN KEY (' . $this->quoteColumns($reference->getColumns()) . ')'
+            . ' REFERENCES ' . $this->quoteName($reference->getReferencedTable())
+            . ' (' . $this->quoteColumns($reference->getReferencedColumns()) . ')';
+
+        if ($reference->getOnDelete() !== '') {
+            $sql .= ' ON DELETE ' . $reference->getOnDelete();
+        }
+
+        if ($reference->getOnUpdate() !== '') {
+            $sql .= ' ON UPDATE ' . $reference->getOnUpdate();
+        }
+
+        return $sql;
     }
 
     private function getTableSql(string $schema, string $table): string
