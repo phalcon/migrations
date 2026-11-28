@@ -250,6 +250,29 @@ final class GenerateTest extends AbstractTestCase
     /**
      * @throws UnknownColumnTypeException
      */
+    /**
+     * @see https://github.com/phalcon/migrations/issues/258
+     */
+    public function testColumnHasOnUpdate(): void
+    {
+        $columns = [
+            new Column('updated', [
+                'type'     => Column::TYPE_TIMESTAMP,
+                'notNull'  => false,
+                'default'  => 'CURRENT_TIMESTAMP',
+                'onUpdate' => 'CURRENT_TIMESTAMP',
+            ]),
+        ];
+
+        $class  = new Generate('mysql', $columns);
+        $result = [];
+        foreach ($class->getColumns() as $name => $def) {
+            $result[$name] = $def;
+        }
+
+        $this->assertContains("'onUpdate' => \"CURRENT_TIMESTAMP\"", $result['updated']);
+    }
+
     public function testConstructMysql(): void
     {
         $adapter = 'mysql';

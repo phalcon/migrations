@@ -111,6 +111,7 @@ class FieldDefinition
             || $a->hasDefault()       !== $b->hasDefault()
             || $a->getDefault()       !== $b->getDefault()
             || $a->getComment()       !== $b->getComment()
+            || $a->getOnUpdate()      !== $b->getOnUpdate()
             || $a->getOptions()       !== $b->getOptions();
     }
 

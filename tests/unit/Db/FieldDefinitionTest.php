@@ -124,6 +124,20 @@ final class FieldDefinitionTest extends AbstractTestCase
     }
 
     /**
+     * @see https://github.com/phalcon/migrations/issues/258
+     */
+    public function testIsChangedDataComparesOnUpdate(): void
+    {
+        $file     = new FieldDefinition(
+            new Column('updated', ['type' => Column::TYPE_TIMESTAMP, 'onUpdate' => 'CURRENT_TIMESTAMP'])
+        );
+        $database = new FieldDefinition(new Column('updated', ['type' => Column::TYPE_TIMESTAMP]));
+
+        $this->assertTrue($file->isChangedData($database));
+        $this->assertFalse($file->isChangedData($file));
+    }
+
+    /**
      * @see https://github.com/phalcon/migrations/issues/237
      */
     public function testIsChangedDataComparesOptions(): void
