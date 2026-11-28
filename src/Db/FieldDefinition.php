@@ -109,7 +109,8 @@ class FieldDefinition
             || $a->isAutoIncrement()  !== $b->isAutoIncrement()
             || $a->isPrimary()        !== $b->isPrimary()
             || $a->hasDefault()       !== $b->hasDefault()
-            || $a->getDefault()       !== $b->getDefault();
+            || $a->getDefault()       !== $b->getDefault()
+            || $a->getComment()       !== $b->getComment();
     }
 
     public function isChangedName(FieldDefinition $other): bool

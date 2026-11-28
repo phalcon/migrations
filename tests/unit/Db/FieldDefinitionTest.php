@@ -103,6 +103,26 @@ final class FieldDefinitionTest extends AbstractTestCase
         $this->assertTrue($fieldDefinition->isChangedData($fieldDefinitionChanged));
     }
 
+    /**
+     * @see https://github.com/phalcon/migrations/issues/89
+     */
+    public function testIsChangedDataComparesComment(): void
+    {
+        $file     = new FieldDefinition(
+            new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 10, 'comment' => 'new'])
+        );
+        $database = new FieldDefinition(
+            new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 10, 'comment' => 'old'])
+        );
+        $none     = new FieldDefinition(
+            new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 10])
+        );
+
+        $this->assertTrue($file->isChangedData($database));
+        $this->assertTrue($none->isChangedData($database));
+        $this->assertFalse($file->isChangedData($file));
+    }
+
     public function testIsChangedDataComparesSizeAndScaleOfDecimal(): void
     {
         $file   = new FieldDefinition(

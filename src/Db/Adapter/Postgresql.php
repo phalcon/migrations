@@ -110,8 +110,20 @@ class Postgresql extends AbstractAdapter
     protected string $currentSchemaSql = 'SELECT CURRENT_SCHEMA';
 
     /**
-     * The CREATE TABLE has only the primary key. Create the other indexes
-     * after the table.
+     * The ADD COLUMN has no comment. Set the comment after the column.
+     */
+    public function addColumn(string $table, string $schema, Column $column): void
+    {
+        parent::addColumn($table, $schema, $column);
+
+        if ($column->getComment() !== '') {
+            $this->setColumnComment($table, $schema, $column);
+        }
+    }
+
+    /**
+     * The CREATE TABLE has only the primary key and no comments. Create the
+     * other indexes and set the column comments after the table.
      */
     public function createTable(string $table, string $schema, array $definition): void
     {
@@ -120,6 +132,12 @@ class Postgresql extends AbstractAdapter
         foreach ($definition['indexes'] ?? [] as $index) {
             if (!$this->isPrimaryIndex($index)) {
                 $this->addIndex($table, $schema, $index);
+            }
+        }
+
+        foreach ($definition['columns'] ?? [] as $column) {
+            if ($column->getComment() !== '') {
+                $this->setColumnComment($table, $schema, $column);
             }
         }
     }
@@ -301,6 +319,10 @@ class Postgresql extends AbstractAdapter
             $this->connection->execute(
                 "ALTER TABLE {$t} RENAME COLUMN {$oldName} TO {$newName}"
             );
+        }
+
+        if ($new->getComment() !== $current->getComment()) {
+            $this->setColumnComment($table, $schema, $new);
         }
     }
 
@@ -515,5 +537,22 @@ class Postgresql extends AbstractAdapter
     {
         // PostgreSQL rejects the parenthesized CURRENT_TIMESTAMP() spelling
         return strtoupper($default) === 'NOW()' ? 'NOW()' : 'CURRENT_TIMESTAMP';
+    }
+
+    /**
+     * An empty comment removes the comment of the column
+     */
+    private function setColumnComment(string $table, string $schema, Column $column): void
+    {
+        $comment = $column->getComment() !== '' ? $this->connection->quote($column->getComment()) : 'NULL';
+
+        $this->connection->execute(
+            sprintf(
+                'COMMENT ON COLUMN %s.%s IS %s',
+                $this->qualifyTable($table, $schema),
+                $this->connection->quoteIdentifier($column->getName()),
+                $comment
+            )
+        );
     }
 }
