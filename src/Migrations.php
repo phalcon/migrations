@@ -190,6 +190,10 @@ class Migrations
         $verbose     = $optionStack->offsetGet('verbose');
         $force       = $optionStack->offsetGet('force');
 
+        // A dry run ("verbose") writes no files, also no data files
+        $exportData   = $verbose ? null : $optionStack->offsetGet('exportData');
+        $exportTables = $verbose ? [] : ($optionStack->offsetGet('exportDataFromTables') ?: []);
+
         // Path to migration dir
         $migrationPath = $helper->getMigrationsPath($versionItem, $migrationsDir, $verbose, $force);
 
@@ -207,8 +211,8 @@ class Migrations
         if ($optionStack->offsetGet('tableName') === '@') {
             $migrations = ModelMigration::generateAll(
                 $versionItem,
-                $optionStack->offsetGet('exportData'),
-                $optionStack->offsetGet('exportDataFromTables') ?: [],
+                $exportData,
+                $exportTables,
                 $optionStack->offsetGet('skip-ref-schema'),
                 [self::getLogTable($options)]
             );
@@ -235,8 +239,8 @@ class Migrations
                 $migration = ModelMigration::generate(
                     $versionItem,
                     $table,
-                    $optionStack->offsetGet('exportData'),
-                    $optionStack->offsetGet('exportDataFromTables') ?: [],
+                    $exportData,
+                    $exportTables,
                     $optionStack->offsetGet('skip-ref-schema')
                 );
                 if (!$verbose) {

@@ -213,6 +213,10 @@ class Migration implements CommandsInterface
                 ]);
                 break;
             case 'run':
+                if ($this->parser->has('dry')) {
+                    throw CommandsException::dryOnlyForGenerate();
+                }
+
                 Migrations::run([
                     'directory'           => $path,
                     'tableName'           => $tableName,
