@@ -6,6 +6,7 @@
 - Added the `log-path` option (`--log-path` and `application.log-path`) for the path of the file log, so that each database can have its own log; a relative path starts in the project directory. The default stays `.phalcon/migration-version` ([#5](https://github.com/phalcon/migrations/issues/5))
 - Added the `log-table` option (`--log-table` and `application.log-table`) for the name of the log table, so that two sets of migrations can have their own log in one database; `generate` skips that table, and the SQL of the log quotes its name. The default stays `phalcon_migrations` ([#60](https://github.com/phalcon/migrations/issues/60))
 - Added the `truncate` option (`--truncate` and `application.truncate`) for `run`: `batchInsert()` empties the table in its transaction before it loads the data, so a version with data (`--data=always`) does not insert the same rows again over the rows of an earlier version ([#83](https://github.com/phalcon/migrations/issues/83))
+- Added the column comments on PostgreSQL: `createTable()`, `addColumn()` and `modifyColumn()` set them with `COMMENT ON COLUMN` (before, the comments were read but never written) ([#89](https://github.com/phalcon/migrations/issues/89))
 
 ## Fixed
 
@@ -20,6 +21,7 @@
 
 ## Changed
 
+- Changed the table morph to compare the column comment: a change of only the comment is now applied, and a column with no comment in the migration file clears the comment of the live column (on MySQL, this happened already when another part of the column changed) ([#89](https://github.com/phalcon/migrations/issues/89))
 - Changed the generated migration files: they have `declare(strict_types=1)`, and a `TABLE_NAME` class constant that `morphTable()`, `batchInsert()` and `batchDelete()` use, in place of the table name string ([#87](https://github.com/phalcon/migrations/issues/87), [#107](https://github.com/phalcon/migrations/issues/107))
 - Changed CI to run php-cs-fixer (dry run) in the code style job on PHP 8.2 - 8.5 (php-cs-fixer does not support PHP 8.6 yet), and fixed the order of the test methods in `OptionStackTest` and `VersionLogTest` ([#216](https://github.com/phalcon/migrations/issues/216))
 
