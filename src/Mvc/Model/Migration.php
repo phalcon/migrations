@@ -637,12 +637,12 @@ class Migration
                 ];
             }
 
+            // The foreign key is on the table in its own schema. The referenced
+            // schema is only for the REFERENCES part.
             foreach ($definition['references'] as $tableReference) {
-                $schemaName = $tableReference->getReferencedSchema() ?? '';
-
                 if (!isset($localReferences[$tableReference->getName()])) {
                     try {
-                        self::$adapter->addForeignKey($tableName, $schemaName, $tableReference);
+                        self::$adapter->addForeignKey($tableName, $tableSchema, $tableReference);
                     } catch (Throwable $e) {
                         throw RuntimeException::failedToAddForeignKey(
                             $tableReference->getName(),
@@ -680,7 +680,7 @@ class Migration
 
                 if ($changed) {
                     try {
-                        self::$adapter->dropForeignKey($tableName, $schemaName, $tableReference->getName());
+                        self::$adapter->dropForeignKey($tableName, $tableSchema, $tableReference->getName());
                     } catch (Throwable $e) {
                         throw RuntimeException::failedToDropForeignKey(
                             $tableReference->getName(),
@@ -691,7 +691,7 @@ class Migration
                     }
 
                     try {
-                        self::$adapter->addForeignKey($tableName, $schemaName, $tableReference);
+                        self::$adapter->addForeignKey($tableName, $tableSchema, $tableReference);
                     } catch (Throwable $e) {
                         throw RuntimeException::failedToAddForeignKey(
                             $tableReference->getName(),
