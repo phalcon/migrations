@@ -51,7 +51,7 @@ return [
         'username' => 'root',
         'password' => '',
         'dbname' => 'db-name',
-        'charset' => 'utf8',
+        'charset' => 'utf8mb4',
     ],
     'application' => [
         'logInDb' => true,
