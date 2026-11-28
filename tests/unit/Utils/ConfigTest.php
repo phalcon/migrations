@@ -33,6 +33,7 @@ final class ConfigTest extends AbstractTestCase
                 'no-auto-increment'    => true,
                 'skip-foreign-checks'  => true,
                 'skip-ref-schema'      => true,
+                'truncate'             => true,
             ],
         ]);
 
@@ -47,6 +48,7 @@ final class ConfigTest extends AbstractTestCase
         $this->assertTrue($config->noAutoIncrement);
         $this->assertTrue($config->skipForeignChecks);
         $this->assertTrue($config->skipRefSchema);
+        $this->assertTrue($config->truncate);
     }
 
     public function testFromArrayWithDatabaseFields(): void
@@ -92,6 +94,7 @@ final class ConfigTest extends AbstractTestCase
         $this->assertNull($config->schema);
         $this->assertFalse($config->skipForeignChecks);
         $this->assertFalse($config->skipRefSchema);
+        $this->assertFalse($config->truncate);
         $this->assertNull($config->username);
     }
 

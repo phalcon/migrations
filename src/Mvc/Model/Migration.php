@@ -89,6 +89,11 @@ class Migration
 
     private static bool $skipAI = true;
 
+    /**
+     * Empty each table before batchInsert() loads its data
+     */
+    private static bool $truncate = false;
+
     protected ?string $version = null;
 
     /**
@@ -313,6 +318,11 @@ class Migration
         self::$skipAI = $skip;
     }
 
+    public static function setTruncate(bool $truncate): void
+    {
+        self::$truncate = $truncate;
+    }
+
     /**
      * @throws RuntimeException
      */
@@ -396,6 +406,11 @@ class Migration
         $pointer      = 1;
         $batchHandler = fopen($migrationData, 'r');
         try {
+            // DELETE, not TRUNCATE: on MySQL, TRUNCATE ends the transaction
+            if (self::$truncate) {
+                $connection->execute('DELETE FROM ' . $connection->getConnection()->quoteIdentifier($tableName));
+            }
+
             while (($line = fgetcsv($batchHandler, null, ',', '"', '\\')) !== false) {
                 $values = array_map(
                     static function ($value) use ($connection) {

@@ -93,6 +93,8 @@ class Migration implements CommandsInterface
                 'timestamp based migration)',
             'data=s'                 => 'Export data [always|oncreate] (Import ' .
                 'data when run migration)',
+            'truncate'               => 'Empty each table before its data is ' .
+                'imported (Running only)',
             'exportDataFromTables=s' => 'Export data from specific tables, use ' .
                 'comma separated string.',
             'force'                  => 'Forces to overwrite existing migrations',
@@ -178,6 +180,7 @@ class Migration implements CommandsInterface
         $noAutoIncrement   = $config->noAutoIncrement   ?: $this->parser->has('no-auto-increment');
         $skipRefSchema     = $config->skipRefSchema     ?: $this->parser->has('skip-ref-schema');
         $skipForeignChecks = $config->skipForeignChecks ?: $this->parser->has('skip-foreign-checks');
+        $truncate          = $config->truncate          ?: $this->parser->has('truncate');
 
         $descr      = $config->descr ?? $this->parser->get('descr');
         $tableName  = $this->parser->get('table', '@');
@@ -215,6 +218,7 @@ class Migration implements CommandsInterface
                     'migrationsInDb'      => $migrationsInDb,
                     'verbose'             => $this->parser->has('verbose'),
                     'skip-foreign-checks' => $skipForeignChecks,
+                    'truncate'            => $truncate,
                     ...$logOptions,
                 ]);
                 break;
