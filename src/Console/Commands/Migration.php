@@ -24,6 +24,7 @@ use function file_exists;
 use function file_get_contents;
 use function in_array;
 use function is_array;
+use function is_file;
 use function json_decode;
 use function parse_ini_file;
 use function pathinfo;
@@ -139,7 +140,8 @@ class Migration implements CommandsInterface
         $resolved = realpath($this->parser->get('directory', ''));
         $path     = ($resolved !== false ? $resolved : '') . DIRECTORY_SEPARATOR;
         if ($this->parser->has('config')) {
-            $config = $this->loadConfig($path . $this->parser->get('config'));
+            $configFile = (string) $this->parser->get('config');
+            $config     = $this->loadConfig($this->isAbsolutePath($configFile) ? $configFile : $path . $configFile);
         } else {
             $config = $this->getConfig($path);
         }
@@ -296,6 +298,10 @@ class Migration implements CommandsInterface
      */
     protected function loadConfig(string $fileName): Config
     {
+        if (!is_file($fileName)) {
+            throw CommandsException::configNotFound();
+        }
+
         $pathInfo = pathinfo($fileName);
 
         if (!isset($pathInfo['extension'])) {
