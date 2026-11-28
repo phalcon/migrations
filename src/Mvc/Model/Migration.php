@@ -357,26 +357,10 @@ class Migration
             return;
         }
 
-        $connection = self::$adapter;
-        $connection->begin();
-        $connection->execute("DELETE FROM {$tableName}");
-
-        $batchHandler = fopen($migrationData, 'r');
-        while (($line = fgetcsv($batchHandler, null, ',', '"', '\\')) !== false) {
-            $values = array_map(
-                static fn($v) => $v === null ? null : stripslashes($v),
-                $line
-            );
-
-            $connection->execute(
-                "DELETE FROM {$tableName} WHERE id = " . $connection->quote((string) $values[0])
-            );
-
-            unset($line);
-        }
-
-        fclose($batchHandler);
-        $connection->commit();
+        // The rollback of the data empties the table (the behavior of 2.x)
+        self::$adapter->execute(
+            'DELETE FROM ' . self::$adapter->getConnection()->quoteIdentifier($tableName)
+        );
     }
 
     public function batchInsert(string $tableName, array $fields, int $size = 1024): void
@@ -392,35 +376,42 @@ class Migration
         $str          = '';
         $pointer      = 1;
         $batchHandler = fopen($migrationData, 'r');
-        while (($line = fgetcsv($batchHandler, null, ',', '"', '\\')) !== false) {
-            $values = array_map(
-                static function ($value) use ($connection) {
-                    if ($value === null || $value === 'NULL') {
-                        return 'NULL';
-                    }
+        try {
+            while (($line = fgetcsv($batchHandler, null, ',', '"', '\\')) !== false) {
+                $values = array_map(
+                    static function ($value) use ($connection) {
+                        if ($value === null || $value === 'NULL') {
+                            return 'NULL';
+                        }
 
-                    return $connection->quote(stripslashes($value));
-                },
-                $line
-            );
+                        return $connection->quote(stripslashes($value));
+                    },
+                    $line
+                );
 
-            $str .= sprintf('(%s),', implode(',', $values));
-            if ($pointer === $size) {
-                $this->executeMultiInsert($tableName, $fields, $str);
-                $str     = '';
-                $pointer = 1;
-            } else {
-                $pointer++;
+                $str .= sprintf('(%s),', implode(',', $values));
+                if ($pointer === $size) {
+                    $this->executeMultiInsert($tableName, $fields, $str);
+                    $str     = '';
+                    $pointer = 1;
+                } else {
+                    $pointer++;
+                }
+
+                unset($line, $values);
             }
 
-            unset($line, $values);
+            if ($str !== '') {
+                $this->executeMultiInsert($tableName, $fields, $str);
+            }
+        } catch (Throwable $e) {
+            $connection->rollback();
+
+            throw $e;
+        } finally {
+            fclose($batchHandler);
         }
 
-        if ($str !== '') {
-            $this->executeMultiInsert($tableName, $fields, $str);
-        }
-
-        fclose($batchHandler);
         $connection->commit();
     }
 
@@ -731,7 +722,7 @@ class Migration
         $cols  = implode(',', $columns);
         $query = sprintf(
             "INSERT INTO %s (%s) VALUES %s",
-            $table,
+            self::$adapter->getConnection()->quoteIdentifier($table),
             $cols,
             rtrim($values, ',') . ';'
         );
