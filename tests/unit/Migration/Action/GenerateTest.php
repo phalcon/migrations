@@ -23,6 +23,17 @@ use Phalcon\Migrations\Migration\Action\Generate;
 use Phalcon\Migrations\Mvc\Model\Migration;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 
+use function array_search;
+use function count;
+use function current;
+use function in_array;
+use function iterator_to_array;
+use function strpos;
+use function substr_count;
+use function token_get_all;
+
+use const TOKEN_PARSE;
+
 final class GenerateTest extends AbstractTestCase
 {
     public function testAddAfterCreateTableWithOnCreate(): void

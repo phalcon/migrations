@@ -15,6 +15,8 @@ namespace Phalcon\Migrations\Tests\Unit\Postgresql;
 
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
+use function array_keys;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/235
  */

@@ -21,6 +21,8 @@ use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
+use function array_filter;
+
 final class AdapterTest extends AbstractPostgresqlTestCase
 {
     private Postgresql $adapter;

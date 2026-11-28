@@ -17,6 +17,7 @@ use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Exception\RuntimeException;
 use Phalcon\Migrations\Version\ItemInterface;
 
+use function count;
 use function dirname;
 use function fclose;
 use function fgets;
@@ -30,6 +31,7 @@ use function rtrim;
 
 use const DIRECTORY_SEPARATOR;
 use const PHP_EOL;
+use const STDOUT;
 
 class Helper
 {

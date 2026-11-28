@@ -20,6 +20,16 @@ use Phalcon\Migrations\Version\IncrementalItem as IncrementalVersion;
 use Phalcon\Migrations\Version\ItemCollection as VersionCollection;
 use Phalcon\Migrations\Version\ItemInterface;
 
+use function array_key_exists;
+use function array_merge;
+use function is_array;
+use function microtime;
+use function rmdir;
+use function rtrim;
+use function substr;
+
+use const DIRECTORY_SEPARATOR;
+
 /**
  * CLI options
  *

@@ -22,6 +22,8 @@ use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 use Phalcon\Migrations\Utils\Config;
 
+use function array_values;
+
 final class AdapterTest extends AbstractTestCase
 {
     private Sqlite $adapter;

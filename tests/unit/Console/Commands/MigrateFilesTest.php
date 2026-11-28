@@ -18,6 +18,13 @@ use Phalcon\Migrations\Console\Commands\CommandsException;
 use Phalcon\Migrations\Console\Commands\MigrateFiles;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 
+use function array_merge;
+use function file_get_contents;
+use function file_put_contents;
+use function ob_end_clean;
+use function ob_get_clean;
+use function ob_start;
+
 final class MigrateFilesTest extends AbstractTestCase
 {
     public function testGetHelp(): void

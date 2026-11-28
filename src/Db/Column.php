@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Db;
 
+use function array_key_exists;
+
 final class Column
 {
     /**

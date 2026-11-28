@@ -18,6 +18,10 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 use Phalcon\Migrations\Utils\Helper;
 use Phalcon\Migrations\Version\IncrementalItem;
 
+use function is_dir;
+use function mkdir;
+use function rtrim;
+
 use const DIRECTORY_SEPARATOR;
 
 final class HelperTest extends AbstractTestCase

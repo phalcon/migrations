@@ -7,6 +7,7 @@ namespace Phalcon\Migrations\Utils;
 use function array_map;
 use function implode;
 use function lcfirst;
+use function mb_strtolower;
 use function preg_split;
 use function str_replace;
 use function ucfirst;

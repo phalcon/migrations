@@ -25,6 +25,16 @@ use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Version\IncrementalItem;
 use ReflectionMethod;
 
+use function array_map;
+use function file_get_contents;
+use function file_put_contents;
+use function mkdir;
+use function restore_error_handler;
+use function set_error_handler;
+
+use const E_DEPRECATED;
+use const E_USER_DEPRECATED;
+
 /**
  * Covers the CSV calls (fputcsv, fgetcsv, str_getcsv) that must pass the
  * $escape argument explicitly to avoid the PHP 8.4+ deprecation.

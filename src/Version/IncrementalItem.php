@@ -16,6 +16,7 @@ namespace Phalcon\Migrations\Version;
 use function array_map;
 use function array_reverse;
 use function array_values;
+use function count;
 use function explode;
 use function is_numeric;
 use function is_object;

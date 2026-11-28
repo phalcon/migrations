@@ -16,6 +16,10 @@ namespace Phalcon\Migrations\Tests\Unit\Observer;
 use Phalcon\Migrations\Observer\Profiler;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 
+use function microtime;
+use function ob_get_clean;
+use function ob_start;
+
 final class ProfilerTest extends AbstractTestCase
 {
     public function testEndOutputsDuration(): void

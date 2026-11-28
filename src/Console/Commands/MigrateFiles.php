@@ -19,6 +19,8 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
+use function array_keys;
+use function array_values;
 use function file_get_contents;
 use function file_put_contents;
 use function realpath;

@@ -15,6 +15,11 @@ namespace Phalcon\Migrations\Tests;
 
 use FilesystemIterator;
 
+use function exec;
+use function implode;
+use function is_dir;
+use function unlink;
+
 abstract class AbstractCliTestCase extends AbstractMysqlTestCase
 {
     private string $lastOutput  = '';

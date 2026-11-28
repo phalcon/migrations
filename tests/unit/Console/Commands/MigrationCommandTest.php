@@ -19,6 +19,14 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 use Phalcon\Migrations\Tests\Fakes\Console\Commands\MigrationFake;
 use Phalcon\Migrations\Utils\Config;
 
+use function array_merge;
+use function file_put_contents;
+use function json_encode;
+use function mkdir;
+use function ob_end_clean;
+use function ob_get_clean;
+use function ob_start;
+
 final class MigrationCommandTest extends AbstractTestCase
 {
     public function testExportFromTablesFromConfig(): void

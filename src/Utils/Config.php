@@ -13,6 +13,10 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Utils;
 
+use function array_filter;
+use function explode;
+use function is_string;
+
 final class Config
 {
     private function __construct(

@@ -20,6 +20,8 @@ use Phalcon\Migrations\Version\ItemCollection;
 use Phalcon\Migrations\Version\TimestampedItem;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+use function mkdir;
+
 final class OptionStackTest extends AbstractTestCase
 {
     /**

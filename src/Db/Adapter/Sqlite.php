@@ -17,6 +17,7 @@ use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 
+use function implode;
 use function preg_match;
 use function preg_match_all;
 use function str_contains;

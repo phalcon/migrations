@@ -18,6 +18,11 @@ use InvalidArgumentException;
 use Phalcon\Migrations\Mvc\Model\Migration\TableAware\ListTablesIterator;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 
+use function array_unique;
+use function array_values;
+use function explode;
+use function touch;
+
 final class ListTablesIteratorTest extends AbstractTestCase
 {
     private ListTablesIterator $iterator;

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Fakes\Db;
+use function array_key_exists;
 
 /**
  * Simulates a pre-migration Phalcon\Db\Column (integer TYPE_* constants)

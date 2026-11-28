@@ -18,6 +18,9 @@ use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+use function ob_end_clean;
+use function ob_start;
+
 final class ColumnTypesTest extends AbstractPostgresqlTestCase
 {
     public static function columnsDataProvider(): array

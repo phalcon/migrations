@@ -17,7 +17,10 @@ use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 
+use function count;
 use function explode;
+use function implode;
+use function in_array;
 use function is_string;
 use function sprintf;
 use function str_starts_with;
