@@ -88,6 +88,7 @@ final class MigrationCommandTest extends AbstractTestCase
         $this->assertStringContainsString('run', $output);
         $this->assertStringContainsString('list', $output);
         $this->assertStringContainsString('clean', $output);
+        $this->assertStringContainsString('migration export', $output);
     }
 
     public function testGetPossibleParams(): void

@@ -78,6 +78,12 @@ class Migration
     private static AdapterInterface $adapter;
 
     /**
+     * The collect mode of getTableDefinition(): morphTable() keeps the
+     * definitions here and changes nothing
+     */
+    private static ?array $collected = null;
+
+    /**
      * @var Config
      */
     private static Config $databaseConfig;
@@ -217,6 +223,31 @@ class Migration
     /**
      * @throws RuntimeException
      */
+    /**
+     * The definition of the table at the version, from the newest migration
+     * file of the table with a morph(). The database does not change: only the
+     * morphTable() call of the morph() is collected.
+     *
+     * @throws RuntimeException
+     */
+    public static function getTableDefinition(ItemInterface $version, string $tableName): ?array
+    {
+        $migration = self::createPrevClassWithMorphMethod($version, $tableName);
+        if ($migration === null || !method_exists($migration, 'morph')) {
+            return null;
+        }
+
+        self::$collected = [];
+        try {
+            $migration->morph();
+            $definition = self::collectedDefinition($tableName);
+        } finally {
+            self::$collected = null;
+        }
+
+        return $definition;
+    }
+
     public static function migrate(
         string $tableName,
         ?ItemInterface $fromVersion = null,
@@ -331,6 +362,11 @@ class Migration
     public static function setTruncate(bool $truncate): void
     {
         self::$truncate = $truncate;
+    }
+
+    private static function collectedDefinition(string $tableName): ?array
+    {
+        return self::$collected[$tableName] ?? null;
     }
 
     /**
@@ -519,6 +555,13 @@ class Migration
                         'onDelete'          => $ref->getOnDelete(),
                     ]);
                 }
+            }
+
+            // The collect mode of getTableDefinition()
+            if (self::$collected !== null) {
+                self::$collected[$tableName] = $definition;
+
+                return;
             }
 
             if ($tableExists) {

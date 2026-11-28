@@ -128,6 +128,23 @@ abstract class AbstractAdapter implements AdapterInterface
         return $this->connection;
     }
 
+    public function getCreateTableSql(string $table, string $schema, array $definition): array
+    {
+        $references = $definition['references'] ?? [];
+        unset($definition['references']);
+
+        $sql = [
+            'tables'     => [$this->buildCreateTableSql($table, $schema, $definition)],
+            'indexes'    => [],
+            'references' => [],
+        ];
+        foreach ($references as $reference) {
+            $sql['references'][] = $this->buildAddForeignKeySql($table, $schema, $reference);
+        }
+
+        return $sql;
+    }
+
     public function getCurrentSchema(): string
     {
         return (string) $this->connection->fetchValue($this->currentSchemaSql);

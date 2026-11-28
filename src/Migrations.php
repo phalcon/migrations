@@ -56,6 +56,7 @@ use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
 use function implode;
+use function in_array;
 use function is_array;
 use function is_dir;
 use function is_file;
@@ -212,6 +213,102 @@ class Migrations
                 new Index('PRIMARY', ['version'], Index::TYPE_PRIMARY),
             ],
         ]);
+    }
+
+    /**
+     * Prints the SQL of the schema at a version (the newest when no version is
+     * given), from the migration files: the tables, then the indexes, then the
+     * foreign keys. The database does not change.
+     *
+     * @throws RuntimeException
+     */
+    public static function export(array $options): void
+    {
+        $config = $options['config'] ?? null;
+        if (!$config instanceof Config) {
+            throw RuntimeException::configMustBeInstance();
+        }
+
+        if ($config->adapter === null) {
+            throw RuntimeException::cannotLoadDatabaseConfiguration();
+        }
+
+        VersionCollection::setType(
+            empty($options['tsBased']) ? VersionCollection::TYPE_INCREMENTAL : VersionCollection::TYPE_TIMESTAMPED
+        );
+
+        $dirs     = (array) ($options['migrationsDir'] ?? []);
+        $versions = [];
+        foreach ($dirs as $dir) {
+            if (!is_dir($dir)) {
+                throw RuntimeException::migrationsDirNotFound();
+            }
+
+            foreach (ModelMigration::scanForVersions($dir) as $item) {
+                $item->setPath(rtrim($dir, '\\/'));
+                $versions[] = $item;
+            }
+        }
+
+        if ($versions === []) {
+            return;
+        }
+
+        $finalVersion = empty($options['version'])
+            ? VersionCollection::maximum($versions)
+            : VersionCollection::createItem((string) $options['version']);
+        if ($finalVersion === null) {
+            return;
+        }
+
+        $tableName    = (string) ($options['tableName'] ?? '@');
+        $filter       = $tableName === '@' ? null : explode(',', $tableName);
+
+        ModelMigration::setup($config);
+        $adapter = ModelMigration::getAdapter();
+
+        $sql = ['tables' => [], 'indexes' => [], 'references' => []];
+        foreach ($dirs as $dir) {
+            ModelMigration::setMigrationPath($dir);
+
+            $tables = [];
+            foreach ($versions as $version) {
+                if ($version->getPath() !== rtrim($dir, '\\/') || $version->getStamp() > $finalVersion->getStamp()) {
+                    continue;
+                }
+
+                $folder = $version->getPath() . DIRECTORY_SEPARATOR . $version->getVersion();
+                foreach (new DirectoryIterator($folder) as $file) {
+                    if ($file->isFile() && strcasecmp($file->getExtension(), 'php') === 0) {
+                        $tables[$file->getBasename('.php')] = true;
+                    }
+                }
+            }
+
+            $tables = array_keys($tables);
+            sort($tables);
+            foreach ($tables as $table) {
+                if ($filter !== null && !in_array($table, $filter, true)) {
+                    continue;
+                }
+
+                $definition = ModelMigration::getTableDefinition($finalVersion, $table);
+                if ($definition === null) {
+                    continue;
+                }
+
+                // No schema: the SQL can run on a database with another name
+                foreach ($adapter->getCreateTableSql($table, '', $definition) as $part => $statements) {
+                    $sql[$part] = array_merge($sql[$part], $statements);
+                }
+            }
+        }
+
+        foreach ($sql as $statements) {
+            foreach ($statements as $statement) {
+                print $statement . ';' . PHP_EOL . PHP_EOL;
+            }
+        }
     }
 
     /**

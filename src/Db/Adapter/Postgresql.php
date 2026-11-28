@@ -188,6 +188,28 @@ class Postgresql extends AbstractAdapter
         }
     }
 
+    /**
+     * The CREATE TABLE has only the primary key: the other indexes and the
+     * column comments are extra statements (as in createTable())
+     */
+    public function getCreateTableSql(string $table, string $schema, array $definition): array
+    {
+        $sql = parent::getCreateTableSql($table, $schema, $definition);
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if (!$this->isPrimaryIndex($index)) {
+                $sql['indexes'][] = $this->buildAddIndexSql($table, $schema, $index);
+            }
+        }
+
+        foreach ($definition['columns'] ?? [] as $column) {
+            if ($column->getComment() !== '') {
+                $sql['indexes'][] = $this->columnCommentSql($table, $schema, $column);
+            }
+        }
+
+        return $sql;
+    }
+
     public function getTableOptions(string $schema, string $table): array
     {
         return [];
@@ -559,6 +581,21 @@ class Postgresql extends AbstractAdapter
         return parent::processDefault($value, $type);
     }
 
+    /**
+     * An empty comment removes the comment of the column
+     */
+    private function columnCommentSql(string $table, string $schema, Column $column): string
+    {
+        $comment = $column->getComment() !== '' ? $this->connection->quote($column->getComment()) : 'NULL';
+
+        return sprintf(
+            'COMMENT ON COLUMN %s.%s IS %s',
+            $this->qualifyTable($table, $schema),
+            $this->connection->quoteIdentifier($column->getName()),
+            $comment
+        );
+    }
+
     private function columnToDefinition(Column $col): array
     {
         $def = [
@@ -593,20 +630,8 @@ class Postgresql extends AbstractAdapter
         return implode(', ', array_map(fn(string $table) => $this->qualifyTable($table, $schema), $tables));
     }
 
-    /**
-     * An empty comment removes the comment of the column
-     */
     private function setColumnComment(string $table, string $schema, Column $column): void
     {
-        $comment = $column->getComment() !== '' ? $this->connection->quote($column->getComment()) : 'NULL';
-
-        $this->connection->execute(
-            sprintf(
-                'COMMENT ON COLUMN %s.%s IS %s',
-                $this->qualifyTable($table, $schema),
-                $this->connection->quoteIdentifier($column->getName()),
-                $comment
-            )
-        );
+        $this->connection->execute($this->columnCommentSql($table, $schema, $column));
     }
 }

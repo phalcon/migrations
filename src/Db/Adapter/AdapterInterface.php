@@ -61,6 +61,16 @@ interface AdapterInterface
     public function fetchOne(string $sql, array $values = []): array;
     public function getConnection(): Connection;
 
+    /**
+     * The SQL of a new table, with no change to the database: "tables" (the
+     * CREATE TABLE), "indexes" (the other statements of the table) and
+     * "references" (the foreign keys), so that a schema can be created in
+     * the order tables, then indexes, then foreign keys
+     *
+     * @return array{tables: string[], indexes: string[], references: string[]}
+     */
+    public function getCreateTableSql(string $table, string $schema, array $definition): array;
+
     public function getCurrentSchema(): string;
 
     public function getTableOptions(string $schema, string $table): array;

@@ -70,6 +70,10 @@ class Migration implements CommandsInterface
         print Color::head('Usage: List all available migrations') . PHP_EOL;
         print Color::colorize('  migration list', Color::FG_GREEN) . PHP_EOL . PHP_EOL;
 
+        print Color::head('Usage: Print the SQL of the schema of the migration files at a version') . PHP_EOL;
+        print Color::colorize('  migration export [--version=<version>] [--table=<names>]', Color::FG_GREEN)
+            . PHP_EOL . PHP_EOL;
+
         print Color::head('Usage: Drop the tables, or delete their data (not the log table)') . PHP_EOL;
         print Color::colorize('  migration clean --force [--table=<names>] [--data-only]', Color::FG_GREEN)
             . PHP_EOL . PHP_EOL;
@@ -250,6 +254,15 @@ class Migration implements CommandsInterface
                     'migrationsInDb' => $migrationsInDb,
                     'tableName'      => $tableName,
                     ...$logOptions,
+                ]);
+                break;
+            case 'export':
+                Migrations::export([
+                    'config'        => $config,
+                    'migrationsDir' => $migrationsDir,
+                    'tableName'     => $tableName,
+                    'tsBased'       => $migrationsTsBased,
+                    'version'       => $this->parser->get('version'),
                 ]);
                 break;
             case 'list':
