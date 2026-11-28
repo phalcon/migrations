@@ -33,6 +33,7 @@ final class Config
         public readonly ?string $schema = null,
         public readonly bool $skipForeignChecks = false,
         public readonly bool $skipRefSchema = false,
+        public readonly bool $truncate = false,
         public readonly ?string $username = null,
     ) {
     }
@@ -65,6 +66,7 @@ final class Config
             schema:               $db['schema']    ?? null,
             skipForeignChecks:    (bool) ($app['skip-foreign-checks'] ?? false),
             skipRefSchema:        (bool) ($app['skip-ref-schema']     ?? false),
+            truncate:             (bool) ($app['truncate']            ?? false),
             username:             $db['username']  ?? null,
         );
     }

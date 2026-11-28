@@ -5,6 +5,7 @@
 - Added the `namespace` option (`--namespace` and `application.namespace`) to generate migration classes in a namespace; the runner reads the namespace of each file, so files with and without a namespace both run ([#41](https://github.com/phalcon/migrations/issues/41))
 - Added the `log-path` option (`--log-path` and `application.log-path`) for the path of the file log, so that each database can have its own log; a relative path starts in the project directory. The default stays `.phalcon/migration-version` ([#5](https://github.com/phalcon/migrations/issues/5))
 - Added the `log-table` option (`--log-table` and `application.log-table`) for the name of the log table, so that two sets of migrations can have their own log in one database; `generate` skips that table, and the SQL of the log quotes its name. The default stays `phalcon_migrations` ([#60](https://github.com/phalcon/migrations/issues/60))
+- Added the `truncate` option (`--truncate` and `application.truncate`) for `run`: `batchInsert()` empties the table in its transaction before it loads the data, so a version with data (`--data=always`) does not insert the same rows again over the rows of an earlier version ([#83](https://github.com/phalcon/migrations/issues/83))
 
 ## Fixed
 

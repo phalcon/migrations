@@ -453,6 +453,7 @@ class Migrations
 
         $optionStack->offsetSetDefault('verbose', false);
         $optionStack->offsetSetDefault('skip-foreign-checks', false);
+        $optionStack->offsetSetDefault('truncate', false);
 
         // Define versioning type to be used
         if (!empty($options['tsBased']) || $optionStack->offsetGet('tsBased')) {
@@ -525,6 +526,7 @@ class Migrations
         }
 
         ModelMigration::setup($optionStack->offsetGet('config'), $optionStack->offsetGet('verbose'));
+        ModelMigration::setTruncate((bool) $optionStack->offsetGet('truncate'));
         self::connectionSetup($optionStack->getOptions());
 
         /**
