@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Tests\Unit\Postgresql;
 
+use PDOException;
 use Phalcon\Migrations\Db\Adapter\Postgresql;
 use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Connection;
@@ -138,6 +139,35 @@ final class AdapterTest extends AbstractPostgresqlTestCase
             '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',
             (string) $row['created_at']
         );
+    }
+
+    /**
+     * @see https://github.com/phalcon/migrations/issues/221
+     */
+    public function testCreateTableWithSecondaryIndexes(): void
+    {
+        $this->adapter->createTable('pg_sec_idx_test', $this->schema, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true, 'first' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('pg_sec_idx_test_pkey', ['id'], 'PRIMARY KEY'),
+                new Index('pg_sec_email_unique', ['email'], 'UNIQUE'),
+                new Index('pg_sec_name_idx', ['name'], ''),
+            ],
+        ]);
+
+        $indexes = $this->adapter->listIndexes($this->schema, 'pg_sec_idx_test');
+
+        $this->assertArrayHasKey('pg_sec_idx_test_pkey', $indexes);
+        $this->assertArrayHasKey('pg_sec_email_unique', $indexes);
+        $this->assertArrayHasKey('pg_sec_name_idx', $indexes);
+
+        $this->adapter->execute("INSERT INTO pg_sec_idx_test VALUES (1, 'a@example.com', 'a')");
+        $this->expectException(PDOException::class);
+        $this->adapter->execute("INSERT INTO pg_sec_idx_test VALUES (2, 'a@example.com', 'b')");
     }
 
     /**

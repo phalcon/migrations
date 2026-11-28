@@ -109,6 +109,21 @@ class Postgresql extends AbstractAdapter
     ];
     protected string $currentSchemaSql = 'SELECT CURRENT_SCHEMA';
 
+    /**
+     * The CREATE TABLE has only the primary key. Create the other indexes
+     * after the table.
+     */
+    public function createTable(string $table, string $schema, array $definition): void
+    {
+        parent::createTable($table, $schema, $definition);
+
+        foreach ($definition['indexes'] ?? [] as $index) {
+            if (!$this->isPrimaryIndex($index)) {
+                $this->addIndex($table, $schema, $index);
+            }
+        }
+    }
+
     public function dropIndex(string $table, string $schema, string $name): void
     {
         $n = $this->connection->quoteIdentifier(
