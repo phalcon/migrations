@@ -21,6 +21,7 @@ final class Config
 {
     private function __construct(
         public readonly ?string $adapter = null,
+        public readonly ?string $charset = null,
         public readonly ?string $dbname = null,
         public readonly ?string $descr = null,
         public readonly array $exportDataFromTables = [],
@@ -54,6 +55,7 @@ final class Config
 
         return new self(
             adapter:              $db['adapter']   ?? null,
+            charset:              $db['charset']   ?? null,
             dbname:               $db['dbname']    ?? null,
             descr:                $app['descr']    ?? null,
             exportDataFromTables: $exportDataFromTables,
@@ -80,6 +82,7 @@ final class Config
         return array_filter(
             [
                 'adapter'  => $this->adapter,
+                'charset'  => $this->charset,
                 'dbname'   => $this->dbname,
                 'host'     => $this->host,
                 'password' => $this->password,

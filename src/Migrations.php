@@ -67,7 +67,6 @@ use function sprintf;
 use function str_repeat;
 use function strcasecmp;
 use function strlen;
-use function strtolower;
 use function touch;
 use function trim;
 use function unlink;
@@ -693,11 +692,6 @@ class Migrations
 
             $connection    = Connection::fromConfig($config);
             self::$storage = AdapterFactory::create($connection);
-
-            $dbAdapter = strtolower($config->adapter);
-            if ($dbAdapter === ModelMigration::DB_ADAPTER_MYSQL) {
-                $connection->execute('SET FOREIGN_KEY_CHECKS=0');
-            }
 
             $logTable = self::getLogTable($options);
             if (!self::$storage->tableExists($logTable)) {

@@ -53,10 +53,11 @@ final class Connection
         switch ($driver) {
             case 'mysql':
                 $dsn = sprintf(
-                    'mysql:host=%s;port=%d;dbname=%s;charset=utf8',
+                    'mysql:host=%s;port=%d;dbname=%s;charset=%s',
                     $config->host,
                     $config->port ?? 3306,
-                    $config->dbname
+                    $config->dbname,
+                    $config->charset ?? 'utf8mb4'
                 );
                 break;
 

@@ -56,6 +56,7 @@ final class ConfigTest extends AbstractTestCase
         $config = Config::fromArray([
             'database' => [
                 'adapter'  => 'mysql',
+                'charset'  => 'utf8mb4',
                 'dbname'   => 'test_db',
                 'host'     => 'localhost',
                 'password' => 'secret',
@@ -66,6 +67,7 @@ final class ConfigTest extends AbstractTestCase
         ]);
 
         $this->assertSame('mysql', $config->adapter);
+        $this->assertSame('utf8mb4', $config->charset);
         $this->assertSame('test_db', $config->dbname);
         $this->assertSame('localhost', $config->host);
         $this->assertSame('secret', $config->password);
@@ -78,6 +80,7 @@ final class ConfigTest extends AbstractTestCase
         $config = Config::fromArray([]);
 
         $this->assertNull($config->adapter);
+        $this->assertNull($config->charset);
         $this->assertNull($config->dbname);
         $this->assertNull($config->descr);
         $this->assertSame([], $config->exportDataFromTables);
