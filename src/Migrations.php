@@ -34,12 +34,15 @@ use Phalcon\Migrations\Version\TimestampedItem;
 use SplFileInfo;
 
 use function array_column;
+use function array_diff;
 use function array_flip;
+use function array_intersect;
 use function array_keys;
 use function array_map;
 use function array_merge;
 use function array_pop;
 use function array_reverse;
+use function array_values;
 use function chmod;
 use function class_exists;
 use function constant;
@@ -124,6 +127,53 @@ class Migrations
             $currentVersions           = array_keys($currentVersions);
             sort($currentVersions, SORT_NATURAL);
             file_put_contents(self::$storage, implode("\n", $currentVersions));
+        }
+    }
+
+    /**
+     * Drops the tables of the database, or deletes their rows ("data-only").
+     * The log table stays. After a drop of all the tables, the log is reset,
+     * so that the next run starts from the first version.
+     *
+     * @throws RuntimeException
+     */
+    public static function clean(array $options): void
+    {
+        $config = $options['config'] ?? null;
+        if (!$config instanceof Config) {
+            throw RuntimeException::configMustBeInstance();
+        }
+
+        if ($config->adapter === null) {
+            throw RuntimeException::cannotLoadDatabaseConfiguration();
+        }
+
+        $adapter   = AdapterFactory::create(Connection::fromConfig($config));
+        $schema    = (string) ModelMigration::resolveDbSchema($config);
+        $tableName = (string) ($options['tableName'] ?? '@');
+        $tables    = array_diff($adapter->listTables($schema), [self::getLogTable($options)]);
+        if ($tableName !== '@') {
+            $tables = array_intersect($tables, explode(',', $tableName));
+        }
+
+        $tables = array_values($tables);
+        if (!empty($options['data-only'])) {
+            $adapter->emptyTables($tables, $schema);
+            foreach ($tables as $table) {
+                print Color::success('The data of table ' . $table . ' was deleted') . PHP_EOL;
+            }
+
+            return;
+        }
+
+        $adapter->dropTables($tables, $schema);
+        foreach ($tables as $table) {
+            print Color::success('Table ' . $table . ' was dropped') . PHP_EOL;
+        }
+
+        if ($tableName === '@') {
+            self::resetLog($options);
+            print Color::info('The migrations log was reset') . PHP_EOL;
         }
     }
 
@@ -752,5 +802,23 @@ class Migrations
         $logTable = (string) ($options['log-table'] ?? '');
 
         return $logTable !== '' ? $logTable : self::MIGRATION_LOG_TABLE;
+    }
+
+    /**
+     * Removes all the versions from the log
+     */
+    private static function resetLog(array $options): void
+    {
+        self::connectionSetup($options);
+
+        if (isset($options['migrationsInDb']) && $options['migrationsInDb']) {
+            /** @var AdapterInterface $storage */
+            $storage = self::$storage;
+            $storage->execute(
+                'DELETE FROM ' . $storage->getConnection()->quoteIdentifier(self::getLogTable($options))
+            );
+        } else {
+            file_put_contents((string) self::$storage, '');
+        }
     }
 }
