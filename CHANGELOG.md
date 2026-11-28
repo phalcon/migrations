@@ -28,6 +28,7 @@
 - Fixed a short version getting one part too many (`1.1` gave `1.1.0.0`, so `generate --version=1.1` created the folder `1.1.0.0`), and the versions of a second migrations folder being lost in the next version of `generate` and in the table of `list` (the lists were joined with `+`) ([#243](https://github.com/phalcon/migrations/issues/243))
 - Fixed `generate` for all the tables writing the data of the log table (`phalcon_migrations.dat`, or the `--log-table`) with `--data`; `Migration::generateAll()` has a new optional argument with the tables to skip ([#245](https://github.com/phalcon/migrations/issues/245))
 - Fixed the help: it did not list the `--skip-ref-schema` and `--skip-foreign-checks` options ([#247](https://github.com/phalcon/migrations/issues/247))
+- Fixed a new SQLite table getting no foreign keys: SQLite can create a foreign key only in the `CREATE TABLE`, and the `CREATE TABLE` left out the `references` of the definition ([#249](https://github.com/phalcon/migrations/issues/249))
 - Fixed the last foreign key or index of a table staying in the database: `generate` left out the `references` and `indexes` keys when the table had none, so the morph did not sync them; the keys are now always in the file, as empty lists ([#227](https://github.com/phalcon/migrations/issues/227))
 
 ## Changed
@@ -35,6 +36,7 @@
 - Changed the table morph to see the `CURRENT_TIMESTAMP` defaults: a migration file generated before this version has no default for such a column, so it removes the default from the live column. Generate again the versions that did not run yet ([#155](https://github.com/phalcon/migrations/issues/155))
 - Changed the table morph to compare the column comment: a change of only the comment is now applied, and a column with no comment in the migration file clears the comment of the live column (on MySQL, this happened already when another part of the column changed) ([#89](https://github.com/phalcon/migrations/issues/89))
 - Changed the generated migration files: they have `declare(strict_types=1)`, and a `TABLE_NAME` class constant that `morphTable()`, `batchInsert()` and `batchDelete()` use, in place of the table name string ([#87](https://github.com/phalcon/migrations/issues/87), [#107](https://github.com/phalcon/migrations/issues/107))
+- Changed the source and test files to import the global functions and constants that they use (`use function`, `use const`); no change to the code ([#250](https://github.com/phalcon/migrations/issues/250))
 - Changed CI to run php-cs-fixer (dry run) in the code style job on PHP 8.2 - 8.5 (php-cs-fixer does not support PHP 8.6 yet), and fixed the order of the test methods in `OptionStackTest` and `VersionLogTest` ([#216](https://github.com/phalcon/migrations/issues/216))
 
 # [4.0.1](https://github.com/phalcon/migrations/releases/tag/v4.0.1) (2026-11-13)
