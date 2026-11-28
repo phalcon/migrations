@@ -240,8 +240,9 @@ class Generate
             $snippet->getMorphTemplate(),
             $this->getTableNameConstant($table),
             $snippet->definitionToString('columns', $columns)
-            . $snippet->definitionToString('indexes', $indexes)
-            . $snippet->definitionToString('references', $references)
+            // An empty list is kept, so that the morph removes the last index or foreign key
+            . $snippet->definitionToString('indexes', $indexes, true)
+            . $snippet->definitionToString('references', $references, true)
             . $snippet->definitionToString('options', $options)
         );
 

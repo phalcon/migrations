@@ -18,10 +18,14 @@ use function sprintf;
 
 class Snippet
 {
-    public function definitionToString(string $key, array $items): string
+    /**
+     * With $keepEmpty, an empty list gives an empty array for the key, not
+     * an empty string.
+     */
+    public function definitionToString(string $key, array $items, bool $keepEmpty = false): string
     {
         if (empty($items)) {
-            return '';
+            return $keepEmpty ? sprintf("    '%s' => [],\n", $key) : '';
         }
 
         $template = "    '%s' => [

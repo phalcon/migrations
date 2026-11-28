@@ -90,6 +90,25 @@ final class GenerateTest extends AbstractTestCase
     }
 
     /**
+     * @see https://github.com/phalcon/migrations/issues/227
+     */
+    public function testAddMorphKeepsEmptyIndexesAndReferences(): void
+    {
+        $columns = [
+            new Column('id', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+        ];
+
+        $class = new Generate('mysql', $columns);
+        $class->createEntity('TestMigration');
+        $class->addMorph(new Snippet(), 'test_table');
+
+        $code = (string) $class->getEntity();
+
+        $this->assertStringContainsString("'indexes' => [],", $code);
+        $this->assertStringContainsString("'references' => [],", $code);
+    }
+
+    /**
      * @see https://github.com/phalcon/migrations/issues/107
      */
     public function testAddMorphUsesTheTableNameConstant(): void

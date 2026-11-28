@@ -12,6 +12,8 @@
 - Fixed a new table on PostgreSQL and SQLite getting only its primary key; `createTable()` now also creates the other indexes of the definition, as on MySQL ([#221](https://github.com/phalcon/migrations/issues/221))
 - Fixed `batchDelete()` failing on a table with no `id` column (a `DELETE ... WHERE id = ...` for each row of the `.dat` file ran after the table was emptied); it now runs one `DELETE FROM`, and still empties the table. Fixed `batchInsert()` leaving its transaction open and the `.dat` file not closed after an error, and the table name not quoted in `batchInsert()` and `batchDelete()` ([#223](https://github.com/phalcon/migrations/issues/223))
 - Fixed `generate` putting values into the migration file with no escaping (the default, the comment, the table, column, index and foreign key names, the enum values and the table options), so a quote, a `$` or a backslash gave a file that did not parse or had a different value ([#225](https://github.com/phalcon/migrations/issues/225))
+- Fixed the table morph failing to drop a column that has a foreign key (MySQL error 1828); the foreign keys on the dropped columns are now dropped first, also when the file has no `references` key ([#6](https://github.com/phalcon/migrations/issues/6))
+- Fixed the last foreign key or index of a table staying in the database: `generate` left out the `references` and `indexes` keys when the table had none, so the morph did not sync them; the keys are now always in the file, as empty lists ([#227](https://github.com/phalcon/migrations/issues/227))
 
 ## Changed
 
