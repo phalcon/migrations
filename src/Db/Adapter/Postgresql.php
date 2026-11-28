@@ -22,6 +22,7 @@ use function explode;
 use function implode;
 use function in_array;
 use function is_string;
+use function preg_match;
 use function sprintf;
 use function str_starts_with;
 use function strtolower;
@@ -306,6 +307,8 @@ class Postgresql extends AbstractAdapter
             $default = $new->getDefault();
             if ($default === null) {
                 $this->connection->execute("ALTER TABLE {$t} ALTER COLUMN {$newName} DROP DEFAULT");
+            } elseif ($new->isDefaultExpression()) {
+                $this->connection->execute("ALTER TABLE {$t} ALTER COLUMN {$newName} SET DEFAULT " . $default);
             } elseif ($this->isCurrentTimestampDefault($default)) {
                 $this->connection->execute(
                     "ALTER TABLE {$t} ALTER COLUMN {$newName} SET DEFAULT "
@@ -377,6 +380,8 @@ class Postgresql extends AbstractAdapter
             $default = $column->getDefault();
             if ($default === null) {
                 $sql .= ' DEFAULT NULL';
+            } elseif ($column->isDefaultExpression()) {
+                $sql .= ' DEFAULT ' . $default;
             } elseif ($this->isCurrentTimestampDefault($default)) {
                 $sql .= ' DEFAULT ' . $this->functionDefaultSql((string) $default);
             } else {
@@ -466,6 +471,18 @@ class Postgresql extends AbstractAdapter
     {
         return "CASE SUBSTRING(c.column_default FROM 1 FOR 7)"
             . " WHEN 'nextval' THEN 1 ELSE 0 END";
+    }
+
+    /**
+     * A function call with no quotes, for example gen_random_uuid(). A text
+     * has quotes ('foo()'::character varying). CURRENT_TIMESTAMP has its own
+     * handling.
+     */
+    protected function isDefaultExpression(mixed $default): bool
+    {
+        return is_string($default)
+            && preg_match('/^[a-z_][a-z0-9_.]*\(.*\)$/is', $default) === 1
+            && !$this->isCurrentTimestampDefault($default);
     }
 
     protected function mapType(string $infoType, string $extended): string

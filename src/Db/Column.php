@@ -63,6 +63,12 @@ final class Column
     private bool $autoIncrement;
     private string $comment;
     private mixed $default;
+
+    /**
+     * The default is an expression, for example gen_random_uuid(): the DDL
+     * writes it with no quotes (PostgreSQL)
+     */
+    private bool $defaultExpression;
     private bool $first;
     private bool $hasDefault;
     private bool $notNull;
@@ -95,6 +101,8 @@ final class Column
         $this->comment       = $definition['comment']       ?? '';
         $this->onUpdate      = $definition['onUpdate']      ?? null;
         $this->options       = $definition['options']       ?? null;
+
+        $this->defaultExpression = (bool) ($definition['defaultExpression'] ?? false);
 
         if (array_key_exists('default', $definition)) {
             $this->default    = $definition['default'];
@@ -158,6 +166,11 @@ final class Column
     public function isAutoIncrement(): bool
     {
         return $this->autoIncrement;
+    }
+
+    public function isDefaultExpression(): bool
+    {
+        return $this->defaultExpression;
     }
 
     public function isFirst(): bool
