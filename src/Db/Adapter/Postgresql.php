@@ -20,6 +20,7 @@ use Phalcon\Migrations\Db\Reference;
 use function explode;
 use function is_string;
 use function sprintf;
+use function str_starts_with;
 use function strtolower;
 use function strtoupper;
 use function trim;
@@ -144,9 +145,11 @@ class Postgresql extends AbstractAdapter
 
     public function dropIndex(string $table, string $schema, string $name): void
     {
-        $n = $this->connection->quoteIdentifier(
-            $schema !== '' ? $schema . '.' . $name : $name
-        );
+        $n = $this->connection->quoteIdentifier($name);
+        if ($schema !== '') {
+            $n = $this->connection->quoteIdentifier($schema) . '.' . $n;
+        }
+
         $this->connection->execute("DROP INDEX IF EXISTS {$n}");
     }
 
@@ -500,6 +503,11 @@ class Postgresql extends AbstractAdapter
 
     protected function processDefault(mixed $value, string $type): mixed
     {
+        // A serial column: the auto increment flag covers nextval('...'::regclass)
+        if (is_string($value) && str_starts_with(strtolower($value), 'nextval(')) {
+            return null;
+        }
+
         if (is_string($value)) {
             $parts = explode('::', $value);
             if (count($parts) === 2) {
