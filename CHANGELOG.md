@@ -32,6 +32,7 @@
 - Fixed a new SQLite table getting no foreign keys: SQLite can create a foreign key only in the `CREATE TABLE`, and the `CREATE TABLE` left out the `references` of the definition ([#249](https://github.com/phalcon/migrations/issues/249))
 - Fixed `--dry`: `generate --dry` with `--data` (or `--exportDataFromTables`) still exported the data, into a folder that the dry run did not create (a `TypeError`); now a dry run writes no data file. `run --dry` ran the migrations for real; now it stops with the error "The --dry option is for generate only." ([#252](https://github.com/phalcon/migrations/issues/252))
 - Fixed the DB log turning off the MySQL foreign key checks on its own connection (`SET FOREIGN_KEY_CHECKS=0`), which had no effect on the migrations; use `--skip-foreign-checks` to turn the checks off for a run ([#254](https://github.com/phalcon/migrations/issues/254))
+- Fixed `composer.json` having the version `4.0.0` after the release of `v4.0.1`; the `version` field is removed, and the tags give the version ([#256](https://github.com/phalcon/migrations/issues/256))
 - Fixed the last foreign key or index of a table staying in the database: `generate` left out the `references` and `indexes` keys when the table had none, so the morph did not sync them; the keys are now always in the file, as empty lists ([#227](https://github.com/phalcon/migrations/issues/227))
 
 ## Changed
