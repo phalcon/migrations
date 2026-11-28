@@ -19,6 +19,13 @@ use Phalcon\Migrations\Db\Connection;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils\Config;
 
+use function array_column;
+use function array_map;
+use function array_values;
+use function implode;
+use function ltrim;
+use function sprintf;
+
 abstract class AbstractPostgresqlTestCase extends AbstractTestCase
 {
     protected static ?AdapterInterface $db = null;

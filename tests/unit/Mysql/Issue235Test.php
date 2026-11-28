@@ -15,6 +15,8 @@ namespace Phalcon\Migrations\Tests\Unit\Mysql;
 
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
+use function array_keys;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/235
  */

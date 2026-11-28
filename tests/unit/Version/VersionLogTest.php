@@ -18,6 +18,8 @@ use Phalcon\Migrations\Tests\AbstractTestCase;
 use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Version\ItemCollection;
 
+use function file_get_contents;
+
 /**
  * Completed versions must be ordered naturally (1.0.2 before 1.0.10),
  * both in the `.phalcon/migration-version` file and in the log table.

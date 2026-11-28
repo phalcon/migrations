@@ -22,6 +22,8 @@ use function ob_get_clean;
 use function ob_start;
 use function preg_match_all;
 
+use const PREG_SET_ORDER;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/105
  */

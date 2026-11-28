@@ -19,6 +19,18 @@ use Phalcon\Migrations\Db\Connection;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Utils\Config;
 
+use function array_column;
+use function array_values;
+use function implode;
+use function intval;
+use function is_null;
+use function is_string;
+use function ltrim;
+use function ob_end_clean;
+use function ob_start;
+use function rtrim;
+use function sprintf;
+
 abstract class AbstractMysqlTestCase extends AbstractTestCase
 {
     protected static ?AdapterInterface $db = null;

@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Phalcon\Migrations\Db;
 
+use function is_int;
+use function method_exists;
+
 /**
  * Converts a Phalcon\Db\ColumnInterface (integer type constants) to our
  * Column (string type constants) so that migration files generated before

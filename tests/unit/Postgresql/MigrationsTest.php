@@ -18,6 +18,12 @@ use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
+use function count;
+use function file_get_contents;
+use function ob_end_clean;
+use function ob_start;
+use function substr_count;
+
 final class MigrationsTest extends AbstractPostgresqlTestCase
 {
     /**

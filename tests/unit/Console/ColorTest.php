@@ -16,6 +16,10 @@ namespace Phalcon\Migrations\Tests\Unit\Console;
 use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Tests\AbstractTestCase;
 
+use function substr_count;
+
+use const PHP_EOL;
+
 final class ColorTest extends AbstractTestCase
 {
     public function testColorizeReturnsOriginalStringWhenShellNotSupported(): void

@@ -17,10 +17,12 @@ use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 
+use function array_map;
 use function implode;
 use function in_array;
 use function preg_match;
 use function sprintf;
+use function str_contains;
 use function strtolower;
 use function strtoupper;
 

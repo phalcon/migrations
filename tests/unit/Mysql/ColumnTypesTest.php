@@ -18,6 +18,13 @@ use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+use function ob_end_clean;
+use function ob_start;
+use function sprintf;
+
+use const PHP_INT_MAX;
+use const PHP_INT_MIN;
+
 final class ColumnTypesTest extends AbstractMysqlTestCase
 {
     public static function columnsDataProvider(): array

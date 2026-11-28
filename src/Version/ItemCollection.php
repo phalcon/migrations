@@ -16,6 +16,7 @@ namespace Phalcon\Migrations\Version;
 use LogicException;
 
 use function array_values;
+use function count;
 use function krsort;
 use function ksort;
 use function preg_match;

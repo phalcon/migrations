@@ -22,6 +22,16 @@ use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 use function count;
+use function current;
+use function date;
+use function file_exists;
+use function file_get_contents;
+use function is_dir;
+use function ob_end_clean;
+use function ob_start;
+use function scandir;
+use function sprintf;
+use function substr_count;
 
 final class MigrationsTest extends AbstractMysqlTestCase
 {

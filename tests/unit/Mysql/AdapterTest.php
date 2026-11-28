@@ -20,6 +20,9 @@ use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
+use function array_column;
+use function preg_match;
+
 final class AdapterTest extends AbstractMysqlTestCase
 {
     private Mysql $adapter;

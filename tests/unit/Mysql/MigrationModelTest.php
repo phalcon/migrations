@@ -26,6 +26,14 @@ use Phalcon\Migrations\Tests\Fakes\Mvc\Model\MigrationFake;
 use Phalcon\Migrations\Utils\Config;
 use Phalcon\Migrations\Version\ItemCollection;
 
+use function array_map;
+use function file_put_contents;
+use function mkdir;
+use function ob_end_clean;
+use function ob_start;
+use function sort;
+use function touch;
+
 final class MigrationModelTest extends AbstractMysqlTestCase
 {
     protected function setUp(): void

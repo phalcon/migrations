@@ -18,6 +18,12 @@ use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
+use function is_dir;
+use function ltrim;
+use function mkdir;
+use function rmdir;
+use function unlink;
+
 abstract class AbstractTestCase extends TestCase
 {
     /**

@@ -17,6 +17,8 @@ use Phalcon\Migrations\Db\Column;
 use Phalcon\Migrations\Db\Reference;
 use Phalcon\Migrations\Tests\AbstractCliTestCase;
 
+use function file_get_contents;
+
 final class GenerateTest extends AbstractCliTestCase
 {
     private string $configPath = 'tests/_data/cli/migrations.php';

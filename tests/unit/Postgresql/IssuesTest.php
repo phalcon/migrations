@@ -21,6 +21,11 @@ use Phalcon\Migrations\Db\Index as MigrationIndex;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
+use function array_shift;
+use function count;
+use function ob_end_clean;
+use function ob_start;
+
 final class IssuesTest extends AbstractPostgresqlTestCase
 {
     public function testIssue1(): void

@@ -24,6 +24,7 @@ use function substr;
 
 use const PHP_EOL;
 use const PHP_OS;
+use const STDOUT;
 
 /**
  * Allows to generate messages using colors on xterm, ddterm, linux, etc.

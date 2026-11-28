@@ -16,6 +16,9 @@ namespace Phalcon\Migrations\Tests\Unit\Postgresql;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractPostgresqlTestCase;
 
+use function ob_end_clean;
+use function ob_start;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/104
  */

@@ -20,7 +20,13 @@ use Phalcon\Migrations\Exception\InvalidArgumentException;
 use Phalcon\Migrations\Observer\Profiler;
 use Phalcon\Migrations\Utils\Config;
 
+use function assert;
+use function is_array;
 use function is_int;
+use function microtime;
+use function sprintf;
+use function str_replace;
+use function strtolower;
 
 final class Connection
 {

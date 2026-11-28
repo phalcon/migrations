@@ -29,6 +29,7 @@ use Phalcon\Migrations\Version\ItemInterface;
 
 use function addcslashes;
 use function addslashes;
+use function array_map;
 use function array_merge;
 use function array_replace;
 use function array_unique;

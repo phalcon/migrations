@@ -17,6 +17,9 @@ use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Script\ScriptException;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
+use function ob_end_clean;
+use function ob_start;
+
 final class IssuesTest extends AbstractMysqlTestCase
 {
     /**

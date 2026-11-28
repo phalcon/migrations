@@ -18,6 +18,9 @@ use Phalcon\Migrations\Db\Index;
 use Phalcon\Migrations\Migrations;
 use Phalcon\Migrations\Tests\AbstractMysqlTestCase;
 
+use function ob_end_clean;
+use function ob_start;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/94
  */

@@ -21,6 +21,8 @@ use function ob_end_clean;
 use function ob_start;
 use function token_get_all;
 
+use const TOKEN_PARSE;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/225
  */

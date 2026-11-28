@@ -24,6 +24,8 @@ use function ob_start;
 use function preg_match;
 use function preg_match_all;
 
+use const PREG_SET_ORDER;
+
 /**
  * @see https://github.com/phalcon/migrations/issues/139
  * @see https://github.com/phalcon/migrations/issues/218
