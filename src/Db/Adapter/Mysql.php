@@ -123,15 +123,26 @@ class Mysql extends AbstractAdapter
 
     public function getTableOptions(string $schema, string $table): array
     {
-        return $this->connection->fetchOne(
+        $options = $this->connection->fetchOne(
             "SELECT engine           AS engine,
                     table_collation  AS table_collation,
-                    auto_increment   AS auto_increment
+                    auto_increment   AS auto_increment,
+                    create_options   AS create_options
              FROM   information_schema.tables
              WHERE  table_schema = :schema
              AND    table_name   = :table",
             ['schema' => $schema, 'table' => $table]
         );
+
+        // The ROW_FORMAT only when the table sets it. The row_format column
+        // also gives the default of the server.
+        $createOptions = (string) ($options['create_options'] ?? '');
+        unset($options['create_options']);
+        if (preg_match('/\brow_format=(\w+)/i', $createOptions, $matches) === 1) {
+            $options['row_format'] = strtoupper($matches[1]);
+        }
+
+        return $options;
     }
 
     public function listIndexes(string $schema, string $table): array

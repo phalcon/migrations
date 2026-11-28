@@ -8,6 +8,7 @@
 - Added the `truncate` option (`--truncate` and `application.truncate`) for `run`: `batchInsert()` empties the table in its transaction before it loads the data, so a version with data (`--data=always`) does not insert the same rows again over the rows of an earlier version ([#83](https://github.com/phalcon/migrations/issues/83))
 - Added the column comments on PostgreSQL: `createTable()`, `addColumn()` and `modifyColumn()` set them with `COMMENT ON COLUMN` (before, the comments were read but never written) ([#89](https://github.com/phalcon/migrations/issues/89))
 - Added the MySQL `SET` column type (`Column::TYPE_SET`): it is read, generated and created with its values, as `ENUM`. Before, `generate` wrote a `SET` column as `TYPE_VARCHAR` with a size ([#155](https://github.com/phalcon/migrations/issues/155))
+- Added the MySQL `ROW_FORMAT` to the generated table options, when the table sets it (`create_options`), so that a table created from the migration file gets it. The morph does not change the options of a table that exists ([#125](https://github.com/phalcon/migrations/issues/125))
 
 ## Fixed
 
